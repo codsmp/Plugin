@@ -309,7 +309,7 @@ public final class PaperSpellEngine {
                 living.damage(Math.max(1.0D, power), player);
             }
         }
-        player.getWorld().spawnParticle(seismic ? Particle.BLOCK_CRACK : Particle.WATER_SPLASH, player.getLocation(), 28, 1.0, 0.4, 1.0, 0.12);
+        player.getWorld().spawnParticle(seismic ? Particle.BLOCK_CRUMBLE : Particle.SPLASH, player.getLocation(), 28, 1.0, 0.4, 1.0, 0.12);
     }
 
     private void strikeNearest(Player player, double damage, double range, boolean lightning) {
@@ -360,7 +360,7 @@ public final class PaperSpellEngine {
     }
 
     private void shieldSelf(Player player, double amount, int durationTicks) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, durationTicks, 0, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, durationTicks, 0, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, durationTicks, Math.max(0, (int) Math.round(amount / 4.0D)), true, true, true));
     }
 
@@ -377,8 +377,8 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
                 living.damage(Math.max(1.0D, damage), player);
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 2, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 100, 2, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 2, true, true, true));
             }
         }
     }
@@ -395,8 +395,8 @@ public final class PaperSpellEngine {
     }
 
     private void stoneBulwark(Player player, double amount, double range) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 120, 1, true, true, true));
-        player.getWorld().spawnParticle(Particle.BLOCK_CRACK, player.getLocation(), 40, 0.9, 0.6, 0.9, 0.2);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 120, 1, true, true, true));
+        player.getWorld().spawnParticle(Particle.BLOCK_CRUMBLE, player.getLocation(), 40, 0.9, 0.6, 0.9, 0.2);
         this.knockbackNearby(player, amount, range, true);
     }
 
@@ -412,9 +412,9 @@ public final class PaperSpellEngine {
     private void beaconPulse(Player player, double amount, double range, int durationTicks) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living) {
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, durationTicks, 0, true, true, true));
-            }
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
+                double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
         }
         this.healSelf(player, amount, true);
     }
@@ -435,7 +435,7 @@ public final class PaperSpellEngine {
     private void timeSlow(Player player, double damage, double range, int durationTicks) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, durationTicks, 3, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 3, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, durationTicks, 1, true, true, true));
                 living.damage(Math.max(1.0D, damage / 2.0D), player);
             }
@@ -446,7 +446,7 @@ public final class PaperSpellEngine {
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, durationTicks, 0, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, Math.max(40, durationTicks / 2), 0, true, true, true));
-        player.getWorld().spawnParticle(Particle.SMOKE_NORMAL, player.getLocation(), 24, 0.4, 0.7, 0.4, 0.05);
+        player.getWorld().spawnParticle(Particle.SMOKE, player.getLocation(), 24, 0.4, 0.7, 0.4, 0.05);
     }
 
     private void shadowBurst(Player player, double damage, double range) {
@@ -458,8 +458,8 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, durationTicks, 0, true, true, true));
-                double maxHealth = living.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null ? living.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() : 20.0D;
+                living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
+                double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
                 living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
             }
         }
@@ -484,20 +484,20 @@ public final class PaperSpellEngine {
     private void explorationReveal(Player player, double range, int durationTicks) {
         player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, durationTicks, 0, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, durationTicks, 0, true, true, true));
-        player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation(), 20, range / 6.0D, 1.0, range / 6.0D, 0.15);
+        player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 20, range / 6.0D, 1.0, range / 6.0D, 0.15);
     }
 
     private void mobilityLeap(Player player, double power, double range) {
         Vector velocity = player.getLocation().getDirection().normalize().multiply(Math.max(0.8D, range / 6.0D));
         velocity.setY(Math.max(0.8D, power / 2.5D));
         player.setVelocity(velocity);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 80, 2, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 80, 2, true, true, true));
     }
 
     private void craftingTemper(Player player, double power, int durationTicks) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, durationTicks, 1, true, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, durationTicks, 0, true, true, true));
-        player.getWorld().spawnParticle(Particle.CRIT_MAGIC, player.getLocation(), 18, 0.5, 0.6, 0.5, 0.1);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, durationTicks, 1, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
+        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation(), 18, 0.5, 0.6, 0.5, 0.1);
     }
 
     private void summonHelper(Player player, double power) {
@@ -506,7 +506,7 @@ public final class PaperSpellEngine {
             allay.setCustomNameVisible(true);
             allay.setPersistent(false);
         }) != null) {
-            player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation(), 16, 0.4, 0.6, 0.4, 0.05);
+            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 16, 0.4, 0.6, 0.4, 0.05);
             return;
         }
         player.getWorld().spawn(player.getLocation().add(-1, 0, -1), Wolf.class, wolf -> {
@@ -526,7 +526,7 @@ public final class PaperSpellEngine {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, durationTicks / 2, 0, true, true, true));
             }
         }
-        player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation(), 36, 0.8, 0.8, 0.8, 0.1);
+        player.getWorld().spawnParticle(Particle.WITCH, player.getLocation(), 36, 0.8, 0.8, 0.8, 0.1);
     }
 
     private void corruptionRift(Player player, double damage, double range, int durationTicks) {
@@ -541,11 +541,11 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 60, 1, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 1, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, witherAmplifier, true, true, true));
             }
         }
-        player.getWorld().spawnParticle(Particle.SMOKE_LARGE, player.getLocation(), 40, 0.8, 0.7, 0.8, 0.04);
+        player.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation(), 40, 0.8, 0.7, 0.8, 0.04);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 0.8F, 0.7F);
     }
 
@@ -555,8 +555,8 @@ public final class PaperSpellEngine {
         int slowAmplifier = manaState.archetype() == PlayerArchetype.STAFF ? 3 : 2;
         for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
             if (entity instanceof LivingEntity living && living != player) {
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, freezeTicks, slowAmplifier, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, freezeTicks, 1, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, freezeTicks, slowAmplifier, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, freezeTicks, 1, true, true, true));
                 living.setFreezeTicks(Math.max(living.getFreezeTicks(), freezeTicks));
             }
         }
@@ -612,12 +612,12 @@ public final class PaperSpellEngine {
         boolean staff = manaState.archetype() == PlayerArchetype.STAFF;
         if (staff) {
             this.shuffleFullInventory(target);
-            target.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 100, 0, true, true, true));
-            target.getWorld().spawnParticle(Particle.SPELL_WITCH, target.getLocation(), 18, 0.6, 0.6, 0.6, 0.08);
+            target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, true, true, true));
+            target.getWorld().spawnParticle(Particle.WITCH, target.getLocation(), 18, 0.6, 0.6, 0.6, 0.08);
         } else {
             this.shuffleHotbar(target);
-            target.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 50, 0, true, true, true));
-            target.getWorld().spawnParticle(Particle.CRIT_MAGIC, target.getLocation(), 12, 0.4, 0.4, 0.4, 0.06);
+            target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 50, 0, true, true, true));
+            target.getWorld().spawnParticle(Particle.CRIT, target.getLocation(), 12, 0.4, 0.4, 0.4, 0.06);
         }
         target.getWorld().playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.8F, staff ? 0.7F : 1.3F);
     }
@@ -675,7 +675,7 @@ public final class PaperSpellEngine {
     }
 
     private void landMeteor(Player source, Location impact, double damage) {
-        impact.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, impact, 1, 0.0, 0.0, 0.0, 0.0);
+        impact.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, impact, 1, 0.0, 0.0, 0.0, 0.0);
         impact.getWorld().spawnParticle(Particle.FLAME, impact, 28, 0.6, 0.6, 0.6, 0.05);
         impact.getWorld().playSound(impact, Sound.ENTITY_GENERIC_EXPLODE, 1.0F, 0.8F);
         for (Entity entity : source.getNearbyEntities(8.0D, 8.0D, 8.0D)) {
@@ -683,7 +683,7 @@ public final class PaperSpellEngine {
                 double distance = living.getLocation().distance(impact);
                 if (distance <= 4.0D) {
                     this.damageIgnoringArmor(living, damage, source);
-                    living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 1, true, true, true));
+                    living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1, true, true, true));
                 }
             }
         }
@@ -698,7 +698,7 @@ public final class PaperSpellEngine {
                 double distance = living.getLocation().distance(impact);
                 if (distance <= 3.0D) {
                     this.damageIgnoringArmor(living, damage, source);
-                    living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, stunTicks, 4, true, true, true));
+                    living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, stunTicks, 4, true, true, true));
                 }
             }
         }
@@ -802,11 +802,11 @@ public final class PaperSpellEngine {
             }
             case BLAZE, MAGMA_CUBE, GHAST, STRIDER, ZOMBIFIED_PIGLIN -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, duration, 0, true, true, true));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, archetype == PlayerArchetype.STAFF ? 1 : 0, true, true, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, duration, archetype == PlayerArchetype.STAFF ? 1 : 0, true, true, true));
             }
             case SPIDER, BEE, BAT -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, 1, true, true, true));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, duration, 1, true, true, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, duration, 1, true, true, true));
             }
             case DROWNED, GUARDIAN, ELDER_GUARDIAN, SQUID, GLOW_SQUID -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, duration, 0, true, true, true));
@@ -814,7 +814,7 @@ public final class PaperSpellEngine {
             }
             case ZOMBIE, SKELETON, HUSK, STRAY, WITHER_SKELETON, PHANTOM -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, duration, 1, true, true, true));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, archetype == PlayerArchetype.STAFF ? 1 : 0, true, true, true));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, duration, archetype == PlayerArchetype.STAFF ? 1 : 0, true, true, true));
             }
             default -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, duration, 0, true, true, true));
@@ -832,7 +832,7 @@ public final class PaperSpellEngine {
             double offsetZ = ThreadLocalRandom.current().nextDouble(-spread, spread);
             Location impact = player.getLocation().clone().add(offsetX, 0, offsetZ);
             impact.setY(impact.getWorld().getHighestBlockYAt(impact) + 1.0D);
-            impact.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, impact, 1, 0.0, 0.0, 0.0, 0.0);
+            impact.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, impact, 1, 0.0, 0.0, 0.0, 0.0);
             impact.getWorld().spawnParticle(Particle.FLAME, impact, 24, 0.5, 0.5, 0.5, 0.08);
             impact.getWorld().playSound(impact, Sound.ENTITY_GENERIC_EXPLODE, 1.0F, manaState.archetype() == PlayerArchetype.STAFF ? 0.8F : 1.0F);
             for (Entity entity : player.getNearbyEntities(spread + 2.0D, spread + 2.0D, spread + 2.0D)) {
@@ -871,8 +871,8 @@ public final class PaperSpellEngine {
     }
 
     private double maxHealth(LivingEntity entity) {
-        return entity.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null
-                ? entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()
+        return entity.getAttribute(Attribute.MAX_HEALTH) != null
+            ? entity.getAttribute(Attribute.MAX_HEALTH).getValue()
                 : 20.0D;
     }
 
