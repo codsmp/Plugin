@@ -1,0 +1,58 @@
+name: Auto Build & Release
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Paper plugin (skip tests)
+        run: ./gradlew :relicbound-paper:clean :relicbound-paper:build -x test --no-daemon
+
+      - name: Locate built JAR
+        id: find_jar
+        run: |
+          set -e
+          JAR=$(ls relicbound-paper/build/libs/*.jar | head -n1 || true)
+          if [ -z "$JAR" ]; then echo "No JAR found"; exit 1; fi
+          echo "jar=$JAR" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ github.run_number }}-${{ github.sha }}
+          release_name: Release ${{ github.run_number }}
+          body: Automated build release from main
+          draft: false
+          prerelease: false
+
+      - name: Upload JAR to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_jar.outputs.jar }}
+          asset_name: relicbound-paper-${{ github.run_number }}.jar
+          asset_content_type: application/java-archive
