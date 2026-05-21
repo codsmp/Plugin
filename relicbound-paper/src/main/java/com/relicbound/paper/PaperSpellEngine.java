@@ -415,6 +415,8 @@ public final class PaperSpellEngine {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
                 double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
+                living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
+            }
         }
         this.healSelf(player, amount, true);
     }
