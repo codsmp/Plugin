@@ -78,3 +78,5 @@ public final class PaperPlatformAdapter implements PlatformAdapter {
     public PlayerManaStateRepository playerManaStateRepository() {
         return new YamlPlayerManaStateRepository(this.plugin);
     }
+
+}
