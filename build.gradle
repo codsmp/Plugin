@@ -1,7 +1,3 @@
-plugins {
-    id 'java' apply false
-}
-
 allprojects {
     group = 'com.relicbound'
     version = '0.1.0-SNAPSHOT'
