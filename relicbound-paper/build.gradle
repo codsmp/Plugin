@@ -1,4 +1,5 @@
 dependencies {
     implementation project(':relicbound-core')
-    compileOnly 'io.papermc.paper:paper-api:1.26.1-R0.1-SNAPSHOT'
+    def paperApiVersion = project.hasProperty('paperApiVersion') ? project.property('paperApiVersion') : '26.1.2-R0.1-SNAPSHOT'
+    compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
 }
