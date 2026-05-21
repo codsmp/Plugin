@@ -26,6 +26,8 @@ Spell items use custom model data and vanilla Minecraft item textures, so an exi
 
 Tagged GitHub releases publish both the plugin jar and the resource pack zip. The Paper plugin can optionally push the resource pack to players on join through `relicbound-paper/src/main/resources/config.yml`.
 
+The plugin jar is compiled for Java 21, so the server that loads it needs Java 21 or newer.
+
 ## Current scope
 
 The implementation is functional as a Paper-first gameplay slice. Future loaders still need their own adapters and the broader boss, quest, event, and world systems are not complete yet.
