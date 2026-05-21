@@ -49,21 +49,33 @@ jobs:
           if [ -z "$JAR" ]; then echo "No JAR found"; exit 1; fi
           echo "jar=$JAR" >> $GITHUB_OUTPUT
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Get project version
+        id: get_version
+        run: |
+          set -e
+          # Try to read version from root build.gradle (format: version = 'x.y.z')
+          VERSION=$(grep -E "^\s*version\s*=\s*'[^']+'" build.gradle | sed -E "s/.*'([^']+)'.*/\1/" || true)
+          if [ -z "$VERSION" ]; then
+            # fallback to run number + sha
+            VERSION="${{ github.run_number }}-${{ github.sha }}"
+          fi
+          # ensure tag starts with v
+          if [[ "$VERSION" == v* ]]; then
+            TAG="$VERSION"
+          else
+            TAG="v$VERSION"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create Release and upload artifact
+        uses: ncipollo/release-action@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: v${{ github.run_number }}-${{ github.sha }}
-          release_name: Release ${{ github.run_number }}
+          tag: v${{ github.run_number }}-${{ github.sha }}
+          name: Release ${{ github.run_number }}
+          files: ${{ steps.find_jar.outputs.jar }}
           body: Automated build release from main
           draft: false
           prerelease: false
-
-      - name: Upload JAR to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_jar.outputs.jar }}
-          asset_name: relicbound-paper-${{ github.run_number }}.jar
-          asset_content_type: application/java-archive
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
