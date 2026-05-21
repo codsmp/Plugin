@@ -160,7 +160,7 @@ public class DefaultRelicboundCore implements RelicboundCore {
             throw new IllegalStateException("Core is not initialized");
         }
         return this.getPlayerManaState(playerId)
-                .orElseGet(() -> this.context.manaService().initializePlayerMana(playerId, archetype, System.currentTimeMillis()));
+            .orElseGet(() -> this.context.manaService().initializePlayerMana(playerId, archetype));
     }
 
     @Override
