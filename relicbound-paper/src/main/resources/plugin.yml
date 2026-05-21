@@ -1,16 +1,16 @@
 name: RelicboundSMP
 main: com.relicbound.paper.RelicboundPaperPlugin
 version: 0.1.0-SNAPSHOT
-api-version: '26.1.2'
+api-version: '1.21'
 author: Relicbound SMP
 load: POSTWORLD
 commands:
-	relicbound:
-		description: View your relic state.
-		usage: /relicbound
-		permission: relicbound.command.info
+  relicbound:
+    description: View your relic state.
+    usage: /relicbound
+    permission: relicbound.command.info
 permissions:
-	relicbound.command.info:
-		default: true
-	relicbound.admin.grant:
-		default: op
+  relicbound.command.info:
+    default: true
+  relicbound.admin.grant:
+    default: op
