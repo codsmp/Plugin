@@ -41,32 +41,10 @@ jobs:
           arguments: ':relicbound-paper:clean :relicbound-paper:build -x test'
           gradle-version: '8.8'
 
-      - name: Locate built JAR
-        id: find_jar
+      - name: Verify built JAR exists
         run: |
           set -euo pipefail
-          # Search common locations for an existing plugin jar. This lets us upload a vendored jar
-          # even if the Gradle build failed (for example due to missing paper-api on the runner).
-          CANDIDATES=( \
-            "relicbound-paper/build/libs/*.jar" \
-            "relicbound-paper/release/*.jar" \
-            "release/*.jar" \
-          )
-          FOUND=""
-          for p in "${CANDIDATES[@]}"; do
-            for f in $p; do
-              if [ -f "$f" ]; then
-                FOUND="$f"
-                break 2
-              fi
-            done
-          done
-          if [ -z "$FOUND" ]; then
-            echo "No JAR found in build or release paths. Searched: ${CANDIDATES[*]}"
-            exit 1
-          fi
-          echo "Found JAR: $FOUND"
-          echo "jar=$FOUND" >> $GITHUB_OUTPUT
+          ls -l relicbound-paper/build/libs/*.jar
 
       - name: Get project version
         id: get_version
@@ -88,13 +66,12 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Create Release and upload artifact
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
-          tag: ${{ steps.get_version.outputs.tag }}
-          name: ${{ steps.get_version.outputs.version }}
-          files: ${{ steps.find_jar.outputs.jar }}
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: Relicbound SMP ${{ steps.get_version.outputs.version }}
+          files: |
+            relicbound-paper/build/libs/*.jar
           body: Automated build release from main
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
