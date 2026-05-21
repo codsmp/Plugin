@@ -1,5 +1,10 @@
 dependencies {
     implementation project(':relicbound-core')
-    def paperApiVersion = project.hasProperty('paperApiVersion') ? project.property('paperApiVersion') : '26.1.2-R0.1-SNAPSHOT'
-    compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+    def paperApiVersion = project.hasProperty('paperApiVersion') ? project.property('paperApiVersion') : '1.26.1-R0.1-SNAPSHOT'
+    def localJar = file('libs/paper-api.jar')
+    if (localJar.exists()) {
+        compileOnly files(localJar)
+    } else {
+        compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+    }
 }
