@@ -20,38 +20,6 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew || true
 
-      - name: Ensure Paper API jar is available
-        run: |
-          set -euo pipefail
-          mkdir -p relicbound-paper/libs
-          # read paperApiVersion from gradle.properties
-          PAPER_VER=$(grep -E '^paperApiVersion\s*=' gradle.properties | sed -E "s/.*=\s*//" | tr -d '\r' || true)
-          if [ -z "$PAPER_VER" ]; then
-            echo "paperApiVersion not set in gradle.properties; please vendor a paper-api.jar into relicbound-paper/libs/"
-            exit 1
-          fi
-          echo "Attempting to download paper-api ${PAPER_VER} into relicbound-paper/libs/paper-api.jar"
-          URLS=( \
-            "https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/${PAPER_VER}/paper-api-${PAPER_VER}.jar" \
-            "https://repo.maven.apache.org/maven2/io/papermc/paper/paper-api/${PAPER_VER}/paper-api-${PAPER_VER}.jar" \
-          )
-          SUCCESS=0
-          for u in "${URLS[@]}"; do
-            echo "Trying $u"
-            if curl -fsSL "$u" -o relicbound-paper/libs/paper-api.jar; then
-              echo "Downloaded paper-api jar from $u"
-              SUCCESS=1
-              break
-            else
-              echo "Failed to download from $u"
-            fi
-          done
-          if [ "$SUCCESS" -ne 1 ]; then
-            echo "Could not download paper-api jar for version ${PAPER_VER}."
-            echo "Please place the correct paper-api jar at relicbound-paper/libs/paper-api.jar and re-run the workflow."
-            exit 1
-          fi
-
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
@@ -69,7 +37,6 @@ jobs:
 
       - name: Run Gradle build (no wrapper required)
         uses: gradle/gradle-build-action@v2
-        continue-on-error: true
         with:
           arguments: ':relicbound-paper:clean :relicbound-paper:build -x test'
           gradle-version: '8.8'
@@ -84,7 +51,6 @@ jobs:
             "relicbound-paper/build/libs/*.jar" \
             "relicbound-paper/release/*.jar" \
             "release/*.jar" \
-            "relicbound-paper/libs/*.jar" \
           )
           FOUND=""
           for p in "${CANDIDATES[@]}"; do
