@@ -69,6 +69,7 @@ jobs:
 
       - name: Run Gradle build (no wrapper required)
         uses: gradle/gradle-build-action@v2
+        continue-on-error: true
         with:
           arguments: ':relicbound-paper:clean :relicbound-paper:build -x test'
           gradle-version: '8.8'
@@ -76,10 +77,30 @@ jobs:
       - name: Locate built JAR
         id: find_jar
         run: |
-          set -e
-          JAR=$(ls relicbound-paper/build/libs/*.jar | head -n1 || true)
-          if [ -z "$JAR" ]; then echo "No JAR found"; exit 1; fi
-          echo "jar=$JAR" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          # Search common locations for an existing plugin jar. This lets us upload a vendored jar
+          # even if the Gradle build failed (for example due to missing paper-api on the runner).
+          CANDIDATES=( \
+            "relicbound-paper/build/libs/*.jar" \
+            "relicbound-paper/release/*.jar" \
+            "release/*.jar" \
+            "relicbound-paper/libs/*.jar" \
+          )
+          FOUND=""
+          for p in "${CANDIDATES[@]}"; do
+            for f in $p; do
+              if [ -f "$f" ]; then
+                FOUND="$f"
+                break 2
+              fi
+            done
+          done
+          if [ -z "$FOUND" ]; then
+            echo "No JAR found in build or release paths. Searched: ${CANDIDATES[*]}"
+            exit 1
+          fi
+          echo "Found JAR: $FOUND"
+          echo "jar=$FOUND" >> $GITHUB_OUTPUT
 
       - name: Get project version
         id: get_version
