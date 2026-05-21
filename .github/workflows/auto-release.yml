@@ -71,8 +71,8 @@ jobs:
       - name: Create Release and upload artifact
         uses: ncipollo/release-action@v1
         with:
-          tag: v${{ github.run_number }}-${{ github.sha }}
-          name: Release ${{ github.run_number }}
+          tag: ${{ steps.get_version.outputs.tag }}
+          name: ${{ steps.get_version.outputs.version }}
           files: ${{ steps.find_jar.outputs.jar }}
           body: Automated build release from main
           draft: false
