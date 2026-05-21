@@ -31,13 +31,15 @@ jobs:
         with:
           path: |
             ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build Paper plugin (skip tests)
-        run: ./gradlew :relicbound-paper:clean :relicbound-paper:build -x test --no-daemon
+      - name: Run Gradle build (no wrapper required)
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: ':relicbound-paper:clean :relicbound-paper:build -x test'
+          gradle-version: '8.8'
 
       - name: Locate built JAR
         id: find_jar
