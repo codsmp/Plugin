@@ -1,0 +1,9 @@
+:root{
+  --rb-primary: #3f51b5;
+  --rb-accent: #ff4081;
+}
+body.md-content {
+  font-family: Inter, Roboto, Arial, Helvetica, sans-serif;
+}
+h1,h2,h3{ color:var(--rb-primary); }
+.md-headernav__title { font-weight:700; }

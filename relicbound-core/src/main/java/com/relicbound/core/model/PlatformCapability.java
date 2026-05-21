@@ -1,0 +1,14 @@
+package com.relicbound.core.model;
+
+public enum PlatformCapability {
+    ITEM_COMPONENTS,
+    CUSTOM_MODEL_DATA,
+    ACTION_BAR,
+    BOSS_BAR,
+    RESOURCE_PACK_PROMPT,
+    REGIONS_THREADED_EXECUTION,
+    MODDED_ITEM_RENDERING,
+    DATABASE_BACKGROUND_IO,
+    CUSTOM_SOUND_EVENTS,
+    CUSTOM_PARTICLES
+}

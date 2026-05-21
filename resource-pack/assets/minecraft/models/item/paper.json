@@ -1,0 +1,236 @@
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "minecraft:item/paper"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2001
+                                        },
+                          "model":  "relicbound:item/spell/ember_burst"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2002
+                                        },
+                          "model":  "relicbound:item/spell/phoenix_dash"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2101
+                                        },
+                          "model":  "relicbound:item/spell/tide_salve"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2102
+                                        },
+                          "model":  "relicbound:item/spell/undertow_wave"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2201
+                                        },
+                          "model":  "relicbound:item/spell/thunder_lance"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2202
+                                        },
+                          "model":  "relicbound:item/spell/tempest_chain"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2301
+                                        },
+                          "model":  "relicbound:item/spell/gravity_snare"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2302
+                                        },
+                          "model":  "relicbound:item/spell/rift_step"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2401
+                                        },
+                          "model":  "relicbound:item/spell/dawn_aegis"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2402
+                                        },
+                          "model":  "relicbound:item/spell/sanctify"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2501
+                                        },
+                          "model":  "relicbound:item/spell/root_bind"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2502
+                                        },
+                          "model":  "relicbound:item/spell/bloom_mend"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2601
+                                        },
+                          "model":  "relicbound:item/spell/seismic_line"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2602
+                                        },
+                          "model":  "relicbound:item/spell/bulwark_wall"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2701
+                                        },
+                          "model":  "relicbound:item/spell/starfall"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2702
+                                        },
+                          "model":  "relicbound:item/spell/astral_beacon"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2801
+                                        },
+                          "model":  "relicbound:item/spell/rewind_step"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2802
+                                        },
+                          "model":  "relicbound:item/spell/slow_field"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2901
+                                        },
+                          "model":  "relicbound:item/spell/veil_strike"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2902
+                                        },
+                          "model":  "relicbound:item/spell/umbra_walk"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3001
+                                        },
+                          "model":  "relicbound:item/spell/rally_chant"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3002
+                                        },
+                          "model":  "relicbound:item/spell/life_tether"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3101
+                                        },
+                          "model":  "relicbound:item/spell/coin_blessing"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3201
+                                        },
+                          "model":  "relicbound:item/spell/trail_reveal"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3301
+                                        },
+                          "model":  "relicbound:item/spell/sky_leap"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3401
+                                        },
+                          "model":  "relicbound:item/spell/temper_touch"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3501
+                                        },
+                          "model":  "relicbound:item/spell/echo_call"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3601
+                                        },
+                          "model":  "relicbound:item/spell/blight_wave"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3602
+                                        },
+                          "model":  "relicbound:item/spell/abyss_rift"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3701
+                                        },
+                          "model":  "relicbound:item/spell/withering_cripple"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3702
+                                        },
+                          "model":  "relicbound:item/spell/meteor_surge"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3703
+                                        },
+                          "model":  "relicbound:item/spell/meteor_rain"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3704
+                                        },
+                          "model":  "relicbound:item/spell/malfunction"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3705
+                                        },
+                          "model":  "relicbound:item/spell/lifedrain"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3706
+                                        },
+                          "model":  "relicbound:item/spell/lightning_charges"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3707
+                                        },
+                          "model":  "relicbound:item/spell/frostbite"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3708
+                                        },
+                          "model":  "relicbound:item/spell/cooker"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3709
+                                        },
+                          "model":  "relicbound:item/spell/gourmet"
+                      }
+                  ]
+}
