@@ -125,7 +125,7 @@ public final class PaperSpellEngine {
             existing.cancel();
         }
 
-        LifeDrainSession session = new LifeDrainSession(playerId, player.getName());
+        LifeDrainSession session = new LifeDrainSession(playerId, spell.id(), manaState.archetype());
         this.lifeDrainSessions.put(playerId, session);
         session.startFinalizeTask(this.plugin, () -> this.finalizeLifeDrain(playerId));
         player.getWorld().spawnParticle(Particle.DRAGON_BREATH, player.getLocation(), 24, 0.4, 0.6, 0.4, 0.05);
@@ -506,7 +506,7 @@ public final class PaperSpellEngine {
             allay.setCustomNameVisible(true);
             allay.setPersistent(false);
         }) != null) {
-            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 16, 0.4, 0.6, 0.4, 0.05);
+            player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation(), 16, 0.4, 0.6, 0.4, 0.05);
             return;
         }
         player.getWorld().spawn(player.getLocation().add(-1, 0, -1), Wolf.class, wolf -> {
@@ -704,11 +704,7 @@ public final class PaperSpellEngine {
         }
     }
 
-    private void beginLifeDrain(Player player, SpellDefinition spell, PlayerManaState manaState) {
-        this.lifeDrainSessions.put(player.getUniqueId(), new LifeDrainSession(player.getUniqueId(), spell.id(), manaState.archetype()));
-        player.getWorld().spawnParticle(Particle.SOUL, player.getLocation(), 20, 0.4, 0.5, 0.4, 0.04);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.7F, 1.2F);
-    }
+    
 
     private void damageIgnoringArmor(LivingEntity living, double damage, Player source) {
         double newHealth = Math.max(0.0D, living.getHealth() - damage);

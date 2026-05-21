@@ -18,7 +18,9 @@ public final class EssenceGainListener implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (event.getEntity().getKiller() instanceof Player player && event.getEntity() instanceof Monster) {
+        Object killer = event.getEntity().getKiller();
+        if (killer instanceof Player && event.getEntity() instanceof Monster) {
+            Player player = (Player) killer;
             this.core.grantEssence(player.getUniqueId().toString(), "combat", 8);
         }
     }
