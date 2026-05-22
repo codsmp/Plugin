@@ -13,7 +13,7 @@ public final class SpellCombatListener implements Listener {
         this.spellEngine = spellEngine;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) {
             return;

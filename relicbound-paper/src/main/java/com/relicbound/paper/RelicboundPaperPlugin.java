@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class RelicboundPaperPlugin extends JavaPlugin {
     private RelicboundCore core;
     private PaperSpellEngine spellEngine;
+    private PlayerTrustStore trustStore;
 
     @Override
     public void onEnable() {
@@ -24,13 +25,16 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
                 adapter.playerRelicStateRepository(),
                 adapter.playerManaStateRepository()
         ));
-            this.spellEngine = new PaperSpellEngine(this, this.core);
+        this.spellEngine = new PaperSpellEngine(this, this.core);
+        this.trustStore = new PlayerTrustStore(this);
         Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
-            Bukkit.getPluginManager().registerEvents(new SpellMenuListener(this, this.core, this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new SpellMenuListener(this, this.core, this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new EssenceGainListener(this.core), this);
         Bukkit.getPluginManager().registerEvents(new ArchetypeSelectionListener(this.core), this);
-            Bukkit.getPluginManager().registerEvents(new SpellCombatListener(this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new SpellCombatListener(this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new SpellWandListener(this.core, this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore), this);
 
         // Start mana-related tasks
         new ManaBarDisplay(this, this.core).startDisplayTask();
@@ -43,6 +47,10 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             if (this.getCommand("relicboundupgrade") != null) this.getCommand("relicboundupgrade").setExecutor(executor);
             if (this.getCommand("relicboundgrant") != null) this.getCommand("relicboundgrant").setExecutor(executor);
             if (this.getCommand("rb") != null) this.getCommand("rb").setExecutor(executor);
+        }
+
+        if (this.getCommand("trust") != null) {
+            this.getCommand("trust").setExecutor(new TrustCommand(this, this.trustStore));
         }
     }
 

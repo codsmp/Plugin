@@ -6,9 +6,6 @@ import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.PlayerRelicState;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -59,50 +56,14 @@ public final class RelicJoinListener implements Listener {
         }
 
         // Give a starter item appropriate for the saved archetype (if any)
-        if (manaStateOptional.isPresent()) {
-            giveStarterForArchetype(player, manaStateOptional.get().archetype());
-        }
+        manaStateOptional.ifPresent(m -> StarterItemUtil.giveStarterItem(player, m.archetype()));
     }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
         // Give the appropriate starter item for their archetype after respawn
-        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> giveStarterForArchetype(player, m.archetype()));
-    }
-
-    private void giveStarterForArchetype(Player player, PlayerArchetype archetype) {
-        String itemName = ChatColor.GOLD + archetype.displayName();
-        boolean hasItem = false;
-        for (ItemStack it : player.getInventory().getContents()) {
-            if (it == null) continue;
-            ItemMeta m = it.getItemMeta();
-            if (m != null && m.hasDisplayName() && itemName.equals(m.getDisplayName())) {
-                hasItem = true;
-                break;
-            }
-        }
-
-        if (!hasItem) {
-            Material material = archetype == PlayerArchetype.WAND ? Material.STICK : Material.BLAZE_ROD;
-            ItemStack item = new ItemStack(material);
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null) {
-                meta.setDisplayName(itemName);
-                java.util.List<String> lore = new java.util.ArrayList<>();
-                lore.add(ChatColor.AQUA + "A simple " + archetype.displayName() + " to channel your relic.");
-                lore.add(ChatColor.GRAY + "Right-click to cast spells.");
-                meta.setLore(lore);
-                item.setItemMeta(meta);
-            }
-
-            if (player.getInventory().firstEmpty() != -1) {
-                player.getInventory().addItem(item);
-            } else {
-                player.getWorld().dropItemNaturally(player.getLocation(), item);
-            }
-            player.sendMessage(ChatColor.AQUA + "You received a starter " + archetype.displayName() + ".");
-        }
+        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> StarterItemUtil.giveStarterItem(player, m.archetype()));
     }
 
     @EventHandler

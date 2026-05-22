@@ -25,6 +25,9 @@ commands:
     description: Alias for /relicbound
     usage: /rb
     permission: relicbound.command.info
+  trust:
+    description: Trust a player so they cannot damage you.
+    usage: /trust <player>
 permissions:
   relicbound.command.info:
     default: true
