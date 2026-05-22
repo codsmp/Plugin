@@ -43,22 +43,7 @@ public final class ArchetypeSelectionListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         StarterItemUtil.giveStarterItem(player, archetype);
 
-        int granted = 0;
-        for (SpellDefinition spell : this.core.allSpells()) {
-            if (spell.requiredTier() != com.relicbound.core.model.RelicTier.TIER_1) {
-                continue;
-            }
-            try {
-                this.core.learnSpell(playerId, spell.id());
-                this.core.equipSpell(playerId, spell.id());
-            } catch (Exception ignored) {
-                // Starter loadout should not fail the selection flow.
-            }
-            granted++;
-            if (granted >= 2) {
-                break;
-            }
-        }
+        StarterLoadoutUtil.grantRandomStarterLoadout(this.core, playerId);
 
         event.getWhoClicked().closeInventory();
         event.getWhoClicked().sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "You have chosen the path of the " + archetype.displayName() + ChatColor.YELLOW + "!");

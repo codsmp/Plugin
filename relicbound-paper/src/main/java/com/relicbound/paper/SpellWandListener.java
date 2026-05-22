@@ -150,20 +150,11 @@ public final class SpellWandListener implements Listener {
         );
 
         PlayerManaState updated = manaState;
-        int starterSpellCount = 0;
-        for (SpellDefinition spell : this.core.allSpells()) {
-            if (spell.requiredTier() != com.relicbound.core.model.RelicTier.TIER_1) {
-                continue;
-            }
-            if (starterSpellCount >= 2) {
-                break;
-            }
-            starterSpellCount++;
+        for (SpellDefinition spell : StarterLoadoutUtil.randomStarterSpells(this.core)) {
             if (!relicState.unlockedAbilities().contains(spell.id())) {
                 try {
                     this.core.learnSpell(player.getUniqueId().toString(), spell.id());
                 } catch (IllegalStateException ignored) {
-                    // If we cannot learn the spell yet, keep scanning for another starter option.
                     continue;
                 }
             }
@@ -173,7 +164,7 @@ public final class SpellWandListener implements Listener {
             try {
                 updated = this.core.equipSpell(player.getUniqueId().toString(), spell.id());
             } catch (IllegalStateException ignored) {
-                // If a spell cannot be equipped, keep trying other starter spells.
+                // If a spell cannot be equipped, keep trying the remaining starter options.
             }
         }
         return updated;
