@@ -50,6 +50,16 @@ public final class PaperSpellEngine {
     private final double GLOBAL_DAMAGE_BUFF = 1.5D;
     private final double GLOBAL_COOLDOWN_MULTIPLIER = 0.9D;
     private final double GLOBAL_RANGE_MULTIPLIER = 1.1D;
+        private final java.util.Set<com.relicbound.core.model.SpellEffectType> BOOSTED_EFFECTS = java.util.EnumSet.of(
+            SpellEffectType.FIRE_CONE,
+            SpellEffectType.FIRE_DASH,
+            SpellEffectType.STORM_STRIKE,
+            SpellEffectType.STORM_CHAIN,
+            SpellEffectType.STORM_CHARGES,
+            SpellEffectType.CELESTIAL_METEOR,
+            SpellEffectType.CELESTIAL_METEOR_RAIN,
+            SpellEffectType.CELESTIAL_FALL
+        );
 
     public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore) {
         this.plugin = plugin;
@@ -316,7 +326,15 @@ public final class PaperSpellEngine {
     }
 
     private double scaledDamage(SpellDefinition spell, PlayerArchetype archetype) {
-        return spell.power() * archetype.damageMultiplier() * this.GLOBAL_DAMAGE_BUFF;
+        double base = spell.power() * archetype.damageMultiplier() * this.GLOBAL_DAMAGE_BUFF;
+        if (this.BOOSTED_EFFECTS.contains(spell.effectType())) {
+            double boost = 2.0D; // boosted effects deal roughly double
+            if (archetype == PlayerArchetype.STAFF) {
+                boost *= 1.25D; // heavy archetype deals more on boosted spells
+            }
+            return base * boost;
+        }
+        return base;
     }
 
     private double effectiveRange(double range) {
