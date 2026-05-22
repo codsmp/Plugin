@@ -3,6 +3,7 @@ package com.relicbound.paper;
 import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.PlayerRelicState;
 import com.relicbound.core.model.RelicFamily;
+import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -28,26 +29,32 @@ public final class SpellMenu {
     }
 
     public void open(Player player) {
+        this.open(player, SpellMenuMode.ASSIGN);
+    }
+
+    public void open(Player player, SpellMenuMode mode) {
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), player.getUniqueId().getMostSignificantBits());
-        SpellMenuHolder holder = new SpellMenuHolder(player.getUniqueId().toString());
-        Inventory inventory = Bukkit.createInventory(holder, 54, ChatColor.DARK_BLUE + "Spellbound Arsenal");
+        SpellMenuHolder holder = new SpellMenuHolder(player.getUniqueId().toString(), mode);
+        String title = mode == SpellMenuMode.REWARD ? ChatColor.DARK_GREEN + "Choose Your Spell" : ChatColor.DARK_BLUE + "Spellbound Arsenal";
+        Inventory inventory = Bukkit.createInventory(holder, 54, title);
         holder.setInventory(inventory);
 
         List<SpellDefinition> spells = this.core.allSpells().stream()
                 .sorted(Comparator.comparing(SpellDefinition::displayName))
                 .toList();
         int slot = 0;
+        PlayerManaState manaState = this.core.getPlayerManaState(player.getUniqueId().toString()).orElse(null);
         for (SpellDefinition spell : spells) {
             if (slot >= inventory.getSize()) {
                 break;
             }
             boolean unlocked = state.unlockedAbilities().contains(spell.id());
-            inventory.setItem(slot++, createSpellItem(spell, unlocked, state));
+            inventory.setItem(slot++, createSpellItem(spell, unlocked, state, manaState, mode));
         }
         player.openInventory(inventory);
     }
 
-    private ItemStack createSpellItem(SpellDefinition spell, boolean unlocked, PlayerRelicState state) {
+    private ItemStack createSpellItem(SpellDefinition spell, boolean unlocked, PlayerRelicState state, PlayerManaState manaState, SpellMenuMode mode) {
         ItemStack item = new ItemStack(unlocked ? Material.PAPER : Material.BARRIER);
         ItemMeta meta = item.getItemMeta();
         if (spell.icon().customModelData() != null) {
@@ -68,10 +75,27 @@ public final class SpellMenu {
             lore.add(ChatColor.GRAY + "Affinity: " + ChatColor.WHITE + family.name());
         }
         lore.add(ChatColor.GRAY + spell.description());
-        if (!unlocked) {
-            lore.add(ChatColor.RED + "Locked until your relic reaches the required tier.");
+        if (mode == SpellMenuMode.ASSIGN) {
+            if (!unlocked) {
+                lore.add(ChatColor.RED + "Locked until your relic reaches the required tier.");
+            } else {
+                boolean primary = manaState != null && !manaState.equippedSpellIds().isEmpty() && manaState.equippedSpellIds().get(0).equals(spell.id());
+                boolean secondary = manaState != null && manaState.equippedSpellIds().size() > 1 && manaState.equippedSpellIds().get(1).equals(spell.id());
+                if (primary) {
+                    lore.add(ChatColor.GREEN + "Primary spell.");
+                }
+                if (secondary) {
+                    lore.add(ChatColor.AQUA + "Secondary spell.");
+                }
+                lore.add(ChatColor.YELLOW + "Left click to make this your primary spell.");
+                lore.add(ChatColor.YELLOW + "Right click to make this your secondary spell.");
+            }
         } else {
-            lore.add(ChatColor.GREEN + "Click to cast.");
+            if (!unlocked) {
+                lore.add(ChatColor.RED + "Locked until your relic reaches the required tier.");
+            } else {
+                lore.add(ChatColor.GREEN + "Click to claim this spell reward.");
+            }
         }
         lore.add(ChatColor.DARK_GRAY + "Unlocked spells: " + state.unlockedAbilities().size());
         meta.setLore(lore);

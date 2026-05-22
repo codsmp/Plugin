@@ -29,7 +29,8 @@ public final class RelicMenuListener implements Listener {
                     try {
                         this.core.upgradeTier(player.getUniqueId().toString());
                         player.sendMessage(ChatColor.GREEN + "Your relic grows stronger.");
-                        new RelicMenu(this.core).open(player);
+                        SpellSelectionSession.beginRewardSelection(player.getUniqueId().toString());
+                        new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
                     } catch (IllegalStateException exception) {
                         player.sendMessage(ChatColor.RED + exception.getMessage());
                     }

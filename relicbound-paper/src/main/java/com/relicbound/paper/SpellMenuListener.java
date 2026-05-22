@@ -1,6 +1,7 @@
 package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
+import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -8,9 +9,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class SpellMenuListener implements Listener {
     private final JavaPlugin plugin;
@@ -48,10 +53,32 @@ public final class SpellMenuListener implements Listener {
             player.sendMessage(ChatColor.RED + "That spell no longer exists.");
             return;
         }
+
+        SpellMenuHolder holder = (SpellMenuHolder) event.getInventory().getHolder();
+        SpellMenuMode mode = holder.mode();
         try {
-            this.spellEngine.cast(player, spellDefinition);
-            player.sendMessage(ChatColor.AQUA + "Cast " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.AQUA + ".");
-            new SpellMenu(this.plugin, this.core).open(player);
+            if (mode == SpellMenuMode.ASSIGN) {
+                if (!this.core.getOrCreateStartingState(player.getUniqueId().toString(), player.getUniqueId().getMostSignificantBits()).unlockedAbilities().contains(spellDefinition.id())) {
+                    player.sendMessage(ChatColor.RED + "That spell is not unlocked yet.");
+                    return;
+                }
+
+                if (event.getClick() == ClickType.LEFT) {
+                    this.assignSpellSlot(player, spellDefinition.id(), 0);
+                    player.sendMessage(ChatColor.AQUA + "Set " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.AQUA + " as your primary spell.");
+                } else if (event.getClick() == ClickType.RIGHT) {
+                    this.assignSpellSlot(player, spellDefinition.id(), 1);
+                    player.sendMessage(ChatColor.AQUA + "Set " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.AQUA + " as your secondary spell.");
+                } else {
+                    player.sendMessage(ChatColor.GRAY + "Left click for primary. Right click for secondary.");
+                }
+                new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.ASSIGN);
+            } else {
+                SpellSelectionSession.completeRewardSelection(player.getUniqueId().toString());
+                this.claimRewardSpell(player, spellDefinition.id());
+                player.sendMessage(ChatColor.GOLD + "You claimed " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.GOLD + ".");
+                new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.ASSIGN);
+            }
         } catch (IllegalStateException exception) {
             player.sendMessage(ChatColor.RED + exception.getMessage());
         }
@@ -59,8 +86,58 @@ public final class SpellMenuListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (event.getInventory().getHolder() instanceof SpellMenuHolder) {
-            // no-op
+        if (event.getInventory().getHolder() instanceof SpellMenuHolder holder) {
+            if (holder.mode() == SpellMenuMode.REWARD && event.getPlayer() instanceof Player player) {
+                String playerId = player.getUniqueId().toString();
+                if (SpellSelectionSession.isRewardSelectionPending(playerId)) {
+                    this.plugin.getServer().getScheduler().runTask(this.plugin, () -> {
+                        if (player.isOnline() && SpellSelectionSession.isRewardSelectionPending(playerId)) {
+                            new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
+                        }
+                    });
+                }
+            }
         }
+    }
+
+    private void claimRewardSpell(Player player, String spellId) {
+        String playerId = player.getUniqueId().toString();
+        this.core.learnSpell(playerId, spellId);
+        PlayerManaState manaState = this.core.getPlayerManaState(playerId).orElse(null);
+        if (manaState == null) {
+            return;
+        }
+        if (manaState.equippedSpellIds().size() >= 2 || manaState.equippedSpellIds().contains(spellId)) {
+            return;
+        }
+        this.core.equipSpell(playerId, spellId);
+    }
+
+    private void assignSpellSlot(Player player, String spellId, int slot) {
+        String playerId = player.getUniqueId().toString();
+        PlayerManaState manaState = this.core.getPlayerManaState(playerId).orElseThrow(() -> new IllegalStateException("No mana state found for player"));
+        List<String> equipped = new ArrayList<>(manaState.equippedSpellIds());
+        equipped.remove(spellId);
+        while (equipped.size() < slot) {
+            equipped.add("");
+        }
+        if (slot >= equipped.size()) {
+            equipped.add(spellId);
+        } else {
+            equipped.add(slot, spellId);
+        }
+        equipped.removeIf(String::isBlank);
+        if (equipped.size() > 2) {
+            equipped = new ArrayList<>(equipped.subList(0, 2));
+        }
+        this.core.savePlayerManaState(new PlayerManaState(
+                manaState.playerId(),
+                manaState.archetype(),
+                manaState.currentMana(),
+                manaState.maxMana(),
+                List.copyOf(equipped),
+                manaState.availableScrollIds(),
+                manaState.lastManaRegenTime()
+        ));
     }
 }
