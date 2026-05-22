@@ -210,7 +210,7 @@ public final class PaperSpellEngine {
         switch (effect) {
             case FIRE_CONE -> this.damageNearby(player, scaledPower, spell.range(), true, false);
             case FIRE_DASH -> this.dashForward(player, spell.range(), 0.8D, true);
-            case WATER_HEAL -> this.healSelf(player, spell.power(), true);
+            case WATER_HEAL -> this.tideSalve(player, spell.power(), spell.range());
             case WATER_WAVE -> this.knockbackNearby(player, scaledPower, spell.range(), false);
             case STORM_STRIKE -> this.strikeNearest(player, scaledPower, spell.range(), true);
             case STORM_CHAIN -> this.chainStrike(player, scaledPower, spell.range());
@@ -371,6 +371,29 @@ public final class PaperSpellEngine {
                 player.removePotionEffect(effect.getType());
             }
         });
+    }
+
+    private void tideSalve(Player player, double amount, double range) {
+        for (Entity entity : player.getNearbyEntities(range, range, range)) {
+            if (entity instanceof LivingEntity living) {
+                double maxHealth = this.maxHealth(living);
+                living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 0, true, true, true));
+                // Remove weaker debuffs: weakness and small burns/poison; extinguish fire ticks
+                living.removePotionEffect(PotionEffectType.WEAKNESS);
+                living.removePotionEffect(PotionEffectType.POISON);
+                // Wither is more severe; remove only short instances
+                PotionEffect wither = living.getPotionEffect(PotionEffectType.WITHER);
+                if (wither != null && wither.getDuration() <= 100) {
+                    living.removePotionEffect(PotionEffectType.WITHER);
+                }
+                living.setFireTicks(0);
+            }
+        }
+        // Also heal the caster and show particles
+        this.healSelf(player, amount, true);
+        player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation(), 24, 0.6, 0.6, 0.6, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_BOTTLE_FILL, 0.9F, 1.0F);
     }
 
     private void rootNearby(Player player, double damage, double range) {
