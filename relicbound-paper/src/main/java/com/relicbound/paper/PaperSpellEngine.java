@@ -46,6 +46,11 @@ public final class PaperSpellEngine {
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
     private final PlayerTrustStore trustStore;
 
+    // Global tuning multipliers for combat readiness
+    private final double GLOBAL_DAMAGE_BUFF = 1.5D;
+    private final double GLOBAL_COOLDOWN_MULTIPLIER = 0.9D;
+    private final double GLOBAL_RANGE_MULTIPLIER = 1.1D;
+
     public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore) {
         this.plugin = plugin;
         this.core = core;
@@ -211,30 +216,30 @@ public final class PaperSpellEngine {
         this.epicCastBurst(player, spell, manaState);
         double scaledPower = this.scaledDamage(spell, manaState.archetype());
         switch (effect) {
-            case FIRE_CONE -> this.emberBurst(player, scaledPower, spell.range(), manaState.archetype());
-            case FIRE_DASH -> this.dashForward(player, spell.range(), 0.8D, true);
-            case WATER_HEAL -> this.tideSalve(player, spell.power(), spell.range());
-            case WATER_WAVE -> this.knockbackNearby(player, scaledPower, spell.range(), false);
-            case STORM_STRIKE -> this.thunderLance(player, scaledPower, spell.range(), manaState.archetype());
-            case STORM_CHAIN -> this.tempestChain(player, scaledPower, spell.range(), manaState.archetype());
-            case VOID_PULL -> this.gravitySnare(player, scaledPower, spell.range(), manaState.archetype());
-            case VOID_BLINK -> this.blinkForward(player, spell.range());
+            case FIRE_CONE -> this.emberBurst(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
+            case FIRE_DASH -> this.dashForward(player, effectiveRange(spell.range()), 0.8D, true);
+            case WATER_HEAL -> this.tideSalve(player, spell.power(), effectiveRange(spell.range()));
+            case WATER_WAVE -> this.knockbackNearby(player, scaledPower, effectiveRange(spell.range()), false);
+            case STORM_STRIKE -> this.thunderLance(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
+            case STORM_CHAIN -> this.tempestChain(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
+            case VOID_PULL -> this.gravitySnare(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
+            case VOID_BLINK -> this.blinkForward(player, effectiveRange(spell.range()));
             case LIGHT_SHIELD -> this.shieldSelf(player, spell.power(), spell.durationTicks());
-            case LIGHT_PURGE -> this.purgeAndHeal(player, spell.power(), spell.range());
-            case NATURE_ROOT -> this.rootNearby(player, scaledPower, spell.range());
-            case NATURE_HEAL -> this.areaHeal(player, spell.power(), spell.range());
-            case STONE_RUMBLE -> this.knockbackNearby(player, scaledPower, spell.range(), true);
-            case STONE_WALL -> this.stoneBulwark(player, spell.power(), spell.range());
-            case CELESTIAL_FALL -> this.celestialSmite(player, scaledPower, spell.range());
-            case CELESTIAL_BEACON -> this.beaconPulse(player, spell.power(), spell.range(), spell.durationTicks());
-            case TIME_REWIND -> this.rewind(player, spell.range(), spell.durationTicks());
-            case TIME_SLOW -> this.timeSlow(player, spell.power(), spell.range(), spell.durationTicks());
+            case LIGHT_PURGE -> this.purgeAndHeal(player, spell.power(), effectiveRange(spell.range()));
+            case NATURE_ROOT -> this.rootNearby(player, scaledPower, effectiveRange(spell.range()));
+            case NATURE_HEAL -> this.areaHeal(player, spell.power(), effectiveRange(spell.range()));
+            case STONE_RUMBLE -> this.knockbackNearby(player, scaledPower, effectiveRange(spell.range()), true);
+            case STONE_WALL -> this.stoneBulwark(player, spell.power(), effectiveRange(spell.range()));
+            case CELESTIAL_FALL -> this.celestialSmite(player, scaledPower, effectiveRange(spell.range()));
+            case CELESTIAL_BEACON -> this.beaconPulse(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
+            case TIME_REWIND -> this.rewind(player, effectiveRange(spell.range()), spell.durationTicks());
+            case TIME_SLOW -> this.timeSlow(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
             case SHADOW_VEIL -> this.shadowVeil(player, spell.power(), spell.durationTicks());
-            case SHADOW_BURST -> this.shadowBurst(player, scaledPower, spell.range());
-            case SUPPORT_RALLY -> this.rally(player, spell.power(), spell.range(), spell.durationTicks());
-            case SUPPORT_TETHER -> this.tether(player, spell.power(), spell.range(), spell.durationTicks());
+            case SHADOW_BURST -> this.shadowBurst(player, scaledPower, effectiveRange(spell.range()));
+            case SUPPORT_RALLY -> this.rally(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
+            case SUPPORT_TETHER -> this.tether(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
             case ECONOMY_BLESS -> this.economyBless(player, spell.power());
-            case EXPLORATION_REVEAL -> this.explorationReveal(player, spell.range(), spell.durationTicks());
+            case EXPLORATION_REVEAL -> this.explorationReveal(player, effectiveRange(spell.range()), spell.durationTicks());
             case MOBILITY_LEAP -> this.mobilityLeap(player, spell.power(), spell.range());
             case CRAFTING_TEMPER -> this.craftingTemper(player, spell.power(), spell.durationTicks());
             case SUMMONER_CALL -> this.summonHelper(player, spell.power());
@@ -303,7 +308,7 @@ public final class PaperSpellEngine {
     }
 
     private int scaledCooldownTicks(SpellDefinition spell, PlayerArchetype archetype) {
-        return Math.max(1, (int) Math.round(spell.cooldownTicks() / archetype.castSpeedMultiplier()));
+        return Math.max(1, (int) Math.round(spell.cooldownTicks() * this.GLOBAL_COOLDOWN_MULTIPLIER / archetype.castSpeedMultiplier()));
     }
 
     private int scaledManaCost(SpellDefinition spell, PlayerArchetype archetype) {
@@ -311,7 +316,11 @@ public final class PaperSpellEngine {
     }
 
     private double scaledDamage(SpellDefinition spell, PlayerArchetype archetype) {
-        return spell.power() * archetype.damageMultiplier();
+        return spell.power() * archetype.damageMultiplier() * this.GLOBAL_DAMAGE_BUFF;
+    }
+
+    private double effectiveRange(double range) {
+        return range * this.GLOBAL_RANGE_MULTIPLIER;
     }
 
     private void damageNearby(Player player, double damage, double range, boolean fire, boolean wither) {
