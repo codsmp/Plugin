@@ -1,21 +1,37 @@
 :root {
-  --rb-bg: #081018;
-  --rb-surface: rgba(10, 18, 28, 0.92);
-  --rb-surface-strong: rgba(14, 24, 38, 0.98);
-  --rb-border: rgba(140, 180, 220, 0.18);
-  --rb-text: #e7eef8;
-  --rb-muted: #a7b7ca;
+  --rb-bg: #000000;
+  --rb-surface: rgba(6, 6, 6, 0.98);
+  --rb-surface-strong: rgba(10, 10, 10, 0.99);
+  --rb-border: rgba(255, 255, 255, 0.08);
+  --rb-text: #f2f2f2;
+  --rb-muted: #a8a8a8;
   --rb-primary: #7dd3fc;
   --rb-accent: #67e8f9;
 }
 
 body {
   background:
-    radial-gradient(circle at top, rgba(39, 84, 120, 0.25), transparent 36%),
-    radial-gradient(circle at 20% 20%, rgba(20, 72, 92, 0.2), transparent 28%),
+    radial-gradient(circle at top, rgba(34, 34, 34, 0.35), transparent 34%),
+    radial-gradient(circle at 20% 20%, rgba(20, 20, 20, 0.2), transparent 28%),
     var(--rb-bg);
   color: var(--rb-text);
   font-family: Inter, Roboto, Arial, Helvetica, sans-serif;
+}
+
+.md-header,
+.md-tabs,
+.md-main,
+.md-content,
+.md-sidebar,
+.md-sidebar__scrollwrap,
+.md-footer,
+.md-footer-meta {
+  background-color: #000;
+}
+
+.md-header,
+.md-tabs {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .md-main__inner {
@@ -31,8 +47,8 @@ body {
   padding: 1.5rem 1.5rem 1.25rem;
   border: 1px solid var(--rb-border);
   border-radius: 20px;
-  background: linear-gradient(180deg, rgba(15, 24, 36, 0.95), rgba(8, 14, 22, 0.9));
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, rgba(9, 9, 9, 0.98), rgba(0, 0, 0, 0.98));
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.65);
 }
 
 .spell-eyebrow {
@@ -143,7 +159,7 @@ body {
 }
 
 .spell-markdown th {
-  background: rgba(125, 211, 252, 0.12);
+  background: rgba(125, 211, 252, 0.08);
 }
 
 .spell-markdown a {
@@ -158,4 +174,26 @@ body {
 
 .md-headernav__title {
   font-weight: 700;
+}
+
+.md-header__title,
+.md-header__button,
+.md-header__topic,
+.md-tabs__link,
+.md-nav__link,
+.md-footer-meta,
+.md-footer-meta__inner,
+.md-copyright,
+.md-footer__link,
+.md-footer__link:hover {
+  color: var(--rb-text);
+}
+
+.md-search__input,
+.md-search__form,
+.md-search__scrollwrap,
+.md-search__overlay,
+.md-search__output,
+.md-search__inner {
+  background-color: #000;
 }

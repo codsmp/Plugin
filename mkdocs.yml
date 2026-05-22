@@ -3,11 +3,10 @@ site_description: Documentation for the Relicbound SMP project
 site_author: Relicbound Team
 theme:
   name: material
-  logo: 'assets/branding/logo.svg'
   favicon: 'assets/branding/favicon.svg'
   palette:
     - scheme: slate
-      primary: 'blue grey'
+      primary: 'black'
       accent: 'cyan'
 nav:
   - Spell List: index.md
