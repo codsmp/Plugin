@@ -3,3 +3,9 @@ dependencies {
     def paperApiVersion = project.hasProperty('paperApiVersion') ? project.property('paperApiVersion') : '26.1.2.build.64-stable'
     compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
 }
+
+// Include relicbound-core classes in the plugin jar so the plugin doesn't depend on an external core jar.
+tasks.named('jar') {
+    from(project(':relicbound-core').sourceSets.main.output)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
