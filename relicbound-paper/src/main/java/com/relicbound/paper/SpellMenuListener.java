@@ -1,6 +1,7 @@
 package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
+import com.relicbound.core.model.PlayerRelicState;
 import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.ChatColor;
@@ -74,7 +75,10 @@ public final class SpellMenuListener implements Listener {
                 }
                 new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.ASSIGN);
             } else {
-                SpellSelectionSession.completeRewardSelection(player.getUniqueId().toString());
+                PlayerRelicState currentState = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
+                if (currentState != null) {
+                    this.core.savePlayerState(currentState.withPendingRewardSelection(false));
+                }
                 this.claimRewardSpell(player, spellDefinition.id());
                 player.sendMessage(ChatColor.GOLD + "You claimed " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.GOLD + ".");
                 new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.ASSIGN);
@@ -89,9 +93,11 @@ public final class SpellMenuListener implements Listener {
         if (event.getInventory().getHolder() instanceof SpellMenuHolder holder) {
             if (holder.mode() == SpellMenuMode.REWARD && event.getPlayer() instanceof Player player) {
                 String playerId = player.getUniqueId().toString();
-                if (SpellSelectionSession.isRewardSelectionPending(playerId)) {
+                PlayerRelicState state = this.core.findPlayerState(playerId).orElse(null);
+                if (state != null && state.pendingRewardSelection()) {
                     this.plugin.getServer().getScheduler().runTask(this.plugin, () -> {
-                        if (player.isOnline() && SpellSelectionSession.isRewardSelectionPending(playerId)) {
+                        PlayerRelicState refreshed = this.core.findPlayerState(playerId).orElse(null);
+                        if (player.isOnline() && refreshed != null && refreshed.pendingRewardSelection()) {
                             new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
                         }
                     });
@@ -108,9 +114,11 @@ public final class SpellMenuListener implements Listener {
             return;
         }
         if (manaState.equippedSpellIds().size() >= 2 || manaState.equippedSpellIds().contains(spellId)) {
+            player.sendMessage(ChatColor.GRAY + "The spell was added to your spellbook. Use /relicboundspells to equip it later.");
             return;
         }
         this.core.equipSpell(playerId, spellId);
+        player.sendMessage(ChatColor.GRAY + "The spell was added to your spellbook and equipped automatically.");
     }
 
     private void assignSpellSlot(Player player, String spellId, int slot) {
@@ -118,11 +126,25 @@ public final class SpellMenuListener implements Listener {
         PlayerManaState manaState = this.core.getPlayerManaState(playerId).orElseThrow(() -> new IllegalStateException("No mana state found for player"));
         List<String> equipped = new ArrayList<>(manaState.equippedSpellIds());
         equipped.remove(spellId);
-        while (equipped.size() < slot) {
+        while (equipped.size() <= slot) {
             equipped.add("");
         }
-        if (slot >= equipped.size()) {
-            equipped.add(spellId);
+        equipped.set(slot, spellId);
+        equipped.removeIf(String::isBlank);
+        if (equipped.size() > 2) {
+            equipped = new ArrayList<>(equipped.subList(0, 2));
+        }
+        this.core.savePlayerManaState(new PlayerManaState(
+                manaState.playerId(),
+                manaState.archetype(),
+                manaState.currentMana(),
+                manaState.maxMana(),
+                List.copyOf(equipped),
+                manaState.availableScrollIds(),
+                manaState.lastManaRegenTime()
+        ));
+    }
+}
         } else {
             equipped.add(slot, spellId);
         }

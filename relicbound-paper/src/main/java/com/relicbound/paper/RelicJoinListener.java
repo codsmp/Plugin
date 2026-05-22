@@ -33,6 +33,25 @@ public final class RelicJoinListener implements Listener {
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), seed);
         player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic awakens: " + ChatColor.WHITE + state.relicId());
 
+        if (state.pendingRewardSelection()) {
+            this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+                PlayerRelicState refreshed = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
+                if (refreshed == null) {
+                    return;
+                }
+                boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !refreshed.unlockedAbilities().contains(spell.id()));
+                if (refreshed.pendingRewardSelection() && hasLockedSpells) {
+                    this.core.savePlayerState(refreshed.withPendingRewardSelection(true));
+                    new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
+                } else if (!hasLockedSpells) {
+                    this.core.savePlayerState(refreshed.withPendingRewardSelection(false));
+                }
+            }, 1L);
+        }
+
         // Initialize or retrieve mana state
         java.util.Optional<com.relicbound.core.model.PlayerManaState> manaStateOptional = this.core.getPlayerManaState(player.getUniqueId().toString());
         if (manaStateOptional.isEmpty()) {

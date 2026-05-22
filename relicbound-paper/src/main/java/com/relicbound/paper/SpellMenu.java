@@ -45,6 +45,13 @@ public final class SpellMenu {
                 .toList();
         int slot = 0;
         PlayerManaState manaState = this.core.getPlayerManaState(player.getUniqueId().toString()).orElse(null);
+        if (mode == SpellMenuMode.ASSIGN) {
+            inventory.setItem(0, createLoadoutSummaryItem("Primary", manaState == null ? null : getEquippedSpell(manaState, 0)));
+            inventory.setItem(1, createLoadoutSummaryItem("Secondary", manaState == null ? null : getEquippedSpell(manaState, 1)));
+            inventory.setItem(4, createModeInfoItem(ChatColor.BLUE + "Left click"));
+            inventory.setItem(5, createModeInfoItem(ChatColor.AQUA + "Right click"));
+            slot = 9;
+        }
         if (mode == SpellMenuMode.REWARD && spells.isEmpty()) {
             inventory.setItem(22, createEmptyRewardItem());
             player.openInventory(inventory);
@@ -107,6 +114,41 @@ public final class SpellMenu {
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
+    }
+
+    private ItemStack createLoadoutSummaryItem(String label, SpellDefinition spell) {
+        ItemStack item = new ItemStack(spell == null ? Material.GRAY_DYE : Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + label);
+        List<String> lore = new ArrayList<>();
+        if (spell == null) {
+            lore.add(ChatColor.GRAY + "No spell assigned.");
+        } else {
+            lore.add(ChatColor.WHITE + spell.displayName());
+            lore.add(ChatColor.GRAY + spell.effectType().name());
+        }
+        meta.setLore(lore);
+        if (spell != null && spell.icon().customModelData() != null) {
+            meta.setCustomModelData(spell.icon().customModelData());
+        }
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack createModeInfoItem(String text) {
+        ItemStack item = new ItemStack(Material.COMPASS);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(text);
+        meta.setLore(List.of(ChatColor.GRAY + "Use the spell grid below to change your loadout."));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private SpellDefinition getEquippedSpell(PlayerManaState manaState, int slot) {
+        if (manaState.equippedSpellIds().size() <= slot) {
+            return null;
+        }
+        return this.core.findSpell(manaState.equippedSpellIds().get(slot)).orElse(null);
     }
 
     private ItemStack createEmptyRewardItem() {

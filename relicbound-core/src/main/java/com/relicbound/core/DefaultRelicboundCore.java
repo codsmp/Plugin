@@ -110,7 +110,8 @@ public class DefaultRelicboundCore implements RelicboundCore {
                 state.tier(),
                 state.currentEssence(),
                 state.essenceByType(),
-                List.copyOf(unlocked)
+            List.copyOf(unlocked),
+            state.pendingRewardSelection()
         ));
     }
 
@@ -215,7 +216,8 @@ public class DefaultRelicboundCore implements RelicboundCore {
                 state.tier(),
                 state.currentEssence(),
                 state.essenceByType(),
-                List.copyOf(unlocked)
+            List.copyOf(unlocked),
+            state.pendingRewardSelection()
         );
     }
 }

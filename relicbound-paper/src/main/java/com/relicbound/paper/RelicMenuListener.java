@@ -32,9 +32,9 @@ public final class RelicMenuListener implements Listener {
                         player.sendMessage(ChatColor.GREEN + "Your relic grows stronger.");
                         boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !upgraded.unlockedAbilities().contains(spell.id()));
                         if (hasLockedSpells) {
-                            SpellSelectionSession.beginRewardSelection(player.getUniqueId().toString());
                             new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
                         } else {
+                            this.core.savePlayerState(upgraded.withPendingRewardSelection(false));
                             player.sendMessage(ChatColor.GRAY + "You already have every spell unlocked.");
                             new RelicMenu(this.core).open(player);
                         }

@@ -9,6 +9,18 @@ public record PlayerRelicState(
         RelicTier tier,
         int currentEssence,
         Map<String, Integer> essenceByType,
-        List<String> unlockedAbilities
+        List<String> unlockedAbilities,
+        boolean pendingRewardSelection
 ) {
+    public PlayerRelicState withPendingRewardSelection(boolean pendingRewardSelection) {
+        return new PlayerRelicState(
+                this.playerId,
+                this.relicId,
+                this.tier,
+                this.currentEssence,
+                this.essenceByType,
+                this.unlockedAbilities,
+                pendingRewardSelection
+        );
+    }
 }

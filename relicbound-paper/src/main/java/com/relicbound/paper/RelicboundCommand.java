@@ -56,14 +56,20 @@ public final class RelicboundCommand implements CommandExecutor {
             }
             try {
                 PlayerRelicState before = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
-                this.core.upgradeTier(player.getUniqueId().toString());
-                PlayerRelicState after = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
+                PlayerRelicState after = this.core.upgradeTier(player.getUniqueId().toString());
                 if (after != null && (before == null || before.tier() != after.tier())) {
                     player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
                 } else {
                     player.sendMessage(ChatColor.GREEN + "Your relic has advanced.");
                 }
-                new RelicMenu(this.core).open(player);
+                boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
+                if (hasLockedSpells) {
+                    this.core.savePlayerState(after.withPendingRewardSelection(true));
+                    new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
+                } else {
+                    this.core.savePlayerState(after.withPendingRewardSelection(false));
+                    new RelicMenu(this.core).open(player);
+                }
             } catch (IllegalStateException exception) {
                 player.sendMessage(ChatColor.RED + exception.getMessage());
             }
@@ -87,11 +93,19 @@ public final class RelicboundCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Amount must be a number.");
                 return true;
             }
-            PlayerRelicState before = this.core.findPlayerState(target.getUniqueId().toString()).orElse(null);
             PlayerRelicState after = this.core.grantEssence(target.getUniqueId().toString(), args[2], amount);
             sender.sendMessage(ChatColor.GREEN + "Granted essence to " + target.getName() + ".");
             target.sendMessage(ChatColor.AQUA + "You received " + amount + " " + args[2] + " essence.");
-            if (after != null && (before == null || before.tier() != after.tier())) {
+            if (after != null) {
+                boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
+                if (hasLockedSpells && after.pendingRewardSelection()) {
+                    this.core.savePlayerState(after.withPendingRewardSelection(true));
+                    new SpellMenu(this.plugin, this.core).open(target, SpellMenuMode.REWARD);
+                } else if (!hasLockedSpells) {
+                    this.core.savePlayerState(after.withPendingRewardSelection(false));
+                }
+            }
+            if (after != null && after.pendingRewardSelection()) {
                 target.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
             }
             return true;

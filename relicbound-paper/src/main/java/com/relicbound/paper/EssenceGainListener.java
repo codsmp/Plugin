@@ -2,6 +2,7 @@ package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.PlayerRelicState;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -9,11 +10,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public final class EssenceGainListener implements Listener {
+    private final JavaPlugin plugin;
     private final RelicboundCore core;
 
-    public EssenceGainListener(RelicboundCore core) {
+    public EssenceGainListener(JavaPlugin plugin, RelicboundCore core) {
+        this.plugin = plugin;
         this.core = core;
     }
 
@@ -54,5 +58,15 @@ public final class EssenceGainListener implements Listener {
             return;
         }
         player.sendMessage(org.bukkit.ChatColor.GOLD + "[Relicbound] " + org.bukkit.ChatColor.YELLOW + "Your relic automatically advanced to " + org.bukkit.ChatColor.WHITE + after.tier().name() + org.bukkit.ChatColor.YELLOW + "!");
+        boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
+        if (hasLockedSpells) {
+            Bukkit.getScheduler().runTask(this.plugin, () -> {
+                if (player.isOnline()) {
+                    new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
+                }
+            });
+        } else {
+            this.core.savePlayerState(after.withPendingRewardSelection(false));
+        }
     }
 }

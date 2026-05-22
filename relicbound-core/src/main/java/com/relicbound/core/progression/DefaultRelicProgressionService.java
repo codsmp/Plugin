@@ -20,7 +20,8 @@ public final class DefaultRelicProgressionService implements RelicProgressionSer
                 state.tier(),
                 Math.max(0, state.currentEssence() + amount),
                 Map.copyOf(essenceByType),
-                state.unlockedAbilities()
+            state.unlockedAbilities(),
+            state.pendingRewardSelection()
         );
     }
 
@@ -40,7 +41,8 @@ public final class DefaultRelicProgressionService implements RelicProgressionSer
                 nextTier,
                 Math.max(0, state.currentEssence() - requiredEssence),
                 state.essenceByType(),
-                state.unlockedAbilities()
+            state.unlockedAbilities(),
+            true
         );
     }
 
