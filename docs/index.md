@@ -1,12 +1,16 @@
-![Relicbound logo](assets/branding/logo.svg)
+<div class="spell-page-shell">
+	<section class="spell-hero">
+		<p class="spell-eyebrow">Relicbound SMP</p>
+		<h1>Minecraft Cod SMP Full Spell Ability List</h1>
+		<p class="spell-subtitle">A dark, markdown-driven spell compendium for the GitHub Pages site.</p>
+		<div class="spell-loader-state" id="spell-loader-state">Loading spell markdown...</div>
+	</section>
 
-# Relicbound SMP
+	<section class="spell-panel">
+		<article id="spell-markdown" class="spell-markdown" aria-live="polite"></article>
+	</section>
+</div>
 
-Official documentation and branding for the Relicbound SMP Minecraft project.
-
-Welcome to the docs site. Use the navigation to the left to find installation instructions, development notes, and API references.
-
-## Quick links
-
-- Getting started
-- Development notes
+<script>
+	window.RELICBOUND_SPELL_MARKDOWN_URL = 'https://raw.githubusercontent.com/codsmp/Plugin/main/docs/spell-compendium.md';
+</script>

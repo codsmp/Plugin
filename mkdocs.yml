@@ -6,11 +6,11 @@ theme:
   logo: 'assets/branding/logo.svg'
   favicon: 'assets/branding/favicon.svg'
   palette:
-    - scheme: default
-      primary: 'indigo'
-      accent: 'pink'
+    - scheme: slate
+      primary: 'blue grey'
+      accent: 'cyan'
 nav:
-  - Home: index.md
+  - Spell List: index.md
   - Getting Started:
       - Installation: getting-started/installation.md
       - Usage: getting-started/usage.md
@@ -19,3 +19,6 @@ nav:
       - Paper: development/paper.md
 extra_css:
   - 'assets/css/extra.css'
+extra_javascript:
+  - 'https://cdn.jsdelivr.net/npm/marked/marked.min.js'
+  - 'assets/js/spell-loader.js'
