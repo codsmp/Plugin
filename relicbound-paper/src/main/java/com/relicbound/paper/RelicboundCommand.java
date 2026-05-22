@@ -22,17 +22,14 @@ public final class RelicboundCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
-            String cmdName = command.getName().toLowerCase();
-            // Support dedicated subcommands registered as separate commands
-            if ("relicboundspells".equals(cmdName)) {
-                args = new String[] { "spells" };
-            } else if ("relicboundupgrade".equals(cmdName)) {
-                args = new String[] { "upgrade" };
-            } else if ("relicboundgrant".equals(cmdName)) {
-                // leave args as provided (grant requires extra args)
-            } else if ("rb".equals(cmdName)) {
-                // treat /rb as /relicbound
+        if (command.getName().equalsIgnoreCase("relicboundspells")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("Players only.");
+                return true;
             }
+            new SpellMenu(this.plugin, this.core).open(player);
+            return true;
+        }
         if (args.length == 0) {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("Usage: /relicbound <spells|upgrade|grant>");

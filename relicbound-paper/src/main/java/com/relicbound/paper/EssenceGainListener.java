@@ -19,9 +19,13 @@ public final class EssenceGainListener implements Listener {
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         Object killer = event.getEntity().getKiller();
-        if (killer instanceof Player && event.getEntity() instanceof Monster) {
-            Player player = (Player) killer;
-            this.core.grantEssence(player.getUniqueId().toString(), "combat", 8);
+        if (killer instanceof Player player) {
+            if (event.getEntity() instanceof Monster) {
+                this.core.grantEssence(player.getUniqueId().toString(), "combat", 8);
+            } else if (event.getEntity() instanceof Player) {
+                // PvP gives slightly more essence
+                this.core.grantEssence(player.getUniqueId().toString(), "combat", 12);
+            }
         }
     }
 
@@ -29,7 +33,7 @@ public final class EssenceGainListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         Material type = event.getBlock().getType();
-        if (type.name().endsWith("_ORE") || type == Material.ANCIENT_DEBRIS) {
+        if (type.name().endsWith("_ORE")) {
             this.core.grantEssence(player.getUniqueId().toString(), "mining", 6);
         }
     }
