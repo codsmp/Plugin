@@ -50,18 +50,15 @@ jobs:
         id: get_version
         run: |
           set -e
-          # Try to read version from root build.gradle (format: version = 'x.y.z')
+          # Derive a short base version if present in build.gradle
           VERSION=$(grep -E "^\s*version\s*=\s*'[^']+'" build.gradle | sed -E "s/.*'([^']+)'.*/\1/" || true)
           if [ -z "$VERSION" ]; then
-            # fallback to run number + sha
-            VERSION="${{ github.run_number }}-${{ github.sha }}"
+            VERSION="snapshot"
           fi
-          # ensure tag starts with v
-          if [[ "$VERSION" == v* ]]; then
-            TAG="$VERSION"
-          else
-            TAG="v$VERSION"
-          fi
+          # Compose a unique tag: v{version}-{timestamp}-{runNumber}-{shortSha}
+          SHORT_SHA=${GITHUB_SHA:0:7}
+          TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
+          TAG="v${VERSION}-${TIMESTAMP}-${{ github.run_number }}-${SHORT_SHA}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
