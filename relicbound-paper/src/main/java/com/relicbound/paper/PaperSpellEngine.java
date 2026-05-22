@@ -640,13 +640,21 @@ public final class PaperSpellEngine {
     }
 
     private void rally(Player player, double amount, double range, int durationTicks) {
+        // Give the caster a stronger personal buff immediately
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 1, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, durationTicks, 0, true, true, true));
+        this.healSelf(player, amount * 1.5D, true);
+
+        // Apply improved rally effects to nearby allies (excluding the caster)
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
-            if (entity instanceof LivingEntity living) {
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
+            if (entity instanceof LivingEntity living && living != player) {
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 1, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, durationTicks, 0, true, true, true));
                 if (!canReceiveHealing(player, living)) continue;
                 double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
-                living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
+                living.setHealth(Math.min(maxHealth, living.getHealth() + amount * 1.5D));
             }
         }
     }
