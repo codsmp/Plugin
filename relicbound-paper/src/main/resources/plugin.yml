@@ -9,6 +9,22 @@ commands:
     description: View your relic state.
     usage: /relicbound
     permission: relicbound.command.info
+  relicboundspells:
+    description: Open the relic spells menu.
+    usage: /relicboundspells
+    permission: relicbound.command.info
+  relicboundupgrade:
+    description: Upgrade your relic tier.
+    usage: /relicboundupgrade
+    permission: relicbound.command.info
+  relicboundgrant:
+    description: Grant essence to a player (admin).
+    usage: /relicboundgrant <player> <essenceType> <amount>
+    permission: relicbound.admin.grant
+  rb:
+    description: Alias for /relicbound
+    usage: /rb
+    permission: relicbound.command.info
 permissions:
   relicbound.command.info:
     default: true

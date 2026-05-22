@@ -37,7 +37,12 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         new ManaRegenTask(this, this.core).startRegenTask();
 
         if (this.getCommand("relicbound") != null) {
-            this.getCommand("relicbound").setExecutor(new RelicboundCommand(this, this.core));
+            RelicboundCommand executor = new RelicboundCommand(this, this.core);
+            this.getCommand("relicbound").setExecutor(executor);
+            if (this.getCommand("relicboundspells") != null) this.getCommand("relicboundspells").setExecutor(executor);
+            if (this.getCommand("relicboundupgrade") != null) this.getCommand("relicboundupgrade").setExecutor(executor);
+            if (this.getCommand("relicboundgrant") != null) this.getCommand("relicboundgrant").setExecutor(executor);
+            if (this.getCommand("rb") != null) this.getCommand("rb").setExecutor(executor);
         }
     }
 
