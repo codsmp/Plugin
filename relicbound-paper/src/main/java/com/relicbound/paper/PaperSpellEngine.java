@@ -666,6 +666,12 @@ public final class PaperSpellEngine {
     private void economyBless(Player player, double power) {
         player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 240, Math.max(0, (int) Math.round(power / 4.0D)), true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 60, 0, true, true, true));
+        // Grant Hero of the Village for 5 minutes (6000 ticks)
+        try {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.valueOf("HERO_OF_THE_VILLAGE"), 6000, 0, true, true, true));
+        } catch (IllegalArgumentException ignored) {
+            // Older server API may not have HERO_OF_THE_VILLAGE; ignore if unavailable
+        }
     }
 
     private void explorationReveal(Player player, double range, int durationTicks) {
