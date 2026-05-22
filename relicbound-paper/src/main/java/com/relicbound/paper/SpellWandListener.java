@@ -90,6 +90,11 @@ public final class SpellWandListener implements Listener {
     }
 
     private PlayerManaState repairUnknownEquipped(Player player, PlayerManaState manaState) {
+        this.core.getOrCreateStartingState(
+            player.getUniqueId().toString(),
+            player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits()
+        );
+
         // If any equipped id no longer exists in the catalog, try to replace it with a valid starter spell.
         List<String> equipped = manaState.equippedSpellIds();
         boolean changed = false;
@@ -139,10 +144,10 @@ public final class SpellWandListener implements Listener {
     }
 
     private PlayerManaState ensureStarterLoadout(Player player, PlayerManaState manaState) {
-        PlayerRelicState relicState = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
-        if (relicState == null) {
-            return manaState;
-        }
+        PlayerRelicState relicState = this.core.getOrCreateStartingState(
+                player.getUniqueId().toString(),
+                player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits()
+        );
 
         PlayerManaState updated = manaState;
         int starterSpellCount = 0;
