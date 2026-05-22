@@ -640,10 +640,10 @@ public final class PaperSpellEngine {
     }
 
     private void mobilityLeap(Player player, double power, double range) {
-        Vector velocity = player.getLocation().getDirection().normalize().multiply(Math.max(0.8D, range / 6.0D));
-        velocity.setY(Math.max(0.8D, power / 2.5D));
+        Vector velocity = player.getLocation().getDirection().normalize().multiply(Math.max(1.0D, range / 5.0D));
+        velocity.setY(Math.max(1.2D, power / 2.0D));
         player.setVelocity(velocity);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 80, 2, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 120, 3, true, true, true));
     }
 
     private void craftingTemper(Player player, double power, int durationTicks) {
