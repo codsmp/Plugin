@@ -145,21 +145,3 @@ public final class SpellMenuListener implements Listener {
         ));
     }
 }
-        } else {
-            equipped.add(slot, spellId);
-        }
-        equipped.removeIf(String::isBlank);
-        if (equipped.size() > 2) {
-            equipped = new ArrayList<>(equipped.subList(0, 2));
-        }
-        this.core.savePlayerManaState(new PlayerManaState(
-                manaState.playerId(),
-                manaState.archetype(),
-                manaState.currentMana(),
-                manaState.maxMana(),
-                List.copyOf(equipped),
-                manaState.availableScrollIds(),
-                manaState.lastManaRegenTime()
-        ));
-    }
-}
