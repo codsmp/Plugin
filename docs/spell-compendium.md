@@ -1,44 +1,281 @@
-# Spell Compendium
+# Minecraft Cod SMP Full Spell Ability List
 
-Auto-generated from `resource-pack/manifest.json` (generated at 2026-05-21T17:40:58).
+This reference reflects the current live spell engine and catalog. Where a spell has explicit wand/staff behavior, that difference is noted. Where the engine currently uses shared scaling instead of a separate branch, the spell is described by its actual runtime effect.
 
-| Id | Name | Tier | Effect | ManaCost | Mana/sec | CMD | Material | Description |
-|---|---|---:|---|---:|---:|---:|---|---|
-| ember_burst | Ember Burst | TIER_1 | FIRE_CONE | 15 | 0 | 2001 | BLAZE_POWDER | Blast nearby foes with a cone of flame. |
-| phoenix_dash | Phoenix Dash | TIER_2 | FIRE_DASH | 20 | 0 | 2002 | FIRE_CHARGE | Dash forward in a burst of fire. |
-| tide_salve | Tide Salve | TIER_1 | WATER_HEAL | 18 | 0 | 2101 | PRISMARINE_SHARD | Restore health and cleanse weak burn effects. |
-| undertow_wave | Undertow Wave | TIER_2 | WATER_WAVE | 25 | 0 | 2102 | HEART_OF_THE_SEA | Knock back foes with a crushing surge. |
-| thunder_lance | Thunder Lance | TIER_1 | STORM_STRIKE | 22 | 0 | 2201 | LIGHTNING_ROD | Strike a target with chain lightning. |
-| tempest_chain | Tempest Chain | TIER_3 | STORM_CHAIN | 35 | 0 | 2202 | AMETHYST_SHARD | Arc lightning between enemies. |
-| gravity_snare | Gravity Snare | TIER_2 | VOID_PULL | 28 | 3 | 2301 | ENDER_PEARL | Pull enemies into a void pocket. |
-| rift_step | Rift Step | TIER_1 | VOID_BLINK | 20 | 0 | 2302 | ENDER_EYE | Blink through a tear in space. |
-| dawn_aegis | Dawn Aegis | TIER_1 | LIGHT_SHIELD | 25 | 5 | 2401 | GLOWSTONE_DUST | Wrap yourself in radiant protection. |
-| sanctify | Sanctify | TIER_3 | LIGHT_PURGE | 30 | 0 | 2402 | SEA_LANTERN | Cleanse darkness and restore allies. |
-| root_bind | Root Bind | TIER_1 | NATURE_ROOT | 17 | 2 | 2501 | OAK_SAPLING | Anchor enemies in creeping roots. |
-| bloom_mend | Bloom Mend | TIER_2 | NATURE_HEAL | 24 | 0 | 2502 | SPONGE | Heal wounds with living growth. |
-| seismic_line | Seismic Line | TIER_1 | STONE_RUMBLE | 19 | 0 | 2601 | STONE | Send a shock through the ground. |
-| bulwark_wall | Bulwark Wall | TIER_3 | STONE_WALL | 32 | 6 | 2602 | BRICK | Raise a defensive stone barrier. |
-| starfall | Starfall | TIER_3 | CELESTIAL_FALL | 40 | 0 | 2701 | NETHER_STAR | Call down a beam from the heavens. |
-| astral_beacon | Astral Beacon | TIER_2 | CELESTIAL_BEACON | 26 | 4 | 2702 | END_CRYSTAL | Reveal allies and guide their path. |
-| rewind_step | Rewind Step | TIER_2 | TIME_REWIND | 30 | 0 | 2801 | CLOCK | Snap back to a safer rhythm. |
-| slow_field | Slow Field | TIER_3 | TIME_SLOW | 35 | 5 | 2802 | FERMENTED_SPIDER_EYE | Warp time around nearby foes. |
-| veil_strike | Veil Strike | TIER_1 | SHADOW_BURST | 16 | 0 | 2901 | INK_SAC | Ambush with a shadow lash. |
-| umbra_walk | Umbra Walk | TIER_2 | SHADOW_VEIL | 23 | 3 | 2902 | BLACK_DYE | Fade into the dark for a brief escape. |
-| rally_chant | Rally Chant | TIER_1 | SUPPORT_RALLY | 21 | 4 | 3001 | GOAT_HORN | Empower allies with a steadier pulse. |
-| life_tether | Life Tether | TIER_3 | SUPPORT_TETHER | 38 | 5 | 3002 | GHAST_TEAR | Share healing with nearby allies. |
-| coin_blessing | Coin Blessing | TIER_1 | ECONOMY_BLESS | 14 | 0 | 3101 | GOLD_NUGGET | Boost short-term luck and trade value. |
-| trail_reveal | Trail Reveal | TIER_1 | EXPLORATION_REVEAL | 12 | 0 | 3201 | COMPASS | Highlight points of interest nearby. |
-| sky_leap | Sky Leap | TIER_1 | MOBILITY_LEAP | 18 | 0 | 3301 | FEATHER | Launch upward and forward. |
-| temper_touch | Temper Touch | TIER_2 | CRAFTING_TEMPER | 22 | 3 | 3401 | ANVIL | Sharpen and empower tools briefly. |
-| echo_call | Echo Call | TIER_2 | SUMMONER_CALL | 28 | 4 | 3501 | BONE | Summon a spectral helper. |
-| blight_wave | Blight Wave | TIER_2 | CORRUPTION_BLIGHT | 26 | 3 | 3601 | ROTTEN_FLESH | Spread corruption in a diseased burst. |
-| abyss_rift | Abyss Rift | TIER_4 | CORRUPTION_RIFT | 45 | 0 | 3602 | CRYING_OBSIDIAN | Rip open a dangerous breach of void energy. |
-| withering_cripple | Withering Cripple | TIER_3 | CORRUPTION_CRIPPLE | 0 | 10 | 3701 | WITHER_ROSE | Channel a crippling curse of darkness, slowness, and withering decay. |
-| meteor_surge | Meteor Surge | TIER_3 | CELESTIAL_METEOR | 30 | 0 | 3702 | FIRE_CHARGE | Call down a storm of meteors from above. |
-| meteor_rain | Meteor Rain | TIER_3 | CELESTIAL_METEOR_RAIN | 28 | 0 | 3703 | NETHER_STAR | Rain meteors over a broad area. |
-| malfunction | Malfunction | TIER_2 | UTILITY_MALFUNCTION | 14 | 0 | 3704 | CLOCK | Scramble the target's tools and timing. |
-| lifedrain | Lifedrain | TIER_3 | CORRUPTION_LIFEDRAIN | 20 | 0 | 3705 | GHAST_TEAR | Siphon stolen hearts from critical hits. |
-| lightning_charges | Lightning Charges | TIER_3 | STORM_CHARGES | 18 | 0 | 3706 | LIGHTNING_ROD | Summon a barrage of lightning charges. |
-| frostbite | Frostbite | TIER_2 | ELEMENTAL_FROSTBITE | 20 | 0 | 3707 | PACKED_ICE | Freeze enemies and ice the ground around you. |
-| cooker | Cooker | TIER_1 | ELEMENTAL_COOKER | 15 | 0 | 3708 | FURNACE | Seer the nearby area with scorching heat. |
-| gourmet | Gourmet | TIER_3 | ELEMENTAL_GOURMET | 24 | 0 | 3709 | COOKED_BEEF | Devour a creature to gain its boons. |
+## Fire
+
+### Ember Burst
+School: Fire
+Type: Offensive cone spell
+Description: Ember Burst releases a cone of flame in front of the caster. Enemies caught inside take damage and ignite.
+Wand Version: Smaller cone, lower damage, shorter burn.
+Staff Version: Wider cone, higher damage, longer burn.
+
+### Phoenix Dash
+School: Fire
+Type: Mobility spell
+Description: Phoenix Dash launches the caster forward in a burst of fire energy for quick engages or escapes.
+Wand Version: Shorter dash and lower mana pressure.
+Staff Version: Longer dash with stronger fire-themed mobility.
+
+## Water
+
+### Tide Salve
+School: Water
+Type: Healing spell
+Description: Tide Salve restores health, applies regeneration, removes weak burn effects, and clears short poison or wither pressure.
+Wand Version: Faster, lighter heal.
+Staff Version: Stronger healing and broader support impact.
+
+### Undertow Wave
+School: Water
+Type: Crowd control spell
+Description: Undertow Wave releases a heavy surge that knocks enemies backward and creates space.
+Wand Version: Smaller push zone.
+Staff Version: Stronger knockback and larger area.
+
+## Storm
+
+### Thunder Lance
+School: Storm
+Type: Targeted strike spell
+Description: Thunder Lance calls lightning onto the nearest target and can chain into nearby enemies.
+Wand Version: Lower burst and shorter chain pressure.
+Staff Version: Higher damage with more chain potential.
+
+### Tempest Chain
+School: Storm
+Type: Chain lightning spell
+Description: Tempest Chain jumps storm energy between grouped enemies.
+Wand Version: Fewer jumps.
+Staff Version: More jumps, larger reach, and stronger damage.
+
+### Lightning Charges
+School: Storm
+Type: Storm barrage spell
+Description: Lightning Charges creates a sequence of rapid lightning hits. Wand use fires a short burst of fixed strikes; staff use turns it into a roaming storm of random strikes.
+Wand Version: 4 rapid blasts, 20 mana each, 1 heart damage, about 1.5 second stun.
+Staff Version: 10 to 15 random strikes, 1 heart damage each, longer stun, more battlefield control.
+
+## Void
+
+### Gravity Snare
+School: Void
+Type: Channelled crowd control spell
+Description: Gravity Snare creates a void field that pulls nearby enemies inward while the spell remains active.
+Wand Version: Smaller pull field and lighter mana pressure.
+Staff Version: Stronger pull, larger radius, heavier sustain cost.
+
+### Rift Step
+School: Void
+Type: Teleportation spell
+Description: Rift Step tears open space and moves the caster to a nearby location.
+Wand Version: Shorter teleport range.
+Staff Version: Longer repositioning distance.
+
+## Light
+
+### Dawn Aegis
+School: Light
+Type: Defensive shield spell
+Description: Dawn Aegis surrounds the caster in radiant protection and sustains a defensive buff over time.
+Wand Version: Smaller sustain footprint.
+Staff Version: Stronger protection and larger aura support.
+
+### Sanctify
+School: Light
+Type: Purification spell
+Description: Sanctify clears harmful darkness effects and restores nearby allies through holy energy.
+Wand Version: Faster cast and lighter healing.
+Staff Version: Wider cleanse radius and stronger healing.
+
+## Nature
+
+### Root Bind
+School: Nature
+Type: Immobilization spell
+Description: Root Bind traps enemies in magical roots and, in the current engine, applies extreme Slowness so targets cannot move.
+Wand Version: Smaller bind area.
+Staff Version: Stronger root pressure and wider area.
+
+### Bloom Mend
+School: Nature
+Type: Healing spell
+Description: Bloom Mend restores health with regenerative nature energy.
+Wand Version: Faster activation with lighter healing.
+Staff Version: Greater healing and broader ally coverage.
+
+## Stone
+
+### Seismic Line
+School: Stone
+Type: Ground shock spell
+Description: Seismic Line releases a crushing shockburst around the caster that knocks enemies back and deals damage.
+Wand Version: Smaller impact zone.
+Staff Version: Larger impact zone and heavier push.
+
+### Bulwark Wall
+School: Stone
+Type: Defensive barrier spell
+Description: Bulwark Wall reinforces the caster with resistance and triggers a stone-flavored knockback burst. The current engine emphasizes defensive control more than a literal placed wall.
+Wand Version: Lower sustain pressure.
+Staff Version: Stronger defensive control and greater mana drain.
+
+## Celestial
+
+### Starfall
+School: Celestial
+Type: Burst celestial spell
+Description: Starfall smites the nearest target with heavenly lightning and glowing impact.
+Wand Version: Lower damage, faster cooldown.
+Staff Version: Higher damage and a stronger impact zone.
+
+### Astral Beacon
+School: Celestial
+Type: Support utility spell
+Description: Astral Beacon surrounds nearby allies with speed, strength, and healing while also restoring the caster.
+Wand Version: Lower sustain drain and smaller field.
+Staff Version: Larger support field and stronger utility.
+
+### Meteor Surge
+School: Celestial
+Type: Burst meteor spell
+Description: Meteor Surge calls down multiple meteors in a concentrated blast.
+Wand Version: More meteors, broader spread, lighter impact.
+Staff Version: Fewer meteors, tighter spread, stronger hits.
+
+### Meteor Rain
+School: Celestial
+Type: Area artillery spell
+Description: Meteor Rain summons several meteors from the sky, each dealing armor-ignoring impact damage in a wide area.
+Wand Version: More meteors with broader coverage.
+Staff Version: Fewer meteors, but stronger impacts and a tighter strike pattern.
+
+## Time
+
+### Rewind Step
+School: Time
+Type: Temporal recovery spell
+Description: Rewind Step snaps the caster back toward a safer previous position after a short delay and restores a bit of health.
+Wand Version: Shorter rewind range.
+Staff Version: Stronger recovery and repositioning value.
+
+### Slow Field
+School: Time
+Type: Area debuff spell
+Description: Slow Field heavily reduces enemy movement and combat speed in the target area while applying pressure over time.
+Wand Version: Smaller area.
+Staff Version: Larger distortion zone and stronger crowd control.
+
+## Shadow
+
+### Veil Strike
+School: Shadow
+Type: Burst ambush spell
+Description: Veil Strike lashes nearby enemies with shadow energy and blinds them after the hit.
+
+### Umbra Walk
+School: Shadow
+Type: Stealth spell
+Description: Umbra Walk cloaks the caster in darkness, adding invisibility, speed, and darkened visual pressure for escape or repositioning.
+
+## Support
+
+### Rally Chant
+School: Support
+Type: Buff aura spell
+Description: Rally Chant now gives the caster and nearby trusted allies speed, strength, resistance, and immediate healing. It is much stronger than the original version and is meant for team fights.
+Wand Version: Faster support setup with lower sustain cost.
+Staff Version: Stronger buffs and bigger teamfight value.
+
+### Life Tether
+School: Support
+Type: Healing link spell
+Description: Life Tether shares healing with nearby allies through a continuous support effect.
+Wand Version: Lower sustain cost.
+Staff Version: Stronger healing share and broader support potential.
+
+## Economy
+
+### Coin Blessing
+School: Economy
+Type: Utility spell
+Description: Coin Blessing boosts luck and economic outcomes. It also now grants Hero of the Village for 5 minutes.
+
+## Exploration
+
+### Trail Reveal
+School: Exploration
+Type: Tracking spell
+Description: Trail Reveal gives the caster Night Vision and highlights other players within 180 blocks with Glowing, except trusted players.
+
+## Mobility
+
+### Sky Leap
+School: Mobility
+Type: Movement spell
+Description: Sky Leap launches the caster upward and forward with much stronger propulsion than the original baseline.
+
+## Crafting
+
+### Temper Touch
+School: Crafting
+Type: Enhancement spell
+Description: Temper Touch improves tools or equipment for a limited duration and adds crafting speed support.
+
+## Summoner
+
+### Echo Call
+School: Summoner
+Type: Summon spell
+Description: Echo Call summons a spectral helper. The engine prefers an Allay-style helper and falls back to a wolf ally if needed.
+
+## Corruption
+
+### Blight Wave
+School: Corruption
+Type: Decay spell
+Description: Blight Wave spreads poison and wither pressure outward in a damaging burst.
+
+### Abyss Rift
+School: Corruption
+Type: Void destruction spell
+Description: Abyss Rift tears open a dangerous breach of corruption and void energy.
+
+### Withering Cripple
+School: Corruption
+Type: Channelled curse spell
+Description: Withering Cripple continuously applies Darkness II, Slowness II, and Wither. The curse stays active until the caster stops channeling or runs out of mana.
+Wand Version: 10 mana drained per second and weaker wither pressure.
+Staff Version: 20 mana drained per second with full Wither V-style pressure and wider area.
+
+### Lifedrain
+School: Corruption
+Type: Combat sustain spell
+Description: After activation, critical hits siphon hearts from enemies. Up to 3 hearts can be stolen, and the stolen health persists for a short duration before fading.
+
+## Utility
+
+### Malfunction
+School: Utility
+Type: Inventory disruption spell
+Description: Malfunction scrambles a target's inventory to create confusion and mistakes.
+Wand Version: Shuffles the hotbar and offhand.
+Staff Version: Shuffles the full inventory and offhand.
+
+## Elemental
+
+### Frostbite
+School: Elemental
+Type: Freeze spell
+Description: Frostbite freezes enemies and converts nearby water and terrain into ice.
+
+### Cooker
+School: Elemental
+Type: Burning area spell
+Description: Cooker ignites enemies in a nearby radius and applies continuous fire pressure.
+
+### Gourmet
+School: Elemental
+Type: Consumption buff spell
+Description: Gourmet consumes a nearby mob and grants a temporary buff based on the mob type consumed.
