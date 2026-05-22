@@ -8,6 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
+import java.util.logging.Level;
 
 public final class RelicboundCommand implements CommandExecutor {
     private final JavaPlugin plugin;
@@ -20,6 +21,7 @@ public final class RelicboundCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        try {
         if (args.length == 0) {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("Usage: /relicbound <spells|upgrade|grant>");
@@ -82,6 +84,15 @@ public final class RelicboundCommand implements CommandExecutor {
         }
 
         sender.sendMessage("Usage: /relicbound <spells|upgrade|grant>");
-        return true;
+            return true;
+        } catch (Throwable t) {
+            // Log the full exception to server logs and send a concise message to the sender
+            this.plugin.getLogger().log(Level.SEVERE, "Error executing /relicbound command", t);
+            sender.sendMessage(ChatColor.RED + "An unexpected error occurred while executing that command. See server logs for details.");
+            if (sender.hasPermission("relicbound.admin.grant") || (sender instanceof org.bukkit.entity.Player p && p.isOp())) {
+                sender.sendMessage(ChatColor.RED + t.getClass().getSimpleName() + ": " + (t.getMessage() == null ? "(no message)" : t.getMessage()));
+            }
+            return true;
+        }
     }
 }
