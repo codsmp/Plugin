@@ -1,6 +1,7 @@
 package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
+import com.relicbound.core.model.PlayerRelicState;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,10 +28,16 @@ public final class RelicMenuListener implements Listener {
                 Material type = event.getCurrentItem().getType();
                 if (type == Material.ANVIL) {
                     try {
-                        this.core.upgradeTier(player.getUniqueId().toString());
+                        PlayerRelicState upgraded = this.core.upgradeTier(player.getUniqueId().toString());
                         player.sendMessage(ChatColor.GREEN + "Your relic grows stronger.");
-                        SpellSelectionSession.beginRewardSelection(player.getUniqueId().toString());
-                        new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
+                        boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !upgraded.unlockedAbilities().contains(spell.id()));
+                        if (hasLockedSpells) {
+                            SpellSelectionSession.beginRewardSelection(player.getUniqueId().toString());
+                            new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
+                        } else {
+                            player.sendMessage(ChatColor.GRAY + "You already have every spell unlocked.");
+                            new RelicMenu(this.core).open(player);
+                        }
                     } catch (IllegalStateException exception) {
                         player.sendMessage(ChatColor.RED + exception.getMessage());
                     }

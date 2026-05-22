@@ -1,6 +1,7 @@
 package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
+import com.relicbound.core.model.PlayerRelicState;
 import org.bukkit.Material;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -20,11 +21,15 @@ public final class EssenceGainListener implements Listener {
     public void onEntityDeath(EntityDeathEvent event) {
         Object killer = event.getEntity().getKiller();
         if (killer instanceof Player player) {
+            String playerId = player.getUniqueId().toString();
+            PlayerRelicState before = this.core.findPlayerState(playerId).orElse(null);
             if (event.getEntity() instanceof Monster) {
-                this.core.grantEssence(player.getUniqueId().toString(), "combat", 8);
+                PlayerRelicState after = this.core.grantEssence(playerId, "combat", 8);
+                this.announceAutoUpgrade(player, before, after);
             } else if (event.getEntity() instanceof Player) {
                 // PvP gives slightly more essence
-                this.core.grantEssence(player.getUniqueId().toString(), "combat", 12);
+                PlayerRelicState after = this.core.grantEssence(playerId, "combat", 12);
+                this.announceAutoUpgrade(player, before, after);
             }
         }
     }
@@ -34,7 +39,20 @@ public final class EssenceGainListener implements Listener {
         Player player = event.getPlayer();
         Material type = event.getBlock().getType();
         if (type.name().endsWith("_ORE")) {
-            this.core.grantEssence(player.getUniqueId().toString(), "mining", 6);
+            String playerId = player.getUniqueId().toString();
+            PlayerRelicState before = this.core.findPlayerState(playerId).orElse(null);
+            PlayerRelicState after = this.core.grantEssence(playerId, "mining", 6);
+            this.announceAutoUpgrade(player, before, after);
         }
+    }
+
+    private void announceAutoUpgrade(Player player, PlayerRelicState before, PlayerRelicState after) {
+        if (after == null) {
+            return;
+        }
+        if (before == null || before.tier() == after.tier()) {
+            return;
+        }
+        player.sendMessage(org.bukkit.ChatColor.GOLD + "[Relicbound] " + org.bukkit.ChatColor.YELLOW + "Your relic automatically advanced to " + org.bukkit.ChatColor.WHITE + after.tier().name() + org.bukkit.ChatColor.YELLOW + "!");
     }
 }

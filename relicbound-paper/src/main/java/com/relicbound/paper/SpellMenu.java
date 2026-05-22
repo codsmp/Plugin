@@ -40,10 +40,16 @@ public final class SpellMenu {
         holder.setInventory(inventory);
 
         List<SpellDefinition> spells = this.core.allSpells().stream()
+                .filter(spell -> mode != SpellMenuMode.REWARD || !state.unlockedAbilities().contains(spell.id()))
                 .sorted(Comparator.comparing(SpellDefinition::displayName))
                 .toList();
         int slot = 0;
         PlayerManaState manaState = this.core.getPlayerManaState(player.getUniqueId().toString()).orElse(null);
+        if (mode == SpellMenuMode.REWARD && spells.isEmpty()) {
+            inventory.setItem(22, createEmptyRewardItem());
+            player.openInventory(inventory);
+            return;
+        }
         for (SpellDefinition spell : spells) {
             if (slot >= inventory.getSize()) {
                 break;
@@ -99,6 +105,18 @@ public final class SpellMenu {
         }
         lore.add(ChatColor.DARK_GRAY + "Unlocked spells: " + state.unlockedAbilities().size());
         meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack createEmptyRewardItem() {
+        ItemStack item = new ItemStack(Material.BARRIER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.RED + "All spells unlocked");
+        meta.setLore(List.of(
+                ChatColor.GRAY + "There are no new spells left to claim.",
+                ChatColor.GRAY + "Use the spell menu to adjust your primary and secondary spells."
+        ));
         item.setItemMeta(meta);
         return item;
     }

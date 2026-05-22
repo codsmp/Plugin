@@ -1,6 +1,7 @@
 package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
+import com.relicbound.core.model.PlayerRelicState;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -54,8 +55,14 @@ public final class RelicboundCommand implements CommandExecutor {
                 return true;
             }
             try {
+                PlayerRelicState before = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
                 this.core.upgradeTier(player.getUniqueId().toString());
-                player.sendMessage(ChatColor.GREEN + "Your relic has advanced.");
+                PlayerRelicState after = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
+                if (after != null && (before == null || before.tier() != after.tier())) {
+                    player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
+                } else {
+                    player.sendMessage(ChatColor.GREEN + "Your relic has advanced.");
+                }
                 new RelicMenu(this.core).open(player);
             } catch (IllegalStateException exception) {
                 player.sendMessage(ChatColor.RED + exception.getMessage());
@@ -80,9 +87,13 @@ public final class RelicboundCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Amount must be a number.");
                 return true;
             }
-            this.core.grantEssence(target.getUniqueId().toString(), args[2], amount);
+            PlayerRelicState before = this.core.findPlayerState(target.getUniqueId().toString()).orElse(null);
+            PlayerRelicState after = this.core.grantEssence(target.getUniqueId().toString(), args[2], amount);
             sender.sendMessage(ChatColor.GREEN + "Granted essence to " + target.getName() + ".");
             target.sendMessage(ChatColor.AQUA + "You received " + amount + " " + args[2] + " essence.");
+            if (after != null && (before == null || before.tier() != after.tier())) {
+                target.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
+            }
             return true;
         }
 
