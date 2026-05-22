@@ -208,13 +208,13 @@ public final class PaperSpellEngine {
         player.getWorld().playSound(origin, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.2F);
         double scaledPower = this.scaledDamage(spell, manaState.archetype());
         switch (effect) {
-            case FIRE_CONE -> this.damageNearby(player, scaledPower, spell.range(), true, false);
+            case FIRE_CONE -> this.emberBurst(player, scaledPower, spell.range(), manaState.archetype());
             case FIRE_DASH -> this.dashForward(player, spell.range(), 0.8D, true);
             case WATER_HEAL -> this.tideSalve(player, spell.power(), spell.range());
             case WATER_WAVE -> this.knockbackNearby(player, scaledPower, spell.range(), false);
-            case STORM_STRIKE -> this.strikeNearest(player, scaledPower, spell.range(), true);
-            case STORM_CHAIN -> this.chainStrike(player, scaledPower, spell.range());
-            case VOID_PULL -> this.pullNearby(player, scaledPower, spell.range());
+            case STORM_STRIKE -> this.thunderLance(player, scaledPower, spell.range(), manaState.archetype());
+            case STORM_CHAIN -> this.tempestChain(player, scaledPower, spell.range(), manaState.archetype());
+            case VOID_PULL -> this.gravitySnare(player, scaledPower, spell.range(), manaState.archetype());
             case VOID_BLINK -> this.blinkForward(player, spell.range());
             case LIGHT_SHIELD -> this.shieldSelf(player, spell.power(), spell.durationTicks());
             case LIGHT_PURGE -> this.purgeAndHeal(player, spell.power(), spell.range());
@@ -335,6 +335,84 @@ public final class PaperSpellEngine {
                 hits++;
             }
         }
+    }
+
+    private void emberBurst(Player player, double damage, double range, PlayerArchetype archetype) {
+        // Cone parameters differ between wand and staff
+        double coneDegrees = archetype == PlayerArchetype.STAFF ? 90.0D : 45.0D;
+        double coneCos = Math.cos(Math.toRadians(coneDegrees / 2.0D));
+        Vector dir = player.getLocation().getDirection().normalize();
+        for (Entity entity : player.getNearbyEntities(range, range, range)) {
+            if (!(entity instanceof LivingEntity living) || living == player) continue;
+            Vector to = living.getLocation().toVector().subtract(player.getLocation().toVector()).normalize();
+            double dot = dir.dot(to);
+            if (dot >= coneCos) {
+                living.damage(Math.max(1.0D, damage), player);
+                int fireTicks = archetype == PlayerArchetype.STAFF ? 120 : 60;
+                living.setFireTicks(Math.max(living.getFireTicks(), fireTicks));
+            }
+        }
+        player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 36, 0.8, 0.6, 0.8, 0.05);
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1.0F, 1.0F);
+    }
+
+    private void thunderLance(Player player, double damage, double range, PlayerArchetype archetype) {
+        LivingEntity target = this.nearestLiving(player, range);
+        if (target == null) return;
+        target.getWorld().strikeLightningEffect(target.getLocation());
+        target.damage(damage + (archetype == PlayerArchetype.STAFF ? 2.0D : 0.0D), player);
+        // small chain effect to nearby enemies
+        int chainJumps = archetype == PlayerArchetype.STAFF ? 3 : 1;
+        double chainRange = archetype == PlayerArchetype.STAFF ? 6.0D : 3.0D;
+        List<LivingEntity> chained = new ArrayList<>();
+        chained.add(target);
+        LivingEntity last = target;
+        for (int i = 0; i < chainJumps; i++) {
+            LivingEntity next = null;
+            double nearestDist = Double.MAX_VALUE;
+            for (Entity e : last.getNearbyEntities(chainRange, chainRange, chainRange)) {
+                if (e instanceof LivingEntity l && l != player && !chained.contains(l)) {
+                    double d = l.getLocation().distanceSquared(last.getLocation());
+                    if (d < nearestDist) {
+                        nearestDist = d;
+                        next = l;
+                    }
+                }
+            }
+            if (next == null) break;
+            next.getWorld().strikeLightningEffect(next.getLocation());
+            next.damage(damage * 0.8D, player);
+            chained.add(next);
+            last = next;
+        }
+    }
+
+    private void tempestChain(Player player, double damage, double range, PlayerArchetype archetype) {
+        int jumps = archetype == PlayerArchetype.STAFF ? 6 : 3;
+        int hits = 0;
+        for (Entity entity : player.getNearbyEntities(range, range, range)) {
+            if (hits >= jumps) break;
+            if (entity instanceof LivingEntity living && living != player) {
+                living.damage(damage, player);
+                living.getWorld().strikeLightningEffect(living.getLocation());
+                hits++;
+            }
+        }
+    }
+
+    private void gravitySnare(Player player, double damage, double range, PlayerArchetype archetype) {
+        double pullStrength = archetype == PlayerArchetype.STAFF ? 1.2D : 0.6D;
+        int slowTicks = archetype == PlayerArchetype.STAFF ? 100 : 60;
+        for (Entity entity : player.getNearbyEntities(range, range, range)) {
+            if (entity instanceof LivingEntity living && living != player) {
+                Vector pull = player.getLocation().toVector().subtract(living.getLocation().toVector()).normalize().multiply(pullStrength);
+                pull.setY(0.2D);
+                living.setVelocity(pull);
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, slowTicks, 2, true, true, true));
+                living.damage(Math.max(1.0D, damage), player);
+            }
+        }
+        player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 30, 0.6, 0.8, 0.6, 0.2);
     }
 
     private void pullNearby(Player player, double damage, double range) {
