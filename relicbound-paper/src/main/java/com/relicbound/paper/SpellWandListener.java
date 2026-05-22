@@ -30,7 +30,7 @@ public final class SpellWandListener implements Listener {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        if (event.getHand() != EquipmentSlot.HAND) {
+        if (event.getHand() != EquipmentSlot.HAND && event.getHand() != EquipmentSlot.OFF_HAND) {
             return;
         }
         if (!StarterItemUtil.isStarterItem(event.getItem())) {
@@ -39,7 +39,7 @@ public final class SpellWandListener implements Listener {
 
         Player player = event.getPlayer();
         PlayerManaState manaState = this.core.getPlayerManaState(player.getUniqueId().toString())
-            .orElseGet(() -> StarterItemUtil.findHeldStarterArchetype(player)
+            .orElseGet(() -> StarterItemUtil.findAnyStarterArchetype(player)
                 .map(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype))
                 .orElse(null));
         if (manaState == null) {

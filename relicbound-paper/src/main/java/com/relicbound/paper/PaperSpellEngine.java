@@ -317,7 +317,7 @@ public final class PaperSpellEngine {
     private void damageNearby(Player player, double damage, double range, boolean fire, boolean wither) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
-                living.damage(damage, player);
+                applyMinimumTrueDamage(living, damage, player);
                 if (fire) {
                     living.setFireTicks(60);
                 }
@@ -352,7 +352,7 @@ public final class PaperSpellEngine {
                 Vector knockback = living.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(Math.max(0.2D, power / 6.0D));
                 knockback.setY(0.35D);
                 living.setVelocity(knockback);
-                living.damage(Math.max(1.0D, power), player);
+                applyMinimumTrueDamage(living, Math.max(2.0D, power), player);
             }
         }
         player.getWorld().spawnParticle(seismic ? Particle.BLOCK_CRUMBLE : Particle.SPLASH, player.getLocation(), 28, 1.0, 0.4, 1.0, 0.12);
@@ -363,7 +363,7 @@ public final class PaperSpellEngine {
         if (target == null) {
             return;
         }
-        target.damage(damage, player);
+        applyMinimumTrueDamage(target, damage, player);
         if (lightning) {
             target.getWorld().strikeLightningEffect(target.getLocation());
         }
@@ -376,7 +376,7 @@ public final class PaperSpellEngine {
                 break;
             }
             if (entity instanceof LivingEntity living && living != player) {
-                living.damage(damage, player);
+                applyMinimumTrueDamage(living, damage, player);
                 living.getWorld().strikeLightningEffect(living.getLocation());
                 hits++;
             }
@@ -393,7 +393,7 @@ public final class PaperSpellEngine {
             Vector to = living.getLocation().toVector().subtract(player.getLocation().toVector()).normalize();
             double dot = dir.dot(to);
             if (dot >= coneCos) {
-                living.damage(Math.max(1.0D, damage), player);
+                applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
                 int fireTicks = archetype == PlayerArchetype.STAFF ? 120 : 60;
                 living.setFireTicks(Math.max(living.getFireTicks(), fireTicks));
             }
@@ -407,7 +407,7 @@ public final class PaperSpellEngine {
         LivingEntity target = this.nearestLiving(player, range);
         if (target == null) return;
         target.getWorld().strikeLightningEffect(target.getLocation());
-        target.damage(damage + (archetype == PlayerArchetype.STAFF ? 2.0D : 0.0D), player);
+        applyMinimumTrueDamage(target, damage + (archetype == PlayerArchetype.STAFF ? 2.0D : 0.0D), player);
         // small chain effect to nearby enemies
         int chainJumps = archetype == PlayerArchetype.STAFF ? 3 : 1;
         double chainRange = archetype == PlayerArchetype.STAFF ? 6.0D : 3.0D;
@@ -428,7 +428,7 @@ public final class PaperSpellEngine {
             }
             if (next == null) break;
             next.getWorld().strikeLightningEffect(next.getLocation());
-            next.damage(damage * 0.8D, player);
+            applyMinimumTrueDamage(next, damage * 0.8D, player);
             next.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, next.getLocation(), 20, 0.4, 0.6, 0.4, 0.02);
             next.getWorld().playSound(next.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.9F, 1.0F);
             chained.add(next);
@@ -442,7 +442,7 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (hits >= jumps) break;
             if (entity instanceof LivingEntity living && living != player) {
-                living.damage(damage, player);
+                applyMinimumTrueDamage(living, damage, player);
                 living.getWorld().strikeLightningEffect(living.getLocation());
                 living.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, living.getLocation().add(0, 1, 0), 16, 0.3, 0.4, 0.3, 0.02);
                 living.getWorld().playSound(living.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.9F, 1.0F);
@@ -460,7 +460,7 @@ public final class PaperSpellEngine {
                 pull.setY(0.2D);
                 living.setVelocity(pull);
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slowTicks, 2, true, true, true));
-                living.damage(Math.max(1.0D, damage), player);
+                applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
             }
         }
         player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 30, 0.6, 0.8, 0.6, 0.2);
@@ -473,7 +473,7 @@ public final class PaperSpellEngine {
                 Vector pull = player.getLocation().toVector().subtract(living.getLocation().toVector()).normalize().multiply(0.8D);
                 pull.setY(0.2D);
                 living.setVelocity(pull);
-                living.damage(Math.max(1.0D, damage), player);
+                applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
             }
         }
         player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 30, 0.6, 0.8, 0.6, 0.2);
@@ -506,6 +506,7 @@ public final class PaperSpellEngine {
     private void tideSalve(Player player, double amount, double range) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living) {
+                if (!canReceiveHealing(player, living)) continue;
                 double maxHealth = this.maxHealth(living);
                 living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 0, true, true, true));
@@ -529,7 +530,7 @@ public final class PaperSpellEngine {
     private void rootNearby(Player player, double damage, double range) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
-                living.damage(Math.max(1.0D, damage), player);
+                applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 255, true, true, true));
             }
         }
@@ -538,6 +539,7 @@ public final class PaperSpellEngine {
     private void areaHeal(Player player, double amount, double range) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living) {
+                if (!canReceiveHealing(player, living)) continue;
                 double maxHealth = this.maxHealth(living);
                 living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 0, true, true, true));
@@ -556,7 +558,7 @@ public final class PaperSpellEngine {
         LivingEntity target = this.nearestLiving(player, range);
         if (target != null) {
             target.getWorld().strikeLightningEffect(target.getLocation());
-            target.damage(damage + 2.0D, player);
+            applyMinimumTrueDamage(target, damage + 2.0D, player);
             target.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 100, 0, true, true, true));
         }
     }
@@ -566,8 +568,10 @@ public final class PaperSpellEngine {
             if (entity instanceof LivingEntity living) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
-                double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
-                living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
+                if (canReceiveHealing(player, living)) {
+                    double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
+                    living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
+                }
             }
         }
         this.healSelf(player, amount, true);
@@ -591,7 +595,7 @@ public final class PaperSpellEngine {
             if (entity instanceof LivingEntity living && living != player) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 3, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, durationTicks, 1, true, true, true));
-                living.damage(Math.max(1.0D, damage / 2.0D), player);
+                applyMinimumTrueDamage(living, Math.max(2.0D, damage / 2.0D), player);
             }
         }
     }
@@ -613,6 +617,7 @@ public final class PaperSpellEngine {
             if (entity instanceof LivingEntity living) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
+                if (!canReceiveHealing(player, living)) continue;
                 double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
                 living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
             }
@@ -624,6 +629,7 @@ public final class PaperSpellEngine {
             if (entity instanceof LivingEntity living) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, durationTicks, 1, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, durationTicks, 0, true, true, true));
+                if (!canReceiveHealing(player, living)) continue;
                 double maxHealth = this.maxHealth(living);
                 living.setHealth(Math.min(maxHealth, living.getHealth() + amount / 2.0D));
             }
@@ -687,7 +693,7 @@ public final class PaperSpellEngine {
     private void corruptionBlight(Player player, double damage, double range, int durationTicks) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
-                living.damage(damage, player);
+                applyMinimumTrueDamage(living, damage, player);
                 living.addPotionEffect(new PotionEffect(PotionEffectType.POISON, durationTicks, 1, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, durationTicks / 2, 0, true, true, true));
             }
@@ -754,7 +760,7 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
             if (entity instanceof LivingEntity living && living != player) {
                 living.setFireTicks(Math.max(living.getFireTicks(), fireTicks));
-                living.damage(damage, player);
+                applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
             }
         }
         player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 60, 1.3, 0.9, 1.3, 0.09);
@@ -888,6 +894,22 @@ public final class PaperSpellEngine {
         if (newHealth > 0.0D) {
             living.damage(0.0D, source);
         }
+    }
+
+    private void applyMinimumTrueDamage(LivingEntity living, double damage, Player source) {
+        // Global buff factor applied to all spells; adjust if needed for SMP balance
+        final double GLOBAL_SPELL_BUFF = 1.5D;
+        double scaled = damage * GLOBAL_SPELL_BUFF;
+        this.damageIgnoringArmor(living, Math.max(4.0D, scaled), source);
+    }
+
+    private boolean canReceiveHealing(Player caster, LivingEntity target) {
+        if (target == null) return false;
+        if (target.equals(caster)) return true; // always allow self-heal
+        if (!(target instanceof Player)) return false; // only heal players
+        if (this.trustStore == null) return false;
+        Player p = (Player) target;
+        return this.trustStore.isTrustedEitherWay(caster.getUniqueId().toString(), p.getUniqueId().toString());
     }
 
     private void shuffleHotbar(Player target) {
