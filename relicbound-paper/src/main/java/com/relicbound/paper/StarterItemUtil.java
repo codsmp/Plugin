@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Optional;
+
 public final class StarterItemUtil {
     private StarterItemUtil() {
     }
@@ -38,6 +40,32 @@ public final class StarterItemUtil {
         String displayName = meta.getDisplayName();
         return (ChatColor.GOLD + PlayerArchetype.WAND.displayName()).equals(displayName)
                 || (ChatColor.GOLD + PlayerArchetype.STAFF.displayName()).equals(displayName);
+    }
+
+    public static Optional<PlayerArchetype> inferArchetype(ItemStack item) {
+        if (!isStarterItem(item)) {
+            return Optional.empty();
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) {
+            return Optional.empty();
+        }
+        String displayName = meta.getDisplayName();
+        if ((ChatColor.GOLD + PlayerArchetype.WAND.displayName()).equals(displayName)) {
+            return Optional.of(PlayerArchetype.WAND);
+        }
+        if ((ChatColor.GOLD + PlayerArchetype.STAFF.displayName()).equals(displayName)) {
+            return Optional.of(PlayerArchetype.STAFF);
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<PlayerArchetype> findHeldStarterArchetype(Player player) {
+        Optional<PlayerArchetype> mainHand = inferArchetype(player.getInventory().getItemInMainHand());
+        if (mainHand.isPresent()) {
+            return mainHand;
+        }
+        return inferArchetype(player.getInventory().getItemInOffHand());
     }
 
     public static boolean hasStarterItem(Player player, PlayerArchetype archetype) {

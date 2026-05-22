@@ -44,6 +44,10 @@ public final class RelicJoinListener implements Listener {
             player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "Welcome back, " + manaState.archetype().displayName() + "!");
         }
 
+        if (manaStateOptional.isEmpty()) {
+            StarterItemUtil.findHeldStarterArchetype(player).ifPresent(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype));
+        }
+
         String resourcePackUrl = this.plugin.getConfig().getString("resource-pack.url", "").trim();
         if (!resourcePackUrl.isEmpty()) {
             try {

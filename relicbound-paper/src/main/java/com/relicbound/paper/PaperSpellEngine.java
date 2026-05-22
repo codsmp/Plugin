@@ -56,7 +56,9 @@ public final class PaperSpellEngine {
             throw new IllegalStateException("That spell is not unlocked yet.");
         }
         PlayerManaState manaState = this.core.getPlayerManaState(player.getUniqueId().toString())
-                .orElseThrow(() -> new IllegalStateException("Choose an archetype before casting spells."));
+            .orElseGet(() -> StarterItemUtil.findHeldStarterArchetype(player)
+                .map(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype))
+                .orElseThrow(() -> new IllegalStateException("Choose an archetype before casting spells.")));
         manaState = this.core.updateManaRegen(manaState, System.currentTimeMillis());
         manaState = this.core.savePlayerManaState(manaState);
         long now = System.currentTimeMillis();

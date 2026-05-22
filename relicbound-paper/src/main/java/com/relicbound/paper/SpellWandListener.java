@@ -39,7 +39,9 @@ public final class SpellWandListener implements Listener {
 
         Player player = event.getPlayer();
         PlayerManaState manaState = this.core.getPlayerManaState(player.getUniqueId().toString())
-                .orElse(null);
+            .orElseGet(() -> StarterItemUtil.findHeldStarterArchetype(player)
+                .map(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype))
+                .orElse(null));
         if (manaState == null) {
             player.sendMessage(ChatColor.RED + "Choose your archetype first.");
             event.setCancelled(true);
