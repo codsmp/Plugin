@@ -45,7 +45,7 @@ public final class RelicJoinListener implements Listener {
         }
 
         if (manaStateOptional.isEmpty()) {
-            StarterItemUtil.findHeldStarterArchetype(player).ifPresent(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype));
+            StarterItemUtil.findAnyStarterArchetype(player).ifPresent(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype));
         }
 
         String resourcePackUrl = this.plugin.getConfig().getString("resource-pack.url", "").trim();
@@ -87,6 +87,9 @@ public final class RelicJoinListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        if (this.plugin instanceof RelicboundPaperPlugin relicboundPlugin && relicboundPlugin.isResetInProgress()) {
+            return;
+        }
         Player player = event.getPlayer();
         this.core.findPlayerState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerState);
         this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerManaState);

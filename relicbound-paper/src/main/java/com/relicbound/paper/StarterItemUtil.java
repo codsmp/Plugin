@@ -68,6 +68,20 @@ public final class StarterItemUtil {
         return inferArchetype(player.getInventory().getItemInOffHand());
     }
 
+    public static Optional<PlayerArchetype> findAnyStarterArchetype(Player player) {
+        Optional<PlayerArchetype> held = findHeldStarterArchetype(player);
+        if (held.isPresent()) {
+            return held;
+        }
+        for (ItemStack item : player.getInventory().getContents()) {
+            Optional<PlayerArchetype> inferred = inferArchetype(item);
+            if (inferred.isPresent()) {
+                return inferred;
+            }
+        }
+        return Optional.empty();
+    }
+
     public static boolean hasStarterItem(Player player, PlayerArchetype archetype) {
         String displayName = ChatColor.GOLD + archetype.displayName();
         for (ItemStack item : player.getInventory().getContents()) {

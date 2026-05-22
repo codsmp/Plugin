@@ -10,6 +10,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     private RelicboundCore core;
     private PaperSpellEngine spellEngine;
     private PlayerTrustStore trustStore;
+    private volatile boolean resetInProgress;
 
     @Override
     public void onEnable() {
@@ -64,5 +65,22 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         if (this.core != null) {
             this.core.shutdown();
         }
+    }
+
+    public boolean isResetInProgress() {
+        return this.resetInProgress;
+    }
+
+    public void executeFullReset(String actorName) {
+        this.resetInProgress = true;
+        this.adapter.resetPersistentState();
+        this.trustStore.clear();
+
+        for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            player.kickPlayer(org.bukkit.ChatColor.RED + "Relicbound data has been reset. Please reconnect.");
+        }
+
+        this.getLogger().warning("Relicbound data was reset by " + actorName);
+        org.bukkit.Bukkit.getScheduler().runTaskLater(this, () -> this.resetInProgress = false, 40L);
     }
 }

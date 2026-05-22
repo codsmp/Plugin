@@ -32,7 +32,7 @@ public final class SpellMenuListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        this.core.getPlayerManaState(player.getUniqueId().toString()).orElseGet(() -> StarterItemUtil.findHeldStarterArchetype(player)
+        this.core.getPlayerManaState(player.getUniqueId().toString()).orElseGet(() -> StarterItemUtil.findAnyStarterArchetype(player)
                 .map(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype))
                 .orElse(null));
         ItemStack currentItem = event.getCurrentItem();
