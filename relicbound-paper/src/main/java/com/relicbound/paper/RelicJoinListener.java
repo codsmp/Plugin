@@ -6,6 +6,10 @@ import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.PlayerRelicState;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -52,6 +56,49 @@ public final class RelicJoinListener implements Listener {
             } catch (IllegalArgumentException exception) {
                 this.plugin.getLogger().warning("Invalid resource-pack URL in config: " + resourcePackUrl);
             }
+        }
+
+        // Give a starter wand if the player doesn't already have one
+        giveStarterWandIfMissing(player);
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        // Give a starter wand after respawn if they don't have one
+        giveStarterWandIfMissing(player);
+    }
+
+    private void giveStarterWandIfMissing(Player player) {
+        String wandName = ChatColor.GOLD + PlayerArchetype.WAND.displayName();
+        boolean hasWand = false;
+        for (ItemStack it : player.getInventory().getContents()) {
+            if (it == null) continue;
+            ItemMeta m = it.getItemMeta();
+            if (m != null && m.hasDisplayName() && wandName.equals(m.getDisplayName())) {
+                hasWand = true;
+                break;
+            }
+        }
+
+        if (!hasWand) {
+            ItemStack wand = new ItemStack(Material.STICK);
+            ItemMeta meta = wand.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(wandName);
+                java.util.List<String> lore = new java.util.ArrayList<>();
+                lore.add(ChatColor.AQUA + "A simple wand to channel your relic.");
+                lore.add(ChatColor.GRAY + "Right-click to cast spells.");
+                meta.setLore(lore);
+                wand.setItemMeta(meta);
+            }
+
+            if (player.getInventory().firstEmpty() != -1) {
+                player.getInventory().addItem(wand);
+            } else {
+                player.getWorld().dropItemNaturally(player.getLocation(), wand);
+            }
+            player.sendMessage(ChatColor.AQUA + "You received a starter wand.");
         }
     }
 
