@@ -204,8 +204,7 @@ public final class PaperSpellEngine {
     private void applyInstantSpell(Player player, SpellDefinition spell, PlayerManaState manaState) {
         SpellEffectType effect = spell.effectType();
         Location origin = player.getLocation();
-        player.getWorld().spawnParticle(Particle.END_ROD, origin, 24, 0.5, 0.8, 0.5, 0.1);
-        player.getWorld().playSound(origin, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.2F);
+        this.epicCastBurst(player, spell, manaState);
         double scaledPower = this.scaledDamage(spell, manaState.archetype());
         switch (effect) {
             case FIRE_CONE -> this.emberBurst(player, scaledPower, spell.range(), manaState.archetype());
@@ -247,6 +246,47 @@ public final class PaperSpellEngine {
             case STORM_CHARGES -> this.lightningCharges(player, spell, manaState);
             case CORRUPTION_LIFEDRAIN -> this.beginLifeDrain(player, spell, manaState);
         }
+    }
+
+    private void epicCastBurst(Player player, SpellDefinition spell, PlayerManaState manaState) {
+        Location origin = player.getLocation().clone().add(0, 1.0D, 0);
+        Particle.DustOptions accent = new Particle.DustOptions(Color.fromRGB(120, 200, 255), 1.3F);
+        Particle.DustOptions warm = new Particle.DustOptions(Color.fromRGB(255, 140, 70), 1.2F);
+
+        player.getWorld().spawnParticle(Particle.END_ROD, origin, 18, 0.35, 0.45, 0.35, 0.05);
+        player.getWorld().spawnParticle(Particle.REDSTONE, origin, 12, 0.25, 0.35, 0.25, 0.02, spell.effectType().name().contains("FIRE") ? warm : accent);
+        player.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, origin, 10, 0.3, 0.35, 0.3, 0.04);
+        if (spell.effectType().name().contains("CORRUPTION") || spell.effectType().name().contains("SHADOW")) {
+            player.getWorld().spawnParticle(Particle.SPELL_WITCH, origin, 14, 0.3, 0.45, 0.3, 0.03);
+        }
+        if (spell.effectType().name().contains("WATER") || spell.effectType().name().contains("HEAL") || spell.effectType().name().contains("LIGHT")) {
+            player.getWorld().spawnParticle(Particle.SPLASH, origin, 14, 0.35, 0.35, 0.35, 0.04);
+            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, origin, 8, 0.25, 0.25, 0.25, 0.02);
+        }
+
+        Sound sound = switch (spell.effectType()) {
+            case FIRE_CONE, FIRE_DASH -> Sound.ENTITY_BLAZE_SHOOT;
+            case WATER_HEAL, WATER_WAVE -> Sound.ITEM_TRIDENT_RIPTIDE_3;
+            case STORM_STRIKE, STORM_CHAIN, STORM_CHARGES -> Sound.ENTITY_TRIDENT_THUNDER;
+            case VOID_PULL, VOID_BLINK -> Sound.ENTITY_ENDERMAN_TELEPORT;
+            case LIGHT_SHIELD, LIGHT_PURGE, CELESTIAL_BEACON, CELESTIAL_FALL -> Sound.BLOCK_BEACON_POWER_SELECT;
+            case NATURE_ROOT, NATURE_HEAL -> Sound.BLOCK_AZALEA_LEAVES_PLACE;
+            case STONE_RUMBLE, STONE_WALL -> Sound.BLOCK_STONE_BREAK;
+            case TIME_REWIND, TIME_SLOW -> Sound.BLOCK_AMETHYST_BLOCK_CHIME;
+            case SHADOW_VEIL, SHADOW_BURST -> Sound.ENTITY_WITHER_AMBIENT;
+            case SUPPORT_RALLY, SUPPORT_TETHER -> Sound.BLOCK_BELL_USE;
+            case ECONOMY_BLESS -> Sound.BLOCK_NOTE_BLOCK_BELL;
+            case EXPLORATION_REVEAL -> Sound.BLOCK_AMETHYST_CLUSTER_HIT;
+            case MOBILITY_LEAP -> Sound.ENTITY_ELYTRA_FLYING;
+            case CRAFTING_TEMPER -> Sound.BLOCK_ANVIL_USE;
+            case SUMMONER_CALL -> Sound.ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM;
+            case CORRUPTION_BLIGHT, CORRUPTION_RIFT, CORRUPTION_CRIPPLE, CORRUPTION_LIFEDRAIN -> Sound.ENTITY_WITHER_SPAWN;
+            case ELEMENTAL_FROSTBITE -> Sound.BLOCK_GLASS_BREAK;
+            case ELEMENTAL_COOKER -> Sound.ITEM_FIRECHARGE_USE;
+            case ELEMENTAL_GOURMET -> Sound.ENTITY_GENERIC_EAT;
+        };
+        float pitch = manaState.archetype() == PlayerArchetype.STAFF ? 0.9F : 1.2F;
+        player.getWorld().playSound(origin, sound, 1.0F, pitch);
     }
 
     private int effectiveChannelDrain(SpellDefinition spell, PlayerArchetype archetype) {
@@ -615,7 +655,8 @@ public final class PaperSpellEngine {
             allay.setCustomNameVisible(true);
             allay.setPersistent(false);
         }) != null) {
-            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 16, 0.4, 0.6, 0.4, 0.05);
+            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 18, 0.45, 0.65, 0.45, 0.05);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ALLAY_AMBIENT_WITH_ITEM, 0.9F, 1.2F);
             return;
         }
         player.getWorld().spawn(player.getLocation().add(-1, 0, -1), Wolf.class, wolf -> {
@@ -625,6 +666,8 @@ public final class PaperSpellEngine {
             wolf.setCustomNameVisible(true);
             wolf.setPersistent(false);
         });
+        player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation(), 18, 0.45, 0.45, 0.45, 0.04);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WOLF_HOWL, 0.9F, 1.1F);
     }
 
     private void corruptionBlight(Player player, double damage, double range, int durationTicks) {
@@ -635,13 +678,15 @@ public final class PaperSpellEngine {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, durationTicks / 2, 0, true, true, true));
             }
         }
-        player.getWorld().spawnParticle(Particle.WITCH, player.getLocation(), 36, 0.8, 0.8, 0.8, 0.1);
+        player.getWorld().spawnParticle(Particle.WITCH, player.getLocation(), 48, 0.9, 0.9, 0.9, 0.1);
+        player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation().add(0, 1, 0), 16, 0.45, 0.55, 0.45, 0.03);
     }
 
     private void corruptionRift(Player player, double damage, double range, int durationTicks) {
         this.damageNearby(player, damage + 2.0D, range, false, true);
         player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, durationTicks, 0, true, true, true));
-        player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 48, 1.0, 1.0, 1.0, 0.2);
+        player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 56, 1.0, 1.0, 1.0, 0.2);
+        player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation(), 12, 0.6, 0.6, 0.6, 0.08);
     }
 
     private void witheringCripple(Player player, PlayerManaState manaState) {
@@ -654,9 +699,9 @@ public final class PaperSpellEngine {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, witherAmplifier, true, true, true));
             }
         }
-        player.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation(), 48, 0.9, 0.8, 0.9, 0.06);
-        player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation().add(0, 1, 0), 24, 0.6, 0.8, 0.6, 0.03);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_HURT, 0.9F, 0.8F);
+        player.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation(), 56, 0.9, 0.8, 0.9, 0.06);
+        player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation().add(0, 1, 0), 30, 0.6, 0.8, 0.6, 0.03);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_HURT, 1.0F, 0.8F);
     }
 
     private void frostbite(Player player, PlayerManaState manaState) {
@@ -683,8 +728,9 @@ public final class PaperSpellEngine {
             }
         }
 
-        player.getWorld().spawnParticle(Particle.SNOWFLAKE, player.getLocation(), 40, 1.0, 0.8, 1.0, 0.08);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.9F, 0.7F);
+        player.getWorld().spawnParticle(Particle.SNOWFLAKE, player.getLocation(), 48, 1.1, 0.9, 1.1, 0.08);
+        player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 18, 0.6, 0.3, 0.6, 0.03);
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0F, 0.7F);
     }
 
     private void cooker(Player player, SpellDefinition spell, PlayerManaState manaState) {
@@ -697,8 +743,9 @@ public final class PaperSpellEngine {
                 living.damage(damage, player);
             }
         }
-        player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 50, 1.2, 0.8, 1.2, 0.08);
-        player.getWorld().playSound(player.getLocation(), Sound.ITEM_FIRECHARGE_USE, 0.9F, manaState.archetype() == PlayerArchetype.STAFF ? 0.7F : 1.1F);
+        player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 60, 1.3, 0.9, 1.3, 0.09);
+        player.getWorld().spawnParticle(Particle.SMOKE_NORMAL, player.getLocation(), 24, 0.7, 0.4, 0.7, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_FIRECHARGE_USE, 1.0F, manaState.archetype() == PlayerArchetype.STAFF ? 0.7F : 1.1F);
     }
 
     private void gourmet(Player player, SpellDefinition spell, PlayerManaState manaState) {
@@ -712,6 +759,7 @@ public final class PaperSpellEngine {
         target.remove();
 
         player.getWorld().spawnParticle(Particle.CLOUD, targetLocation, 20, 0.5, 0.5, 0.5, 0.06);
+        player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, targetLocation, 12, 0.4, 0.4, 0.4, 0.02);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0F, 0.9F);
 
         this.applyGourmetBuff(player, type, manaState.archetype());
@@ -778,6 +826,9 @@ public final class PaperSpellEngine {
 
                 Location strikeLocation = staff ? PaperSpellEngine.this.randomLocationInRadius(player.getLocation(), radius) : player.getLocation().clone().add(player.getLocation().getDirection().normalize().multiply(3.0D));
                 PaperSpellEngine.this.hitLightningCharge(player, strikeLocation, 2.0D, stunTicks);
+                strikeLocation.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, strikeLocation, 24, 0.5, 0.6, 0.5, 0.08);
+                strikeLocation.getWorld().spawnParticle(Particle.END_ROD, strikeLocation, 6, 0.25, 0.3, 0.25, 0.02);
+                strikeLocation.getWorld().playSound(strikeLocation, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.8F, staff ? 0.8F : 1.1F);
                 this.remaining--;
             }
         }, 0L, intervalTicks);
@@ -786,8 +837,9 @@ public final class PaperSpellEngine {
 
     private void landMeteor(Player source, Location impact, double damage) {
         impact.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, impact, 1, 0.0, 0.0, 0.0, 0.0);
-        impact.getWorld().spawnParticle(Particle.FLAME, impact, 28, 0.6, 0.6, 0.6, 0.05);
-        impact.getWorld().playSound(impact, Sound.ENTITY_GENERIC_EXPLODE, 1.0F, 0.8F);
+        impact.getWorld().spawnParticle(Particle.FLAME, impact, 32, 0.7, 0.7, 0.7, 0.06);
+        impact.getWorld().spawnParticle(Particle.LAVA, impact, 12, 0.4, 0.4, 0.4, 0.03);
+        impact.getWorld().playSound(impact, Sound.ENTITY_GENERIC_EXPLODE, 1.1F, 0.8F);
         for (Entity entity : source.getNearbyEntities(8.0D, 8.0D, 8.0D)) {
             if (entity instanceof LivingEntity living) {
                 double distance = living.getLocation().distance(impact);
