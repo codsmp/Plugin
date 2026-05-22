@@ -42,6 +42,69 @@ body {
   padding: 1rem 0 3rem;
 }
 
+.spell-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.spell-outline-panel {
+  position: sticky;
+  top: 5.5rem;
+  max-height: calc(100vh - 7rem);
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--rb-border);
+  border-radius: 20px;
+  background: var(--rb-surface);
+}
+
+.spell-outline-header h2 {
+  margin: 0;
+  color: var(--rb-text);
+  font-size: 1.2rem;
+}
+
+.spell-outline-eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--rb-muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.spell-outline {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.spell-outline-item {
+  border: 1px solid transparent;
+  border-radius: 14px;
+}
+
+.spell-outline-link {
+  display: block;
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  color: var(--rb-text);
+  background: rgba(255, 255, 255, 0.03);
+  text-decoration: none;
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.spell-outline-link:hover {
+  background: rgba(103, 232, 249, 0.1);
+  border-color: rgba(103, 232, 249, 0.18);
+  transform: translateX(2px);
+}
+
+.spell-outline-empty {
+  color: var(--rb-muted);
+}
+
 .spell-hero {
   margin: 0 0 1.5rem;
   padding: 1.5rem 1.5rem 1.25rem;
@@ -196,4 +259,15 @@ body {
 .md-search__output,
 .md-search__inner {
   background-color: #000;
+}
+
+@media screen and (max-width: 980px) {
+  .spell-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .spell-outline-panel {
+    position: static;
+    max-height: none;
+  }
 }
