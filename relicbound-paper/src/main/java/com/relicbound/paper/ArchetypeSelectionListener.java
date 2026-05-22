@@ -63,3 +63,4 @@ public final class ArchetypeSelectionListener implements Listener {
         event.getWhoClicked().closeInventory();
         event.getWhoClicked().sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "You have chosen the path of the " + archetype.displayName() + ChatColor.YELLOW + "!");
     }
+}
