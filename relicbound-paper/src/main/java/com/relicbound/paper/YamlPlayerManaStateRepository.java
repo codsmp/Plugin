@@ -51,6 +51,10 @@ public final class YamlPlayerManaStateRepository implements PlayerManaStateRepos
         }
     }
 
+    public void clear() {
+        this.deleteRecursively(new File(this.plugin.getDataFolder(), "data" + File.separator + "mana"));
+    }
+
     private PlayerManaState loadFromConfig(String playerId, YamlConfiguration config) {
         return new PlayerManaState(
                 playerId,
@@ -65,5 +69,20 @@ public final class YamlPlayerManaStateRepository implements PlayerManaStateRepos
 
     private File getPlayerFile(String playerId) {
         return new File(this.plugin.getDataFolder(), "data" + File.separator + "mana" + File.separator + playerId + ".yml");
+    }
+
+    private void deleteRecursively(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        File[] children = file.listFiles();
+        if (children != null) {
+            for (File child : children) {
+                this.deleteRecursively(child);
+            }
+        }
+        if (!file.delete()) {
+            this.plugin.getLogger().warning("Failed to delete " + file.getAbsolutePath());
+        }
     }
 }

@@ -43,6 +43,13 @@ public final class PlayerTrustStore {
         return this.trustedByOwner.getOrDefault(ownerId, Set.of()).contains(trustedPlayerId);
     }
 
+    public synchronized void clear() {
+        this.trustedByOwner.clear();
+        if (this.storageFile.exists() && !this.storageFile.delete()) {
+            this.plugin.getLogger().warning("Failed to delete " + this.storageFile.getAbsolutePath());
+        }
+    }
+
     private void load() {
         if (!this.storageFile.exists()) {
             return;

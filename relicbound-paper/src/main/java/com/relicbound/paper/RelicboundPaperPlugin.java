@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RelicboundPaperPlugin extends JavaPlugin {
+    private PaperPlatformAdapter adapter;
     private RelicboundCore core;
     private PaperSpellEngine spellEngine;
     private PlayerTrustStore trustStore;
@@ -13,17 +14,17 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
-        PaperPlatformAdapter adapter = new PaperPlatformAdapter(this);
-        this.core = adapter.core();
+        this.adapter = new PaperPlatformAdapter(this);
+        this.core = this.adapter.core();
         this.core.initialize(new CoreContext(
-                adapter.capabilities(),
-                adapter.progressionService(),
-                adapter.relicCatalog(),
-                adapter.spellCatalog(),
-                adapter.relicProgressionService(),
-                adapter.manaService(),
-                adapter.playerRelicStateRepository(),
-                adapter.playerManaStateRepository()
+            this.adapter.capabilities(),
+            this.adapter.progressionService(),
+            this.adapter.relicCatalog(),
+            this.adapter.spellCatalog(),
+            this.adapter.relicProgressionService(),
+            this.adapter.manaService(),
+            this.adapter.playerRelicStateRepository(),
+            this.adapter.playerManaStateRepository()
         ));
         this.spellEngine = new PaperSpellEngine(this, this.core);
         this.trustStore = new PlayerTrustStore(this);
@@ -47,6 +48,10 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             if (this.getCommand("relicboundupgrade") != null) this.getCommand("relicboundupgrade").setExecutor(executor);
             if (this.getCommand("relicboundgrant") != null) this.getCommand("relicboundgrant").setExecutor(executor);
             if (this.getCommand("rb") != null) this.getCommand("rb").setExecutor(executor);
+        }
+
+        if (this.getCommand("relicreset") != null) {
+            this.getCommand("relicreset").setExecutor(new RelicResetCommand(this, this.adapter, this.trustStore));
         }
 
         if (this.getCommand("trust") != null) {

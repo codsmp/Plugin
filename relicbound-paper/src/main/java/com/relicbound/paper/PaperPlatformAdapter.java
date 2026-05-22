@@ -20,9 +20,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PaperPlatformAdapter implements PlatformAdapter {
     private final JavaPlugin plugin;
+    private final YamlPlayerRelicStateRepository playerRelicStateRepository;
+    private final YamlPlayerManaStateRepository playerManaStateRepository;
 
     public PaperPlatformAdapter(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.playerRelicStateRepository = new YamlPlayerRelicStateRepository(this.plugin);
+        this.playerManaStateRepository = new YamlPlayerManaStateRepository(this.plugin);
     }
 
     public RelicboundCore core() {
@@ -71,12 +75,17 @@ public final class PaperPlatformAdapter implements PlatformAdapter {
 
     @Override
     public PlayerRelicStateRepository playerRelicStateRepository() {
-        return new YamlPlayerRelicStateRepository(this.plugin);
+        return this.playerRelicStateRepository;
     }
 
     @Override
     public PlayerManaStateRepository playerManaStateRepository() {
-        return new YamlPlayerManaStateRepository(this.plugin);
+        return this.playerManaStateRepository;
+    }
+
+    public void resetPersistentState() {
+        this.playerRelicStateRepository.clear();
+        this.playerManaStateRepository.clear();
     }
 
 }

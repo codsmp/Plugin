@@ -4,11 +4,13 @@ import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.PlayerArchetype;
 import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.PlayerRelicState;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -62,8 +64,21 @@ public final class RelicJoinListener implements Listener {
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        // Give the appropriate starter item for their archetype after respawn
-        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> StarterItemUtil.giveStarterItem(player, m.archetype()));
+        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> Bukkit.getScheduler().runTaskLater(this.plugin, () -> StarterItemUtil.giveStarterItem(player, m.archetype()), 1L));
+    }
+
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> {
+            if (!event.getKeepInventory()) {
+                return;
+            }
+
+            if (removeOneStarterItem(player, m.archetype())) {
+                event.getDrops().add(StarterItemUtil.createStarterItem(m.archetype()));
+            }
+        });
     }
 
     @EventHandler
@@ -71,5 +86,22 @@ public final class RelicJoinListener implements Listener {
         Player player = event.getPlayer();
         this.core.findPlayerState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerState);
         this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerManaState);
+    }
+
+    private boolean removeOneStarterItem(Player player, PlayerArchetype archetype) {
+        String displayName = org.bukkit.ChatColor.GOLD + archetype.displayName();
+        org.bukkit.inventory.ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            org.bukkit.inventory.ItemStack item = contents[i];
+            if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
+                continue;
+            }
+            if (displayName.equals(item.getItemMeta().getDisplayName())) {
+                contents[i] = null;
+                player.getInventory().setContents(contents);
+                return true;
+            }
+        }
+        return false;
     }
 }

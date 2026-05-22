@@ -44,6 +44,13 @@ public final class YamlPlayerRelicStateRepository implements PlayerRelicStateRep
         return List.copyOf(this.cache.values());
     }
 
+    public void clear() {
+        this.cache.clear();
+        if (this.storageFile.exists() && !this.storageFile.delete()) {
+            this.plugin.getLogger().warning("Failed to delete " + this.storageFile.getAbsolutePath());
+        }
+    }
+
     private void load() {
         if (!this.storageFile.exists()) {
             this.storageFile.getParentFile().mkdirs();

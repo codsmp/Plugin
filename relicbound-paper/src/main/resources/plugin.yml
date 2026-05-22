@@ -21,6 +21,10 @@ commands:
     description: Grant essence to a player (admin).
     usage: /relicboundgrant <player> <essenceType> <amount>
     permission: relicbound.admin.grant
+  relicreset:
+    description: Reset all Relicbound player data.
+    usage: /relicreset
+    permission: relicbound.admin.reset
   rb:
     description: Alias for /relicbound
     usage: /rb
@@ -32,4 +36,6 @@ permissions:
   relicbound.command.info:
     default: true
   relicbound.admin.grant:
+    default: op
+  relicbound.admin.reset:
     default: op
