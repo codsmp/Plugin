@@ -58,47 +58,50 @@ public final class RelicJoinListener implements Listener {
             }
         }
 
-        // Give a starter wand if the player doesn't already have one
-        giveStarterWandIfMissing(player);
+        // Give a starter item appropriate for the saved archetype (if any)
+        if (manaStateOptional.isPresent()) {
+            giveStarterForArchetype(player, manaStateOptional.get().archetype());
+        }
     }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        // Give a starter wand after respawn if they don't have one
-        giveStarterWandIfMissing(player);
+        // Give the appropriate starter item for their archetype after respawn
+        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> giveStarterForArchetype(player, m.archetype()));
     }
 
-    private void giveStarterWandIfMissing(Player player) {
-        String wandName = ChatColor.GOLD + PlayerArchetype.WAND.displayName();
-        boolean hasWand = false;
+    private void giveStarterForArchetype(Player player, PlayerArchetype archetype) {
+        String itemName = ChatColor.GOLD + archetype.displayName();
+        boolean hasItem = false;
         for (ItemStack it : player.getInventory().getContents()) {
             if (it == null) continue;
             ItemMeta m = it.getItemMeta();
-            if (m != null && m.hasDisplayName() && wandName.equals(m.getDisplayName())) {
-                hasWand = true;
+            if (m != null && m.hasDisplayName() && itemName.equals(m.getDisplayName())) {
+                hasItem = true;
                 break;
             }
         }
 
-        if (!hasWand) {
-            ItemStack wand = new ItemStack(Material.STICK);
-            ItemMeta meta = wand.getItemMeta();
+        if (!hasItem) {
+            Material material = archetype == PlayerArchetype.WAND ? Material.STICK : Material.BLAZE_ROD;
+            ItemStack item = new ItemStack(material);
+            ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(wandName);
+                meta.setDisplayName(itemName);
                 java.util.List<String> lore = new java.util.ArrayList<>();
-                lore.add(ChatColor.AQUA + "A simple wand to channel your relic.");
+                lore.add(ChatColor.AQUA + "A simple " + archetype.displayName() + " to channel your relic.");
                 lore.add(ChatColor.GRAY + "Right-click to cast spells.");
                 meta.setLore(lore);
-                wand.setItemMeta(meta);
+                item.setItemMeta(meta);
             }
 
             if (player.getInventory().firstEmpty() != -1) {
-                player.getInventory().addItem(wand);
+                player.getInventory().addItem(item);
             } else {
-                player.getWorld().dropItemNaturally(player.getLocation(), wand);
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
             }
-            player.sendMessage(ChatColor.AQUA + "You received a starter wand.");
+            player.sendMessage(ChatColor.AQUA + "You received a starter " + archetype.displayName() + ".");
         }
     }
 
