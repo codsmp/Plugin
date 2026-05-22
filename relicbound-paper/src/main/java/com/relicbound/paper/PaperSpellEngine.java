@@ -528,8 +528,7 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
                 living.damage(Math.max(1.0D, damage), player);
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 2, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 255, true, true, true));
             }
         }
     }
