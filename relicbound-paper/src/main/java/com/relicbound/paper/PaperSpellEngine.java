@@ -352,8 +352,9 @@ public final class PaperSpellEngine {
                 living.setFireTicks(Math.max(living.getFireTicks(), fireTicks));
             }
         }
-        player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 36, 0.8, 0.6, 0.8, 0.05);
-        player.getWorld().playSound(player.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1.0F, 1.0F);
+        player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 48, 0.9, 0.8, 0.9, 0.06);
+        player.getWorld().spawnParticle(Particle.SMOKE_LARGE, player.getLocation().add(0, 1, 0), 16, 0.6, 0.4, 0.6, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 1.1F, archetype == PlayerArchetype.STAFF ? 0.9F : 1.2F);
     }
 
     private void thunderLance(Player player, double damage, double range, PlayerArchetype archetype) {
@@ -382,6 +383,8 @@ public final class PaperSpellEngine {
             if (next == null) break;
             next.getWorld().strikeLightningEffect(next.getLocation());
             next.damage(damage * 0.8D, player);
+            next.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, next.getLocation(), 20, 0.4, 0.6, 0.4, 0.02);
+            next.getWorld().playSound(next.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.9F, 1.0F);
             chained.add(next);
             last = next;
         }
@@ -395,6 +398,8 @@ public final class PaperSpellEngine {
             if (entity instanceof LivingEntity living && living != player) {
                 living.damage(damage, player);
                 living.getWorld().strikeLightningEffect(living.getLocation());
+                living.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, living.getLocation().add(0, 1, 0), 16, 0.3, 0.4, 0.3, 0.02);
+                living.getWorld().playSound(living.getLocation(), Sound.ENTITY_TRIDENT_THUNDER, 0.9F, 1.0F);
                 hits++;
             }
         }
@@ -413,6 +418,7 @@ public final class PaperSpellEngine {
             }
         }
         player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 30, 0.6, 0.8, 0.6, 0.2);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0F, 0.9F);
     }
 
     private void pullNearby(Player player, double damage, double range) {
@@ -471,7 +477,7 @@ public final class PaperSpellEngine {
         // Also heal the caster and show particles
         this.healSelf(player, amount, true);
         player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation(), 24, 0.6, 0.6, 0.6, 0.02);
-        player.getWorld().playSound(player.getLocation(), Sound.ITEM_BOTTLE_FILL, 0.9F, 1.0F);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 0.9F, 1.0F);
     }
 
     private void rootNearby(Player player, double damage, double range) {
@@ -648,8 +654,9 @@ public final class PaperSpellEngine {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, witherAmplifier, true, true, true));
             }
         }
-        player.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation(), 40, 0.8, 0.7, 0.8, 0.04);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 0.8F, 0.7F);
+        player.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation(), 48, 0.9, 0.8, 0.9, 0.06);
+        player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation().add(0, 1, 0), 24, 0.6, 0.8, 0.6, 0.03);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_HURT, 0.9F, 0.8F);
     }
 
     private void frostbite(Player player, PlayerManaState manaState) {
