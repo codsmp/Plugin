@@ -44,10 +44,12 @@ public final class PaperSpellEngine {
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
     private final Map<UUID, BukkitTask> channelTasks = new HashMap<>();
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
+    private final PlayerTrustStore trustStore;
 
-    public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core) {
+    public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore) {
         this.plugin = plugin;
         this.core = core;
+        this.trustStore = trustStore;
     }
 
     public boolean cast(Player player, SpellDefinition spellDefinition) {
@@ -634,8 +636,17 @@ public final class PaperSpellEngine {
     }
 
     private void explorationReveal(Player player, double range, int durationTicks) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, durationTicks, 0, true, true, true));
+        // Caster keeps night vision but does not glow
         player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, durationTicks, 0, true, true, true));
+        // Apply glowing to other players within 180 blocks, excluding trusted players
+        double maxDistSq = 180.0D * 180.0D;
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            if (other == null || !other.isOnline() || other.equals(player)) continue;
+            if (!other.getWorld().equals(player.getWorld())) continue;
+            if (other.getLocation().distanceSquared(player.getLocation()) > maxDistSq) continue;
+            if (this.trustStore != null && this.trustStore.isTrustedEitherWay(player.getUniqueId().toString(), other.getUniqueId().toString())) continue;
+            other.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, durationTicks, 0, true, true, true));
+        }
         player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 20, range / 6.0D, 1.0, range / 6.0D, 0.15);
     }
 

@@ -27,8 +27,8 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             this.adapter.playerRelicStateRepository(),
             this.adapter.playerManaStateRepository()
         ));
-        this.spellEngine = new PaperSpellEngine(this, this.core);
         this.trustStore = new PlayerTrustStore(this);
+        this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore);
         Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellMenuListener(this, this.core, this.spellEngine), this);
