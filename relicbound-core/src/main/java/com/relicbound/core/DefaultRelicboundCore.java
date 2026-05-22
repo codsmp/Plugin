@@ -73,8 +73,7 @@ public class DefaultRelicboundCore implements RelicboundCore {
         if (this.context == null) {
             throw new IllegalStateException("Core is not initialized");
         }
-        PlayerRelicState initialState = this.context.relicCatalog().createStartingState(playerId, seed);
-        return this.applyUnlockedSpells(initialState);
+        return this.context.relicCatalog().createStartingState(playerId, seed);
     }
 
     @Override
@@ -160,7 +159,7 @@ public class DefaultRelicboundCore implements RelicboundCore {
             throw new IllegalStateException("Core is not initialized");
         }
         return this.getPlayerManaState(playerId)
-            .orElseGet(() -> this.context.manaService().initializePlayerMana(playerId, archetype));
+            .orElseGet(() -> this.savePlayerManaState(this.context.manaService().initializePlayerMana(playerId, archetype)));
     }
 
     @Override
