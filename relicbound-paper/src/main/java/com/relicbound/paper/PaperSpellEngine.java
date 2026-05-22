@@ -441,7 +441,7 @@ public final class PaperSpellEngine {
                 living.damage(damage, player);
                 living.getWorld().strikeLightningEffect(living.getLocation());
                 living.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, living.getLocation().add(0, 1, 0), 16, 0.3, 0.4, 0.3, 0.02);
-                living.getWorld().playSound(living.getLocation(), Sound.ENTITY_TRIDENT_THUNDER, 0.9F, 1.0F);
+                living.getWorld().playSound(living.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.9F, 1.0F);
                 hits++;
             }
         }
@@ -702,7 +702,7 @@ public final class PaperSpellEngine {
             }
         }
         player.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation(), 56, 0.9, 0.8, 0.9, 0.06);
-        player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation().add(0, 1, 0), 30, 0.6, 0.8, 0.6, 0.03);
+        player.getWorld().spawnParticle(Particle.WITCH, player.getLocation().add(0, 1, 0), 30, 0.6, 0.8, 0.6, 0.03);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_HURT, 1.0F, 0.8F);
     }
 
