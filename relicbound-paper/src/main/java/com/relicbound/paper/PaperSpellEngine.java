@@ -283,9 +283,11 @@ public final class PaperSpellEngine {
             case CRAFTING_TEMPER -> Sound.BLOCK_ANVIL_USE;
             case SUMMONER_CALL -> Sound.ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM;
             case CORRUPTION_BLIGHT, CORRUPTION_RIFT, CORRUPTION_CRIPPLE, CORRUPTION_LIFEDRAIN -> Sound.ENTITY_WITHER_SPAWN;
+            case UTILITY_MALFUNCTION -> Sound.ENTITY_ENDERMAN_TELEPORT;
             case ELEMENTAL_FROSTBITE -> Sound.BLOCK_GLASS_BREAK;
             case ELEMENTAL_COOKER -> Sound.ITEM_FIRECHARGE_USE;
             case ELEMENTAL_GOURMET -> Sound.ENTITY_GENERIC_EAT;
+            case CELESTIAL_METEOR, CELESTIAL_METEOR_RAIN -> Sound.ENTITY_GENERIC_EXPLODE;
         };
         float pitch = manaState.archetype() == PlayerArchetype.STAFF ? 0.9F : 1.2F;
         player.getWorld().playSound(origin, sound, 1.0F, pitch);
