@@ -15,6 +15,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     private RelicboundCore core;
     private PaperSpellEngine spellEngine;
     private PlayerTrustStore trustStore;
+    private GracePeriodController gracePeriodController;
     private volatile boolean resetInProgress;
 
     @Override
@@ -34,6 +35,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         ));
         this.trustStore = new PlayerTrustStore(this);
         this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore);
+        this.gracePeriodController = new GracePeriodController(this);
         Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellMenuListener(this, this.core, this.spellEngine), this);
@@ -47,6 +49,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new GuideMenuListener(), this);
         Bukkit.getPluginManager().registerEvents(new SpellWandListener(this.core, this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore), this);
+        Bukkit.getPluginManager().registerEvents(this.gracePeriodController, this);
 
         // Start mana-related tasks
         new ManaBarDisplay(this, this.core, this.spellEngine).startDisplayTask();
@@ -69,6 +72,10 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
 
         if (this.getCommand("trust") != null) {
             this.getCommand("trust").setExecutor(new TrustCommand(this, this.trustStore));
+        }
+
+        if (this.getCommand("graceperiod") != null) {
+            this.getCommand("graceperiod").setExecutor(this.gracePeriodController);
         }
 
         this.runStartupChecks();

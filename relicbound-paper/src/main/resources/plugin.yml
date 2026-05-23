@@ -33,6 +33,10 @@ commands:
     description: Trust a player so they cannot damage you.
     usage: /trust <player>
     permission: relicbound.command.trust
+  graceperiod:
+    description: Start or manage global no-damage grace period.
+    usage: /graceperiod [status|stop]
+    permission: relicbound.admin.grace
 permissions:
   relicbound.command.info:
     default: true
@@ -43,4 +47,6 @@ permissions:
   relicbound.admin.reset:
     default: op
   relicbound.admin.debug:
+    default: op
+  relicbound.admin.grace:
     default: op
