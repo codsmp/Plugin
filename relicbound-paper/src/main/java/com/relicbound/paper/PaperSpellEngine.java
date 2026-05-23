@@ -1234,9 +1234,27 @@ public final class PaperSpellEngine {
     
 
     private void damageIgnoringArmor(LivingEntity living, double damage, Player source) {
-        if (living instanceof Player target && this.isTrustedBySource(source, target)) {
+        if (living instanceof Player target) {
+            if (this.isTrustedBySource(source, target)) {
+                return;
+            }
+            org.bukkit.GameMode gm = target.getGameMode();
+            if (gm == org.bukkit.GameMode.CREATIVE) {
+                return; // don't damage creative players
+            }
+            double current = target.getHealth();
+            double newHealth = Math.max(0.0D, current - damage);
+            // Prevent instant one-shot kills of players: leave at least 1.0 health
+            if (newHealth <= 0.0D) {
+                newHealth = 1.0D;
+            }
+            target.setHealth(newHealth);
+            if (newHealth > 0.0D) {
+                target.damage(0.0D, source);
+            }
             return;
         }
+        // Non-player entities: apply damage normally (may be lethal)
         double newHealth = Math.max(0.0D, living.getHealth() - damage);
         living.setHealth(newHealth);
         if (newHealth > 0.0D) {
