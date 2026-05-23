@@ -5,6 +5,7 @@ import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -98,6 +99,14 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     }
 
     private void runStartupChecks() {
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+            String name = plugin.getName();
+            String normalized = name == null ? "" : name.toLowerCase(java.util.Locale.ROOT);
+            if (normalized.contains("enchlimiter") || normalized.contains("enchantlimiter") || normalized.contains("ench limiter")) {
+                this.getLogger().warning("Possible external enchant-limiter plugin detected: " + name + ". If enchants are still being removed, disable or remove that plugin and restart the server.");
+            }
+        }
+
         Map<String, Long> spellCounts = this.core.allSpells().stream()
             .collect(Collectors.groupingBy(SpellDefinition::id, Collectors.counting()));
         spellCounts.forEach((spellId, count) -> {
