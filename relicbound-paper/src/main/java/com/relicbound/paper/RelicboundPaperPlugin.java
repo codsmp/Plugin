@@ -2,8 +2,12 @@ package com.relicbound.paper;
 
 import com.relicbound.core.CoreContext;
 import com.relicbound.core.RelicboundCore;
+import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class RelicboundPaperPlugin extends JavaPlugin {
     private PaperPlatformAdapter adapter;
@@ -41,6 +45,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new EnchantLimitListener(this.enchantLimitStore), this);
         Bukkit.getPluginManager().registerEvents(new StarterItemProtectionListener(), this);
         Bukkit.getPluginManager().registerEvents(new SkyLeapProtectionListener(this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new SecretPhraseListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new GuideMenuListener(), this);
         Bukkit.getPluginManager().registerEvents(new SpellWandListener(this.core, this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore), this);
@@ -50,7 +55,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         new ManaRegenTask(this, this.core).startRegenTask();
 
         if (this.getCommand("relicbound") != null) {
-            RelicboundCommand executor = new RelicboundCommand(this, this.core);
+            RelicboundCommand executor = new RelicboundCommand(this, this.core, this.spellEngine);
             this.getCommand("relicbound").setExecutor(executor);
             if (this.getCommand("relicboundspells") != null) this.getCommand("relicboundspells").setExecutor(executor);
             if (this.getCommand("relicboundupgrade") != null) this.getCommand("relicboundupgrade").setExecutor(executor);
@@ -69,6 +74,8 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         if (this.getCommand("trust") != null) {
             this.getCommand("trust").setExecutor(new TrustCommand(this, this.trustStore));
         }
+
+        this.runStartupChecks();
     }
 
     @Override
@@ -93,5 +100,24 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
 
         this.getLogger().warning("Relicbound data was reset by " + actorName);
         org.bukkit.Bukkit.getScheduler().runTaskLater(this, () -> this.resetInProgress = false, 40L);
+    }
+
+    private void runStartupChecks() {
+        Map<String, Long> spellCounts = this.core.allSpells().stream()
+            .collect(Collectors.groupingBy(SpellDefinition::id, Collectors.counting()));
+        spellCounts.forEach((spellId, count) -> {
+            if (count > 1) {
+                this.getLogger().warning("Duplicate spell id detected: " + spellId + " (x" + count + ")");
+            }
+        });
+
+        if (this.core.findSpell("dawn_aegis").isEmpty()) {
+            this.getLogger().warning("Expected spell 'dawn_aegis' was not found in spell catalog.");
+        }
+
+        String packUrl = this.getConfig().getString("resource-pack.url", "");
+        if (packUrl == null || packUrl.isBlank()) {
+            this.getLogger().warning("resource-pack.url is empty; players will not receive an automatic pack prompt.");
+        }
     }
 }

@@ -1,7 +1,9 @@
 package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
+import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.PlayerRelicState;
+import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -14,10 +16,12 @@ import java.util.logging.Level;
 public final class RelicboundCommand implements CommandExecutor {
     private final JavaPlugin plugin;
     private final RelicboundCore core;
+    private final PaperSpellEngine spellEngine;
 
-    public RelicboundCommand(JavaPlugin plugin, RelicboundCore core) {
+    public RelicboundCommand(JavaPlugin plugin, RelicboundCore core, PaperSpellEngine spellEngine) {
         this.plugin = plugin;
         this.core = core;
+        this.spellEngine = spellEngine;
     }
 
     @Override
@@ -41,6 +45,10 @@ public final class RelicboundCommand implements CommandExecutor {
 
             if ("spells".equalsIgnoreCase(args[0])) {
                 return this.openSpellMenu(sender);
+            }
+
+            if ("debug".equalsIgnoreCase(args[0])) {
+                return this.debugPlayer(sender, args);
             }
 
             if ("upgrade".equalsIgnoreCase(args[0])) {
@@ -110,7 +118,7 @@ public final class RelicboundCommand implements CommandExecutor {
                 return true;
             }
 
-            sender.sendMessage("Usage: /relicbound <guide|spells|upgrade|grant>");
+            sender.sendMessage("Usage: /relicbound <guide|spells|upgrade|grant|debug>");
             return true;
         } catch (Throwable t) {
             // Log the full exception to server logs and send a concise message to the sender
@@ -147,6 +155,56 @@ public final class RelicboundCommand implements CommandExecutor {
             return true;
         }
         new GuideMenu(this.plugin).open(player);
+        return true;
+    }
+
+    private boolean debugPlayer(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("relicbound.admin.debug")) {
+            sender.sendMessage(ChatColor.RED + "You do not have permission to use debug.");
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /relicbound debug <player>");
+            return true;
+        }
+
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Target player must be online.");
+            return true;
+        }
+
+        String playerId = target.getUniqueId().toString();
+        PlayerRelicState relicState = this.core.findPlayerState(playerId).orElse(null);
+        PlayerManaState manaState = this.core.getPlayerManaState(playerId).orElse(null);
+
+        sender.sendMessage(ChatColor.GOLD + "[Relicbound Debug] " + ChatColor.YELLOW + target.getName());
+        if (relicState != null) {
+            sender.sendMessage(ChatColor.GRAY + "Tier: " + ChatColor.WHITE + relicState.tier().name());
+            sender.sendMessage(ChatColor.GRAY + "Unlocked spells: " + ChatColor.WHITE + relicState.unlockedAbilities().size());
+        } else {
+            sender.sendMessage(ChatColor.GRAY + "Relic state: " + ChatColor.RED + "none");
+        }
+
+        if (manaState != null) {
+            sender.sendMessage(ChatColor.GRAY + "Archetype: " + ChatColor.WHITE + manaState.archetype().displayName());
+            sender.sendMessage(ChatColor.GRAY + "Mana: " + ChatColor.WHITE + manaState.currentMana() + "/" + manaState.maxMana());
+            if (manaState.equippedSpellIds().isEmpty()) {
+                sender.sendMessage(ChatColor.GRAY + "Equipped: " + ChatColor.DARK_GRAY + "none");
+            } else {
+                for (int i = 0; i < manaState.equippedSpellIds().size(); i++) {
+                    String spellId = manaState.equippedSpellIds().get(i);
+                    SpellDefinition spell = this.core.findSpell(spellId).orElse(null);
+                    String display = spell == null ? spellId + " (?)" : spell.displayName();
+                    long cooldown = spell == null ? 0L : this.spellEngine.remainingCooldownSeconds(target, spell);
+                    sender.sendMessage(ChatColor.GRAY + "Slot " + (i + 1) + ": " + ChatColor.WHITE + display
+                            + ChatColor.GRAY + " | CD: " + ChatColor.WHITE + (cooldown <= 0 ? "READY" : cooldown + "s"));
+                }
+            }
+        } else {
+            sender.sendMessage(ChatColor.GRAY + "Mana state: " + ChatColor.RED + "none");
+        }
+
         return true;
     }
 }

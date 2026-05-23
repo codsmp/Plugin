@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 
@@ -49,11 +50,9 @@ public final class PaperSpellEngine {
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
     private final Map<UUID, Long> noFallUntil = new HashMap<>();
     private final PlayerTrustStore trustStore;
+    private final java.util.Set<UUID> secretAPlusSkyLeap = new java.util.HashSet<>();
 
-    // Global tuning multipliers for combat readiness
-    private final double GLOBAL_DAMAGE_BUFF = 1.5D;
-    private final double GLOBAL_COOLDOWN_MULTIPLIER = 0.9D;
-    private final double GLOBAL_RANGE_MULTIPLIER = 1.1D;
+        // Balance values are runtime-configurable in config.yml under spell-balance.
         private final java.util.Set<com.relicbound.core.model.SpellEffectType> BOOSTED_EFFECTS = java.util.EnumSet.of(
             SpellEffectType.FIRE_CONE,
             SpellEffectType.FIRE_DASH,
@@ -65,10 +64,145 @@ public final class PaperSpellEngine {
             SpellEffectType.CELESTIAL_FALL
         );
 
+        private static final Set<SpellEffectType> FIRE_DAMAGE_EFFECTS = Set.of(
+            SpellEffectType.FIRE_CONE,
+            SpellEffectType.FIRE_DASH,
+            SpellEffectType.ELEMENTAL_COOKER,
+            SpellEffectType.CELESTIAL_METEOR,
+            SpellEffectType.CELESTIAL_METEOR_RAIN
+        );
+
+        private static final Set<SpellEffectType> LIGHTNING_DAMAGE_EFFECTS = Set.of(
+            SpellEffectType.STORM_STRIKE,
+            SpellEffectType.STORM_CHAIN,
+            SpellEffectType.STORM_CHARGES
+        );
+
+            // Intentionally varied meta by letter grade.
+            private static final Set<String> A_PLUS_SPELLS = Set.of(
+                "starfall",
+                "meteor_rain",
+                "abyss_rift"
+            );
+
+            private static final Set<String> A_SPELLS = Set.of(
+                "thunder_lance",
+                "dawn_aegis",
+                "lifedrain"
+            );
+
+            private static final Set<String> A_MINUS_SPELLS = Set.of(
+                "meteor_surge",
+                "tempest_chain",
+                "withering_cripple",
+                "astral_beacon"
+            );
+
+            private static final Set<String> B_PLUS_SPELLS = Set.of(
+                "ember_burst",
+                "bloom_mend",
+                "gravity_snare",
+                "sanctify",
+                "lightning_charges"
+            );
+
+            private static final Set<String> B_SPELLS = Set.of(
+                "tide_salve",
+                "seismic_line",
+                "veil_strike",
+                "rally_chant",
+                "sky_leap"
+            );
+
+            private static final Set<String> B_MINUS_SPELLS = Set.of(
+                "undertow_wave",
+                "root_bind",
+                "umbra_walk",
+                "rewind_step",
+                "slow_field"
+            );
+
+            private static final Set<String> C_PLUS_SPELLS = Set.of(
+                "bulwark_wall",
+                "life_tether",
+                "frostbite",
+                "echo_call"
+            );
+
+            private static final Set<String> C_MINUS_SPELLS = Set.of(
+                "rift_step",
+                "temper_touch",
+                "malfunction"
+            );
+
+            private static final Set<String> D_PLUS_SPELLS = Set.of(
+                "coin_blessing",
+                "trail_reveal"
+            );
+
+            private static final Set<String> D_SPELLS = Set.of(
+                "cooker",
+                "gourmet"
+            );
+
+            private enum SpellBalanceGrade {
+            A_PLUS("a-plus", 3.00D, 1.30D, 1.20D),
+            A("a", 2.25D, 1.20D, 1.12D),
+            A_MINUS("a-minus", 1.75D, 1.10D, 1.06D),
+            B_PLUS("b-plus", 1.25D, 1.02D, 1.00D),
+            B("b", 1.00D, 1.00D, 1.00D),
+            B_MINUS("b-minus", 0.92D, 0.95D, 0.95D),
+            C_PLUS("c-plus", 0.86D, 0.92D, 0.92D),
+            C("c", 0.80D, 0.90D, 0.90D),
+            C_MINUS("c-minus", 0.74D, 0.88D, 0.88D),
+            D_PLUS("d-plus", 0.68D, 0.85D, 0.85D),
+            D("d", 0.62D, 0.82D, 0.82D),
+            D_MINUS("d-minus", 0.56D, 0.80D, 0.80D),
+            F_PLUS("f-plus", 0.50D, 0.78D, 0.78D),
+            F("f", 0.44D, 0.75D, 0.75D),
+            F_MINUS("f-minus", 0.38D, 0.72D, 0.72D);
+
+            private final String configKey;
+            private final double defaultDamageMultiplier;
+            private final double defaultCooldownMultiplier;
+            private final double defaultManaMultiplier;
+
+            SpellBalanceGrade(String configKey, double defaultDamageMultiplier, double defaultCooldownMultiplier, double defaultManaMultiplier) {
+                this.configKey = configKey;
+                this.defaultDamageMultiplier = defaultDamageMultiplier;
+                this.defaultCooldownMultiplier = defaultCooldownMultiplier;
+                this.defaultManaMultiplier = defaultManaMultiplier;
+            }
+
+            public String configKey() {
+                return this.configKey;
+            }
+
+            public double defaultDamageMultiplier() {
+                return this.defaultDamageMultiplier;
+            }
+
+            public double defaultCooldownMultiplier() {
+                return this.defaultCooldownMultiplier;
+            }
+
+            public double defaultManaMultiplier() {
+                return this.defaultManaMultiplier;
+            }
+            }
+
     public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore) {
         this.plugin = plugin;
         this.core = core;
         this.trustStore = trustStore;
+    }
+
+    public void unlockAPlusSkyLeapFor(java.util.UUID playerId) {
+        this.secretAPlusSkyLeap.add(playerId);
+    }
+
+    public boolean hasAPlusSkyLeap(java.util.UUID playerId) {
+        return this.secretAPlusSkyLeap.contains(playerId);
     }
 
     public boolean cast(Player player, SpellDefinition spellDefinition) {
@@ -103,6 +237,14 @@ public final class PaperSpellEngine {
             default -> this.applyInstantSpell(player, spellDefinition, manaState);
         }
         player.sendActionBar(ChatColor.AQUA + spellDefinition.displayName() + ChatColor.GRAY + " cast. Mana: " + ChatColor.WHITE + manaState.currentMana() + ChatColor.GRAY + "/" + ChatColor.WHITE + manaState.maxMana());
+        // Secret: if player has the A+ Sky Leap unlock, append Sky Leap effect to any A+ cast
+        try {
+            if (this.resolveGrade(spellDefinition) == SpellBalanceGrade.A_PLUS && this.hasAPlusSkyLeap(player.getUniqueId())) {
+                this.core.findSpell("sky_leap").ifPresent(s -> this.mobilityLeap(player, s.power(), s.range()));
+            }
+        } catch (Exception ignored) {
+            // Keep this behavior silent and fail-safe for secrecy
+        }
         return true;
     }
 
@@ -239,7 +381,7 @@ public final class PaperSpellEngine {
             case STORM_CHAIN -> this.tempestChain(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case VOID_PULL -> this.gravitySnare(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case VOID_BLINK -> this.blinkForward(player, effectiveRange(spell.range()));
-            case LIGHT_SHIELD -> this.shieldSelf(player, spell.power(), spell.durationTicks());
+            case LIGHT_SHIELD -> this.shieldSelf(player, spell.id(), spell.power(), spell.durationTicks());
             case LIGHT_PURGE -> this.purgeAndHeal(player, spell.power(), effectiveRange(spell.range()));
             case NATURE_ROOT -> this.rootNearby(player, scaledPower, effectiveRange(spell.range()));
             case NATURE_HEAL -> this.areaHeal(player, spell.power(), effectiveRange(spell.range()));
@@ -323,27 +465,43 @@ public final class PaperSpellEngine {
     }
 
     private int scaledCooldownTicks(SpellDefinition spell, PlayerArchetype archetype) {
-        return Math.max(1, (int) Math.round(spell.cooldownTicks() * this.GLOBAL_COOLDOWN_MULTIPLIER / archetype.castSpeedMultiplier()));
+        double base = spell.cooldownTicks() * this.globalCooldownMultiplier() / archetype.castSpeedMultiplier();
+        base *= this.gradeCooldownMultiplier(this.resolveGrade(spell));
+        return Math.max(1, (int) Math.round(base));
     }
 
     private int scaledManaCost(SpellDefinition spell, PlayerArchetype archetype) {
-        return Math.max(0, (int) Math.round(spell.manaCost() * archetype.manaDrainMultiplier()));
+        double base = spell.manaCost() * archetype.manaDrainMultiplier();
+        base *= this.gradeManaMultiplier(this.resolveGrade(spell));
+        return Math.max(0, (int) Math.round(base));
     }
 
     private double scaledDamage(SpellDefinition spell, PlayerArchetype archetype) {
-        double base = spell.power() * archetype.damageMultiplier() * this.GLOBAL_DAMAGE_BUFF;
+        double base = spell.power() * archetype.damageMultiplier() * this.globalDamageMultiplier();
+        base *= this.elementalDamageMultiplier(spell.effectType());
         if (this.BOOSTED_EFFECTS.contains(spell.effectType())) {
-            double boost = 2.0D; // boosted effects deal roughly double
+            double boost = this.boostedEffectMultiplier();
             if (archetype == PlayerArchetype.STAFF) {
-                boost *= 1.25D; // heavy archetype deals more on boosted spells
+                boost *= this.boostedEffectStaffExtraMultiplier();
             }
-            return base * boost;
+            double result = base * boost * this.gradeDamageMultiplier(this.resolveGrade(spell));
+            // Guarantee A+ spells scale to exceed configured A+ minimum after global buff
+            if (this.resolveGrade(spell) == SpellBalanceGrade.A_PLUS) {
+                double minScaled = 12.01D / this.globalSpellBuff();
+                return Math.max(result, minScaled);
+            }
+            return result;
         }
-        return base;
+        double result = base * this.gradeDamageMultiplier(this.resolveGrade(spell));
+        if (this.resolveGrade(spell) == SpellBalanceGrade.A_PLUS) {
+            double minScaled = 12.01D / this.globalSpellBuff();
+            return Math.max(result, minScaled);
+        }
+        return result;
     }
 
     private double effectiveRange(double range) {
-        return range * this.GLOBAL_RANGE_MULTIPLIER;
+        return range * this.globalRangeMultiplier();
     }
 
     private void damageNearby(Player player, double damage, double range, boolean fire, boolean wither) {
@@ -534,9 +692,125 @@ public final class PaperSpellEngine {
         player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation(), 32, 0.6, 0.8, 0.6, 0.1);
     }
 
-    private void shieldSelf(Player player, double amount, int durationTicks) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, durationTicks, 0, true, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, durationTicks, Math.max(0, (int) Math.round(amount / 4.0D)), true, true, true));
+    private void shieldSelf(Player player, String spellId, double amount, int durationTicks) {
+        int resolvedDurationTicks = this.resolveShieldDurationTicks(spellId, durationTicks);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, resolvedDurationTicks, 0, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, resolvedDurationTicks, Math.max(0, (int) Math.round(amount / 4.0D)), true, true, true));
+    }
+
+    private int resolveShieldDurationTicks(String spellId, int fallbackTicks) {
+        if (!"dawn_aegis".equalsIgnoreCase(spellId)) {
+            return fallbackTicks;
+        }
+        return Math.max(20, this.plugin.getConfig().getInt("spell-balance.dawn-aegis-duration-ticks", fallbackTicks));
+    }
+
+    private double globalDamageMultiplier() {
+        return this.boundedDouble("spell-balance.global-damage-multiplier", 1.5D, 0.1D, 20.0D);
+    }
+
+    private double globalCooldownMultiplier() {
+        return this.boundedDouble("spell-balance.global-cooldown-multiplier", 0.9D, 0.1D, 5.0D);
+    }
+
+    private double globalRangeMultiplier() {
+        return this.boundedDouble("spell-balance.global-range-multiplier", 1.1D, 0.1D, 5.0D);
+    }
+
+    private double boostedEffectMultiplier() {
+        return this.boundedDouble("spell-balance.boosted-effect-multiplier", 2.0D, 0.1D, 20.0D);
+    }
+
+    private double boostedEffectStaffExtraMultiplier() {
+        return this.boundedDouble("spell-balance.boosted-effect-staff-extra-multiplier", 1.25D, 0.1D, 10.0D);
+    }
+
+    private double fireDamageMultiplier() {
+        return this.boundedDouble("spell-balance.school-damage.fire-multiplier", 1.15D, 0.1D, 10.0D);
+    }
+
+    private double lightningDamageMultiplier() {
+        return this.boundedDouble("spell-balance.school-damage.lightning-multiplier", 1.20D, 0.1D, 10.0D);
+    }
+
+    private double boundedDouble(String path, double fallback, double min, double max) {
+        double value = this.plugin.getConfig().getDouble(path, fallback);
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return fallback;
+        }
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private SpellBalanceGrade resolveGrade(SpellDefinition spell) {
+        String spellId = spell.id();
+        if (A_PLUS_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.A_PLUS;
+        }
+        if (A_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.A;
+        }
+        if (A_MINUS_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.A_MINUS;
+        }
+        if (B_PLUS_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.B_PLUS;
+        }
+        if (B_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.B;
+        }
+        if (B_MINUS_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.B_MINUS;
+        }
+        if (C_PLUS_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.C_PLUS;
+        }
+        if (C_MINUS_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.C_MINUS;
+        }
+        if (D_PLUS_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.D_PLUS;
+        }
+        if (D_SPELLS.contains(spellId)) {
+            return SpellBalanceGrade.D;
+        }
+        return SpellBalanceGrade.C;
+    }
+
+    private double gradeDamageMultiplier(SpellBalanceGrade grade) {
+        return this.boundedDouble(
+                "spell-balance.grades." + grade.configKey() + ".damage-multiplier",
+                grade.defaultDamageMultiplier(),
+                0.1D,
+                10.0D
+        );
+    }
+
+    private double gradeCooldownMultiplier(SpellBalanceGrade grade) {
+        return this.boundedDouble(
+                "spell-balance.grades." + grade.configKey() + ".cooldown-multiplier",
+                grade.defaultCooldownMultiplier(),
+                0.1D,
+                10.0D
+        );
+    }
+
+    private double gradeManaMultiplier(SpellBalanceGrade grade) {
+        return this.boundedDouble(
+                "spell-balance.grades." + grade.configKey() + ".mana-multiplier",
+                grade.defaultManaMultiplier(),
+                0.1D,
+                10.0D
+        );
+    }
+
+    private double elementalDamageMultiplier(SpellEffectType effectType) {
+        if (FIRE_DAMAGE_EFFECTS.contains(effectType)) {
+            return this.fireDamageMultiplier();
+        }
+        if (LIGHTNING_DAMAGE_EFFECTS.contains(effectType)) {
+            return this.lightningDamageMultiplier();
+        }
+        return 1.0D;
     }
 
     private void purgeAndHeal(Player player, double amount, double range) {
@@ -972,9 +1246,12 @@ public final class PaperSpellEngine {
 
     private void applyMinimumTrueDamage(LivingEntity living, double damage, Player source) {
         // Global buff factor applied to all spells; adjust if needed for SMP balance
-        final double GLOBAL_SPELL_BUFF = 1.5D;
-        double scaled = damage * GLOBAL_SPELL_BUFF;
+        double scaled = damage * this.globalSpellBuff();
         this.damageIgnoringArmor(living, Math.max(4.0D, scaled), source);
+    }
+
+    private double globalSpellBuff() {
+        return 2.0D;
     }
 
     private boolean canReceiveHealing(Player caster, LivingEntity target) {

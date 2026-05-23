@@ -34,6 +34,11 @@ public final class SpellWandListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND && event.getHand() != EquipmentSlot.OFF_HAND) {
             return;
         }
+        // If both hands hold starter items, only process main hand to avoid duplicate casts.
+        if (event.getHand() == EquipmentSlot.OFF_HAND
+                && StarterItemUtil.isStarterItem(event.getPlayer().getInventory().getItemInMainHand())) {
+            return;
+        }
         if (!StarterItemUtil.isStarterItem(event.getItem())) {
             return;
         }
@@ -78,6 +83,26 @@ public final class SpellWandListener implements Listener {
                     }
                 }
             }
+            return;
+        }
+
+        // Safety gate: ensure the selected spell is still equipped in the requested slot at cast time.
+        List<String> castTimeEquipped = this.core.getPlayerManaState(player.getUniqueId().toString())
+                .map(PlayerManaState::equippedSpellIds)
+                .orElse(List.of());
+        if (castTimeEquipped.size() <= slot || !spellDefinition.id().equals(castTimeEquipped.get(slot))) {
+            player.sendActionBar(ChatColor.RED + "Your equipped spell changed. Try casting again.");
+            event.setCancelled(true);
+            return;
+        }
+
+        // Safety gate: ensure slot spell is unlocked before attempting cast.
+        boolean unlocked = this.core.findPlayerState(player.getUniqueId().toString())
+                .map(state -> state.unlockedAbilities().contains(spellDefinition.id()))
+                .orElse(false);
+        if (!unlocked) {
+            player.sendActionBar(ChatColor.RED + "That spell is not unlocked yet.");
+            event.setCancelled(true);
             return;
         }
 

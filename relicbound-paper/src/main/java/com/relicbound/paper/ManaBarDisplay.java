@@ -46,16 +46,20 @@ public final class ManaBarDisplay {
         int currentMana = manaState.currentMana();
         int maxMana = manaState.maxMana();
         String bar = this.buildManaBar(currentMana, maxMana);
-        String cooldownHud = this.buildCooldownHud(player, manaState);
-        String actionBar = ChatColor.AQUA + "Mana " + ChatColor.WHITE + bar + ChatColor.GRAY + " [" + currentMana + "/" + maxMana + "]"
-                + ChatColor.DARK_GRAY + "  |  " + cooldownHud + ChatColor.RESET;
+        String actionBar = ChatColor.AQUA + "Mana " + ChatColor.WHITE + bar + ChatColor.GRAY + " [" + currentMana + "/" + maxMana + "]";
+        if (StarterItemUtil.findHeldStarterArchetype(player).isPresent()) {
+            String cooldownHud = this.buildCooldownHud(player, manaState);
+            actionBar = actionBar + ChatColor.DARK_GRAY + "  |  " + cooldownHud;
+        }
+
+        actionBar = actionBar + ChatColor.RESET;
 
         player.sendActionBar(actionBar);
     }
 
     private String buildCooldownHud(Player player, PlayerManaState manaState) {
         List<String> equipped = manaState.equippedSpellIds();
-        String primary = this.cooldownSlotText(player, equipped, 0, ChatColor.GOLD, "LMB");
+        String primary = this.cooldownSlotText(player, equipped, 0, ChatColor.GOLD, "RMB");
         String secondary = this.cooldownSlotText(player, equipped, 1, ChatColor.AQUA, "Shift+RMB");
         return primary + ChatColor.GRAY + "  " + secondary;
     }

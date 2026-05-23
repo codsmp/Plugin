@@ -47,3 +47,5 @@ permissions:
     default: op
   relicbound.admin.enchantlimit:
     default: op
+  relicbound.admin.debug:
+    default: op
