@@ -14,7 +14,6 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     private RelicboundCore core;
     private PaperSpellEngine spellEngine;
     private PlayerTrustStore trustStore;
-    private EnchantLimitStore enchantLimitStore;
     private volatile boolean resetInProgress;
 
     @Override
@@ -33,7 +32,6 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             this.adapter.playerManaStateRepository()
         ));
         this.trustStore = new PlayerTrustStore(this);
-        this.enchantLimitStore = new EnchantLimitStore(this);
         this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore);
         Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
@@ -42,7 +40,6 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ArchetypeSelectionListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellCombatListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new PvpRulesListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new EnchantLimitListener(this.enchantLimitStore), this);
         Bukkit.getPluginManager().registerEvents(new StarterItemProtectionListener(), this);
         Bukkit.getPluginManager().registerEvents(new SkyLeapProtectionListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new SecretPhraseListener(this.spellEngine), this);
@@ -63,9 +60,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             if (this.getCommand("rb") != null) this.getCommand("rb").setExecutor(executor);
         }
 
-        if (this.getCommand("enchantlimit") != null) {
-            this.getCommand("enchantlimit").setExecutor(new EnchantLimitCommand(this, this.enchantLimitStore));
-        }
+        // enchantlimit command removed
 
         if (this.getCommand("relicreset") != null) {
             this.getCommand("relicreset").setExecutor(new RelicResetCommand(this, this.adapter, this.trustStore));
