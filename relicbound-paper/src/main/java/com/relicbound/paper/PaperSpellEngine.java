@@ -1256,7 +1256,7 @@ public final class PaperSpellEngine {
     private void applyMinimumTrueDamage(LivingEntity living, double damage, Player source) {
         // Global buff factor applied to all spells; adjust if needed for SMP balance
         double scaled = damage * this.globalSpellBuff();
-        this.damageIgnoringArmor(living, Math.max(4.0D, scaled), source);
+        this.damageIgnoringArmor(living, Math.max(10.0D, scaled), source);
     }
 
     private double globalSpellBuff() {
