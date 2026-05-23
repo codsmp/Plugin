@@ -1236,12 +1236,9 @@ public final class PaperSpellEngine {
             if (gm == org.bukkit.GameMode.CREATIVE) {
                 return; // don't damage creative players
             }
+            double appliedDamage = Math.max(4.0D, Math.min(10.0D, damage));
             double current = target.getHealth();
-            double newHealth = Math.max(0.0D, current - damage);
-            // Prevent spells from leaving players at half a heart or below
-            if (newHealth < 2.0D) {
-                newHealth = 2.0D;
-            }
+            double newHealth = Math.max(0.0D, current - appliedDamage);
             target.setHealth(newHealth);
             if (newHealth > 0.0D) {
                 target.damage(0.0D, source);
