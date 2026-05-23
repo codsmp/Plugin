@@ -35,7 +35,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellMenuListener(this, this.core, this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new EssenceGainListener(this, this.core), this);
-        Bukkit.getPluginManager().registerEvents(new ArchetypeSelectionListener(this.core), this);
+        Bukkit.getPluginManager().registerEvents(new ArchetypeSelectionListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellCombatListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new PvpRulesListener(this), this);
         Bukkit.getPluginManager().registerEvents(new EnchantLimitListener(this.enchantLimitStore), this);
@@ -46,7 +46,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore), this);
 
         // Start mana-related tasks
-        new ManaBarDisplay(this, this.core).startDisplayTask();
+        new ManaBarDisplay(this, this.core, this.spellEngine).startDisplayTask();
         new ManaRegenTask(this, this.core).startRegenTask();
 
         if (this.getCommand("relicbound") != null) {

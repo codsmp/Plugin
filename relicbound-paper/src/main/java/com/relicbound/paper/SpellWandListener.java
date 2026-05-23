@@ -3,6 +3,7 @@ package com.relicbound.paper;
 import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.PlayerRelicState;
+import com.relicbound.core.model.RelicTier;
 import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -43,7 +44,7 @@ public final class SpellWandListener implements Listener {
                 .map(archetype -> this.core.getOrCreatePlayerManaState(player.getUniqueId().toString(), archetype))
                 .orElse(null));
         if (manaState == null) {
-            player.sendMessage(ChatColor.RED + "Choose your archetype first.");
+            player.sendActionBar(ChatColor.RED + "Choose your archetype first.");
             event.setCancelled(true);
             return;
         }
@@ -54,14 +55,14 @@ public final class SpellWandListener implements Listener {
         List<String> equipped = manaState.equippedSpellIds();
         int slot = player.isSneaking() ? 1 : 0;
         if (equipped.size() <= slot) {
-            player.sendMessage(ChatColor.RED + "You don't have a " + (slot == 0 ? "first" : "second") + " spell equipped yet.");
+            player.sendActionBar(ChatColor.RED + "No " + (slot == 0 ? "primary" : "secondary") + " spell equipped.");
             event.setCancelled(true);
             return;
         }
 
         SpellDefinition spellDefinition = this.core.findSpell(equipped.get(slot)).orElse(null);
         if (spellDefinition == null) {
-            player.sendMessage(ChatColor.RED + "An equipped spell appears invalid; attempting to repair your loadout now.");
+            player.sendActionBar(ChatColor.RED + "Invalid equipped spell; repairing loadout...");
             event.setCancelled(true);
             // Try one more repair pass (will notify player if changes applied)
             PlayerManaState repaired = this.repairUnknownEquipped(player, manaState);
@@ -71,9 +72,9 @@ public final class SpellWandListener implements Listener {
                 if (repairedSpell != null) {
                     try {
                         this.spellEngine.cast(player, repairedSpell);
-                        player.sendMessage(ChatColor.AQUA + "Cast " + repairedSpell.displayName());
+                        player.sendActionBar(ChatColor.AQUA + "Cast " + ChatColor.WHITE + repairedSpell.displayName());
                     } catch (IllegalStateException exception) {
-                        player.sendMessage(ChatColor.RED + exception.getMessage());
+                        player.sendActionBar(ChatColor.RED + exception.getMessage());
                     }
                 }
             }
@@ -83,9 +84,9 @@ public final class SpellWandListener implements Listener {
         event.setCancelled(true);
         try {
             this.spellEngine.cast(player, spellDefinition);
-            player.sendMessage(ChatColor.AQUA + "Cast " + spellDefinition.displayName());
+            player.sendActionBar(ChatColor.AQUA + "Cast " + ChatColor.WHITE + spellDefinition.displayName());
         } catch (IllegalStateException exception) {
-            player.sendMessage(ChatColor.RED + exception.getMessage());
+            player.sendActionBar(ChatColor.RED + exception.getMessage());
         }
     }
 
@@ -144,27 +145,41 @@ public final class SpellWandListener implements Listener {
     }
 
     private PlayerManaState ensureStarterLoadout(Player player, PlayerManaState manaState) {
+        String playerId = player.getUniqueId().toString();
         PlayerRelicState relicState = this.core.getOrCreateStartingState(
-                player.getUniqueId().toString(),
+                playerId,
                 player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits()
         );
 
         PlayerManaState updated = manaState;
-        for (SpellDefinition spell : StarterLoadoutUtil.randomStarterSpells(this.core)) {
-            if (!relicState.unlockedAbilities().contains(spell.id())) {
-                try {
-                    this.core.learnSpell(player.getUniqueId().toString(), spell.id());
-                } catch (IllegalStateException ignored) {
-                    continue;
-                }
+        List<String> unlockedSpellIds = relicState.unlockedAbilities().stream()
+                .filter(id -> this.core.findSpell(id).isPresent())
+                .toList();
+
+        // Fresh players should get exactly the starter loadout once, not on every cast.
+        if (unlockedSpellIds.isEmpty()) {
+            StarterLoadoutUtil.grantRandomStarterLoadout(this.core, playerId);
+            relicState = this.core.findPlayerState(playerId).orElse(relicState);
+            unlockedSpellIds = relicState.unlockedAbilities().stream()
+                    .filter(id -> this.core.findSpell(id).isPresent())
+                    .toList();
+        }
+
+        for (String spellId : unlockedSpellIds) {
+            if (updated.equippedSpellIds().size() >= 2) {
+                break;
             }
-            if (updated.equippedSpellIds().contains(spell.id())) {
+            if (updated.equippedSpellIds().contains(spellId)) {
+                continue;
+            }
+            SpellDefinition spell = this.core.findSpell(spellId).orElse(null);
+            if (spell == null || spell.requiredTier() != RelicTier.TIER_1) {
                 continue;
             }
             try {
-                updated = this.core.equipSpell(player.getUniqueId().toString(), spell.id());
+                updated = this.core.equipSpell(playerId, spellId);
             } catch (IllegalStateException ignored) {
-                // If a spell cannot be equipped, keep trying the remaining starter options.
+                // If a spell cannot be equipped, keep trying remaining unlocked starters.
             }
         }
         return updated;

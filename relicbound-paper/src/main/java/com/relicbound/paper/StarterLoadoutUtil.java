@@ -36,6 +36,14 @@ public final class StarterLoadoutUtil {
     }
 
     public static void grantRandomStarterLoadout(RelicboundCore core, String playerId) {
+        com.relicbound.core.model.PlayerRelicState relicState = core.findPlayerState(playerId).orElse(null);
+        if (relicState != null) {
+            boolean alreadyHasUnlockedSpells = relicState.unlockedAbilities().stream().anyMatch(id -> core.findSpell(id).isPresent());
+            if (alreadyHasUnlockedSpells) {
+                return;
+            }
+        }
+
         for (SpellDefinition spell : randomStarterSpells(core)) {
             try {
                 core.learnSpell(playerId, spell.id());

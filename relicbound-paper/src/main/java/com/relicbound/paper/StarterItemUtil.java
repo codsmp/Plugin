@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class StarterItemUtil {
@@ -42,12 +43,26 @@ public final class StarterItemUtil {
             return false;
         }
         ItemMeta meta = item.getItemMeta();
-        if (meta == null || !meta.hasDisplayName()) {
+        if (meta == null) {
+            return false;
+        }
+
+        if (meta.hasCustomModelData()) {
+            int customModelData = meta.getCustomModelData();
+            if (item.getType() == Material.STICK && customModelData == WAND_CUSTOM_MODEL_DATA) {
+                return true;
+            }
+            if (item.getType() == Material.BLAZE_ROD && customModelData == STAFF_CUSTOM_MODEL_DATA) {
+                return true;
+            }
+        }
+
+        if (!meta.hasDisplayName()) {
             return false;
         }
         String displayName = meta.getDisplayName();
-        return (ChatColor.GOLD + PlayerArchetype.WAND.displayName()).equals(displayName)
-                || (ChatColor.GOLD + PlayerArchetype.STAFF.displayName()).equals(displayName);
+        return Objects.equals(ChatColor.GOLD + PlayerArchetype.WAND.displayName(), displayName)
+                || Objects.equals(ChatColor.GOLD + PlayerArchetype.STAFF.displayName(), displayName);
     }
 
     public static Optional<PlayerArchetype> inferArchetype(ItemStack item) {
@@ -105,6 +120,7 @@ public final class StarterItemUtil {
     }
 
     public static void giveStarterItem(Player player, PlayerArchetype archetype) {
+        normalizeStarterItems(player);
         if (hasStarterItem(player, archetype)) {
             return;
         }
@@ -116,5 +132,27 @@ public final class StarterItemUtil {
             player.getWorld().dropItemNaturally(player.getLocation(), item);
         }
         player.sendMessage(ChatColor.AQUA + "You received a starter " + archetype.displayName() + ".");
+    }
+
+    public static void normalizeStarterItems(Player player) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            Optional<PlayerArchetype> inferred = inferArchetype(item);
+            if (inferred.isEmpty()) {
+                continue;
+            }
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                continue;
+            }
+
+            PlayerArchetype archetype = inferred.get();
+            int expectedModelData = archetype == PlayerArchetype.WAND ? WAND_CUSTOM_MODEL_DATA : STAFF_CUSTOM_MODEL_DATA;
+            if (meta.hasCustomModelData() && meta.getCustomModelData() == expectedModelData) {
+                continue;
+            }
+
+            meta.setCustomModelData(expectedModelData);
+            item.setItemMeta(meta);
+        }
     }
 }

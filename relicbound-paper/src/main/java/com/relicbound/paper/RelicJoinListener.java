@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -90,11 +89,6 @@ public final class RelicJoinListener implements Listener {
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
         this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> Bukkit.getScheduler().runTaskLater(this.plugin, () -> StarterItemUtil.giveStarterItem(player, m.archetype()), 1L));
-    }
-
-    @EventHandler
-    public void onDeath(PlayerDeathEvent event) {
-        event.getDrops().removeIf(StarterItemUtil::isStarterItem);
     }
 
     @EventHandler

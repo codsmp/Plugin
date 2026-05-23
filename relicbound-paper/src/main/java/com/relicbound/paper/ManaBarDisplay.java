@@ -2,21 +2,25 @@ package com.relicbound.paper;
 
 import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.PlayerManaState;
+import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class ManaBarDisplay {
     private final JavaPlugin plugin;
     private final RelicboundCore core;
+    private final PaperSpellEngine spellEngine;
 
-    public ManaBarDisplay(JavaPlugin plugin, RelicboundCore core) {
+    public ManaBarDisplay(JavaPlugin plugin, RelicboundCore core, PaperSpellEngine spellEngine) {
         this.plugin = plugin;
         this.core = core;
+        this.spellEngine = spellEngine;
     }
 
     public void startDisplayTask() {
@@ -41,13 +45,44 @@ public final class ManaBarDisplay {
 
         int currentMana = manaState.currentMana();
         int maxMana = manaState.maxMana();
-        double percentage = (double) currentMana / maxMana * 100.0;
-
         String bar = this.buildManaBar(currentMana, maxMana);
-        String archetype = manaState.archetype().displayName();
-        String actionBar = ChatColor.AQUA + "Mana: " + ChatColor.WHITE + bar + ChatColor.GRAY + " [" + currentMana + "/" + maxMana + "]" + ChatColor.RESET;
+        String cooldownHud = this.buildCooldownHud(player, manaState);
+        String actionBar = ChatColor.AQUA + "Mana " + ChatColor.WHITE + bar + ChatColor.GRAY + " [" + currentMana + "/" + maxMana + "]"
+                + ChatColor.DARK_GRAY + "  |  " + cooldownHud + ChatColor.RESET;
 
         player.sendActionBar(actionBar);
+    }
+
+    private String buildCooldownHud(Player player, PlayerManaState manaState) {
+        List<String> equipped = manaState.equippedSpellIds();
+        String primary = this.cooldownSlotText(player, equipped, 0, ChatColor.GOLD, "LMB");
+        String secondary = this.cooldownSlotText(player, equipped, 1, ChatColor.AQUA, "Shift+RMB");
+        return primary + ChatColor.GRAY + "  " + secondary;
+    }
+
+    private String cooldownSlotText(Player player, List<String> equipped, int slot, ChatColor accent, String keybind) {
+        if (equipped.size() <= slot) {
+            return ChatColor.DARK_GRAY + keybind + ": --";
+        }
+
+        SpellDefinition spell = this.core.findSpell(equipped.get(slot)).orElse(null);
+        if (spell == null) {
+            return ChatColor.DARK_GRAY + keybind + ": ??";
+        }
+
+        long cooldownSeconds = this.spellEngine.remainingCooldownSeconds(player, spell);
+        String shortName = this.abbreviateSpellName(spell.displayName(), 12);
+        if (cooldownSeconds <= 0) {
+            return accent + keybind + ChatColor.GRAY + ": " + ChatColor.GREEN + shortName + " READY";
+        }
+        return accent + keybind + ChatColor.GRAY + ": " + ChatColor.RED + shortName + " " + ChatColor.YELLOW + cooldownSeconds + "s";
+    }
+
+    private String abbreviateSpellName(String name, int maxLength) {
+        if (name.length() <= maxLength) {
+            return name;
+        }
+        return name.substring(0, Math.max(1, maxLength - 3)) + "...";
     }
 
     private String buildManaBar(int current, int max) {

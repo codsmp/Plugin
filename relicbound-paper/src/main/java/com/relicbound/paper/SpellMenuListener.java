@@ -31,11 +31,19 @@ public final class SpellMenuListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof SpellMenuHolder)) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof SpellMenuHolder holder)) {
             return;
         }
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        if (!player.getUniqueId().toString().equals(holder.playerId())) {
+            player.sendMessage(ChatColor.RED + "This spell menu is not yours.");
+            player.closeInventory();
+            return;
+        }
+        if (event.getClickedInventory() != event.getView().getTopInventory()) {
             return;
         }
         this.core.getPlayerManaState(player.getUniqueId().toString()).orElseGet(() -> StarterItemUtil.findAnyStarterArchetype(player)
@@ -55,7 +63,6 @@ public final class SpellMenuListener implements Listener {
             return;
         }
 
-        SpellMenuHolder holder = (SpellMenuHolder) event.getInventory().getHolder();
         SpellMenuMode mode = holder.mode();
         try {
             if (mode == SpellMenuMode.ASSIGN) {
@@ -90,9 +97,12 @@ public final class SpellMenuListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (event.getInventory().getHolder() instanceof SpellMenuHolder holder) {
+        if (event.getView().getTopInventory().getHolder() instanceof SpellMenuHolder holder) {
             if (holder.mode() == SpellMenuMode.REWARD && event.getPlayer() instanceof Player player) {
                 String playerId = player.getUniqueId().toString();
+                if (!playerId.equals(holder.playerId())) {
+                    return;
+                }
                 PlayerRelicState state = this.core.findPlayerState(playerId).orElse(null);
                 if (state != null && state.pendingRewardSelection()) {
                     this.plugin.getServer().getScheduler().runTask(this.plugin, () -> {
