@@ -1129,16 +1129,10 @@ public final class PaperSpellEngine {
 
     private void malfunction(Player player, SpellDefinition spell, PlayerManaState manaState) {
         Player target = this.nearestPlayer(player, spell.range()).orElse(player);
+        this.shuffleHotbar(target);
         boolean staff = manaState.archetype() == PlayerArchetype.STAFF;
-        if (staff) {
-            this.shuffleFullInventory(target);
-            target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, true, true, true));
-            target.getWorld().spawnParticle(Particle.WITCH, target.getLocation(), 18, 0.6, 0.6, 0.6, 0.08);
-        } else {
-            this.shuffleHotbar(target);
-            target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 50, 0, true, true, true));
-            target.getWorld().spawnParticle(Particle.CRIT, target.getLocation(), 12, 0.4, 0.4, 0.4, 0.06);
-        }
+        target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, staff ? 100 : 50, 0, true, true, true));
+        target.getWorld().spawnParticle(staff ? Particle.WITCH : Particle.CRIT, target.getLocation(), staff ? 18 : 12, staff ? 0.6 : 0.4, staff ? 0.6 : 0.4, staff ? 0.6 : 0.4, staff ? 0.08 : 0.06);
         target.getWorld().playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.8F, staff ? 0.7F : 1.3F);
     }
 
