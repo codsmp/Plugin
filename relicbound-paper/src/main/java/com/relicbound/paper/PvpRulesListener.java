@@ -31,6 +31,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.ArrayList;
 
 public final class PvpRulesListener implements Listener {
     private static final long COMBAT_TAG_DURATION_MS = 15_000L;
@@ -46,6 +47,7 @@ public final class PvpRulesListener implements Listener {
 
     public PvpRulesListener(JavaPlugin plugin) {
         this.plugin = plugin;
+        Bukkit.getScheduler().runTaskTimer(this.plugin, this::broadcastCombatCountdowns, 20L, 20L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -226,6 +228,31 @@ public final class PvpRulesListener implements Listener {
         CombatTag tag = this.combatTags.remove(playerId);
         if (tag != null) {
             this.combatTags.remove(tag.opponentId());
+        }
+    }
+
+    private void broadcastCombatCountdowns() {
+        long now = System.currentTimeMillis();
+        for (UUID playerId : new ArrayList<>(this.combatTags.keySet())) {
+            CombatTag tag = this.combatTags.get(playerId);
+            if (tag == null) {
+                continue;
+            }
+
+            long remainingMs = tag.expiresAtMs() - now;
+            Player player = Bukkit.getPlayer(playerId);
+            if (remainingMs <= 0L) {
+                this.clearPair(playerId);
+                if (player != null && player.isOnline()) {
+                    player.sendMessage(ChatColor.GREEN + "[PvP Rules] " + ChatColor.WHITE + "You are now out of combat.");
+                }
+                continue;
+            }
+
+            if (player != null && player.isOnline()) {
+                long secondsLeft = Math.max(1L, (remainingMs + 999L) / 1000L);
+                player.sendMessage(ChatColor.RED + "[PvP Rules] " + ChatColor.WHITE + "Combat tag ends in " + ChatColor.YELLOW + secondsLeft + "s" + ChatColor.WHITE + ".");
+            }
         }
     }
 
