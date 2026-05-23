@@ -1238,7 +1238,7 @@ public final class PaperSpellEngine {
             }
             double appliedDamage = Math.max(4.0D, Math.min(10.0D, damage));
             double current = target.getHealth();
-            double newHealth = Math.max(0.0D, current - appliedDamage);
+            double newHealth = Math.max(1.0D, current - appliedDamage);
             target.setHealth(newHealth);
             if (newHealth > 0.0D) {
                 target.damage(0.0D, source);
