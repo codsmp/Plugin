@@ -11,6 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public final class ArchetypeSelectionMenu {
     private static final int WAND_CUSTOM_MODEL_DATA = 5001;
+    private static final int STAFF_CUSTOM_MODEL_DATA = 5002;
 
     private final RelicboundCore core;
 
@@ -37,6 +38,8 @@ public final class ArchetypeSelectionMenu {
         meta.setDisplayName(ChatColor.GOLD + archetype.displayName());
         if (archetype == PlayerArchetype.WAND) {
             meta.setCustomModelData(WAND_CUSTOM_MODEL_DATA);
+        } else {
+            meta.setCustomModelData(STAFF_CUSTOM_MODEL_DATA);
         }
 
         java.util.List<String> lore = new java.util.ArrayList<>();
