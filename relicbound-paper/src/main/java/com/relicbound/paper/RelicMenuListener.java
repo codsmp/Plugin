@@ -42,6 +42,9 @@ public final class RelicMenuListener implements Listener {
                         player.sendMessage(ChatColor.RED + exception.getMessage());
                     }
                 }
+                if (type == Material.BOOK) {
+                    new GuideMenu(this.plugin).open(player);
+                }
                 if (type == Material.ENCHANTED_BOOK) {
                     new SpellMenu(this.plugin, this.core).open(player);
                 }

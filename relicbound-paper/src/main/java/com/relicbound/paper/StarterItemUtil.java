@@ -10,6 +10,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.Optional;
 
 public final class StarterItemUtil {
+    private static final int WAND_CUSTOM_MODEL_DATA = 5001;
+
     private StarterItemUtil() {
     }
 
@@ -19,8 +21,11 @@ public final class StarterItemUtil {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(ChatColor.GOLD + archetype.displayName());
+            if (archetype == PlayerArchetype.WAND) {
+                meta.setCustomModelData(WAND_CUSTOM_MODEL_DATA);
+            }
             java.util.List<String> lore = new java.util.ArrayList<>();
-            lore.add(ChatColor.AQUA + "A simple " + archetype.displayName() + " to channel your relic.");
+            lore.add(ChatColor.AQUA + "Your starting " + archetype.displayName() + ".");
             lore.add(ChatColor.GRAY + "Right-click to cast your first spell.");
             lore.add(ChatColor.GRAY + "Shift + right-click to cast your second spell.");
             meta.setLore(lore);

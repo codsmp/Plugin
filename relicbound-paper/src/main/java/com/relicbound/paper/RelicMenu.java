@@ -31,6 +31,7 @@ public final class RelicMenu {
         inventory.setItem(11, createInfoItem(definition, state));
         inventory.setItem(13, createEssenceItem(state));
         inventory.setItem(15, createUpgradeItem(state));
+        inventory.setItem(4, createGuideItem());
         inventory.setItem(22, createSpellbookItem(state));
         player.openInventory(inventory);
     }
@@ -79,6 +80,18 @@ public final class RelicMenu {
         meta.setLore(List.of(
                 ChatColor.GRAY + "Open the spell arsenal.",
                 ChatColor.GRAY + "Unlocked spells: " + ChatColor.WHITE + state.unlockedAbilities().size()
+        ));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack createGuideItem() {
+        ItemStack item = new ItemStack(Material.BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + "Guide");
+        meta.setLore(List.of(
+                ChatColor.GRAY + "Quick controls and gameplay tips.",
+                ChatColor.GRAY + "Click to open the guide menu."
         ));
         item.setItemMeta(meta);
         return item;

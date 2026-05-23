@@ -10,6 +10,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public final class ArchetypeSelectionMenu {
+    private static final int WAND_CUSTOM_MODEL_DATA = 5001;
+
     private final RelicboundCore core;
 
     public ArchetypeSelectionMenu(RelicboundCore core) {
@@ -33,15 +35,18 @@ public final class ArchetypeSelectionMenu {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + archetype.displayName());
+        if (archetype == PlayerArchetype.WAND) {
+            meta.setCustomModelData(WAND_CUSTOM_MODEL_DATA);
+        }
 
         java.util.List<String> lore = new java.util.ArrayList<>();
         if (archetype == PlayerArchetype.WAND) {
-            lore.add(ChatColor.AQUA + "Fast spellcasting with low damage");
-            lore.add(ChatColor.AQUA + "Better mana efficiency");
+            lore.add(ChatColor.AQUA + "Fast casting and better mana efficiency");
+            lore.add(ChatColor.AQUA + "Best for mobility and quick combos");
             lore.add(ChatColor.AQUA + "Mana regen: 5/sec");
         } else {
-            lore.add(ChatColor.RED + "Slow spellcasting with high damage");
-            lore.add(ChatColor.RED + "Higher mana consumption");
+            lore.add(ChatColor.RED + "Slower casting with higher damage");
+            lore.add(ChatColor.RED + "Stronger spells and heavier impact");
             lore.add(ChatColor.RED + "Mana regen: 3/sec");
         }
         lore.add("");

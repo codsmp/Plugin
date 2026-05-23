@@ -23,100 +23,94 @@ public final class RelicboundCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
-        if (command.getName().equalsIgnoreCase("relicboundspells")) {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("Players only.");
-                return true;
+            if (command.getName().equalsIgnoreCase("relicboundspells")) {
+                return this.openSpellMenu(sender);
             }
-            new SpellMenu(this.plugin, this.core).open(player);
-            return true;
-        }
-        if (args.length == 0) {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("Usage: /relicbound <spells|upgrade|grant>");
-                return true;
-            }
-            new RelicMenu(this.core).open(player);
-            return true;
-        }
 
-        if ("spells".equalsIgnoreCase(args[0])) {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("Players only.");
-                return true;
+            if (command.getName().equalsIgnoreCase("relicbound") && args.length == 0) {
+                return this.openRelicMenu(sender);
             }
-            new SpellMenu(this.plugin, this.core).open(player);
-            return true;
-        }
 
-        if ("upgrade".equalsIgnoreCase(args[0])) {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("Players only.");
-                return true;
+            if (args.length == 0) {
+                return this.openRelicMenu(sender);
             }
-            try {
-                PlayerRelicState before = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
-                PlayerRelicState after = this.core.upgradeTier(player.getUniqueId().toString());
-                if (after != null && (before == null || before.tier() != after.tier())) {
-                    player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
-                } else {
-                    player.sendMessage(ChatColor.GREEN + "Your relic has advanced.");
+
+            if ("help".equalsIgnoreCase(args[0]) || "guide".equalsIgnoreCase(args[0])) {
+                return this.openGuide(sender);
+            }
+
+            if ("spells".equalsIgnoreCase(args[0])) {
+                return this.openSpellMenu(sender);
+            }
+
+            if ("upgrade".equalsIgnoreCase(args[0])) {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("Players only.");
+                    return true;
                 }
-                boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
-                if (hasLockedSpells) {
-                    this.core.savePlayerState(after.withPendingRewardSelection(true));
-                    new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
-                } else {
-                    this.core.savePlayerState(after.withPendingRewardSelection(false));
-                    new RelicMenu(this.core).open(player);
+                try {
+                    PlayerRelicState before = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
+                    PlayerRelicState after = this.core.upgradeTier(player.getUniqueId().toString());
+                    if (after != null && (before == null || before.tier() != after.tier())) {
+                        player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
+                    } else {
+                        player.sendMessage(ChatColor.GREEN + "Your relic has advanced.");
+                    }
+                    boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
+                    if (hasLockedSpells) {
+                        this.core.savePlayerState(after.withPendingRewardSelection(true));
+                        new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.REWARD);
+                    } else {
+                        this.core.savePlayerState(after.withPendingRewardSelection(false));
+                        new RelicMenu(this.core).open(player);
+                    }
+                } catch (IllegalStateException exception) {
+                    player.sendMessage(ChatColor.RED + exception.getMessage());
                 }
-            } catch (IllegalStateException exception) {
-                player.sendMessage(ChatColor.RED + exception.getMessage());
+                return true;
             }
-            return true;
-        }
 
-        if ("grant".equalsIgnoreCase(args[0]) && sender.hasPermission("relicbound.admin.grant")) {
-            if (args.length < 4) {
-                sender.sendMessage(ChatColor.RED + "Usage: /relicbound grant <player> <essenceType> <amount>");
-                return true;
-            }
-            Player target = Bukkit.getPlayerExact(args[1]);
-            if (target == null) {
-                sender.sendMessage(ChatColor.RED + "Target player must be online.");
-                return true;
-            }
-            int amount;
-            try {
-                amount = Integer.parseInt(args[3]);
-            } catch (NumberFormatException exception) {
-                sender.sendMessage(ChatColor.RED + "Amount must be a number.");
-                return true;
-            }
-            PlayerRelicState after = this.core.grantEssence(target.getUniqueId().toString(), args[2], amount);
-            sender.sendMessage(ChatColor.GREEN + "Granted essence to " + target.getName() + ".");
-            target.sendMessage(ChatColor.AQUA + "You received " + amount + " " + args[2] + " essence.");
-            if (after != null) {
-                boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
-                if (hasLockedSpells && after.pendingRewardSelection()) {
-                    this.core.savePlayerState(after.withPendingRewardSelection(true));
-                    new SpellMenu(this.plugin, this.core).open(target, SpellMenuMode.REWARD);
-                } else if (!hasLockedSpells) {
-                    this.core.savePlayerState(after.withPendingRewardSelection(false));
+            if ("grant".equalsIgnoreCase(args[0]) && sender.hasPermission("relicbound.admin.grant")) {
+                if (args.length < 4) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /relicbound grant <player> <essenceType> <amount>");
+                    return true;
                 }
+                Player target = Bukkit.getPlayerExact(args[1]);
+                if (target == null) {
+                    sender.sendMessage(ChatColor.RED + "Target player must be online.");
+                    return true;
+                }
+                int amount;
+                try {
+                    amount = Integer.parseInt(args[3]);
+                } catch (NumberFormatException exception) {
+                    sender.sendMessage(ChatColor.RED + "Amount must be a number.");
+                    return true;
+                }
+                PlayerRelicState after = this.core.grantEssence(target.getUniqueId().toString(), args[2], amount);
+                sender.sendMessage(ChatColor.GREEN + "Granted essence to " + target.getName() + ".");
+                target.sendMessage(ChatColor.AQUA + "You received " + amount + " " + args[2] + " essence.");
+                if (after != null) {
+                    boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
+                    if (hasLockedSpells && after.pendingRewardSelection()) {
+                        this.core.savePlayerState(after.withPendingRewardSelection(true));
+                        new SpellMenu(this.plugin, this.core).open(target, SpellMenuMode.REWARD);
+                    } else if (!hasLockedSpells) {
+                        this.core.savePlayerState(after.withPendingRewardSelection(false));
+                    }
+                }
+                if (after != null && after.pendingRewardSelection()) {
+                    target.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
+                }
+                return true;
             }
-            if (after != null && after.pendingRewardSelection()) {
-                target.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
+
+            if (sender instanceof Player player) {
+                new RelicMenu(this.core).open(player);
+                return true;
             }
-            return true;
-        }
 
-        if (sender instanceof Player player) {
-            new RelicMenu(this.core).open(player);
-            return true;
-        }
-
-        sender.sendMessage("Usage: /relicbound <spells|upgrade|grant>");
+            sender.sendMessage("Usage: /relicbound <guide|spells|upgrade|grant>");
             return true;
         } catch (Throwable t) {
             // Log the full exception to server logs and send a concise message to the sender
@@ -127,5 +121,32 @@ public final class RelicboundCommand implements CommandExecutor {
             }
             return true;
         }
+    }
+
+    private boolean openRelicMenu(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Players only.");
+            return true;
+        }
+        new RelicMenu(this.core).open(player);
+        return true;
+    }
+
+    private boolean openSpellMenu(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Players only.");
+            return true;
+        }
+        new SpellMenu(this.plugin, this.core).open(player);
+        return true;
+    }
+
+    private boolean openGuide(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Players only.");
+            return true;
+        }
+        new GuideMenu(this.plugin).open(player);
+        return true;
     }
 }

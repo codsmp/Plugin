@@ -23,6 +23,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -44,6 +46,7 @@ public final class PaperSpellEngine {
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
     private final Map<UUID, BukkitTask> channelTasks = new HashMap<>();
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
+    private final Map<UUID, Long> noFallUntil = new HashMap<>();
     private final PlayerTrustStore trustStore;
 
     // Global tuning multipliers for combat readiness
@@ -70,7 +73,7 @@ public final class PaperSpellEngine {
     public boolean cast(Player player, SpellDefinition spellDefinition) {
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), player.getUniqueId().getMostSignificantBits());
         if (!state.unlockedAbilities().contains(spellDefinition.id())) {
-            throw new IllegalStateException("That spell is not unlocked yet.");
+            throw new IllegalStateException("That spell is not unlocked yet. Open your relic menu to unlock more spells.");
         }
         PlayerManaState manaState = this.core.getPlayerManaState(player.getUniqueId().toString())
             .orElseGet(() -> StarterItemUtil.findAnyStarterArchetype(player)
@@ -83,11 +86,11 @@ public final class PaperSpellEngine {
                 .getOrDefault(spellDefinition.id(), 0L);
         if (now < readyAt) {
             long secondsLeft = Math.max(1L, (readyAt - now + 999L) / 1000L);
-            throw new IllegalStateException("Spell is on cooldown for " + secondsLeft + "s.");
+            throw new IllegalStateException(spellDefinition.displayName() + " is on cooldown for " + secondsLeft + "s.");
         }
         int manaCost = this.scaledManaCost(spellDefinition, manaState.archetype());
         if (manaState.currentMana() < manaCost) {
-            throw new IllegalStateException("Not enough mana.");
+            throw new IllegalStateException("Not enough mana for " + spellDefinition.displayName() + ". You have " + manaState.currentMana() + "/" + manaCost + ".");
         }
         manaState = this.core.drainMana(manaState, manaCost);
         manaState = this.core.savePlayerManaState(manaState);
@@ -98,6 +101,7 @@ public final class PaperSpellEngine {
             case CORRUPTION_LIFEDRAIN -> this.beginLifeDrain(player, spellDefinition, manaState);
             default -> this.applyInstantSpell(player, spellDefinition, manaState);
         }
+        player.sendActionBar(ChatColor.AQUA + spellDefinition.displayName() + ChatColor.GRAY + " cast. Mana: " + ChatColor.WHITE + manaState.currentMana() + ChatColor.GRAY + "/" + ChatColor.WHITE + manaState.maxMana());
         return true;
     }
 
@@ -344,6 +348,9 @@ public final class PaperSpellEngine {
     private void damageNearby(Player player, double damage, double range, boolean fire, boolean wither) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
+                if (this.isTrustedTarget(player, living)) {
+                    continue;
+                }
                 applyMinimumTrueDamage(living, damage, player);
                 if (fire) {
                     living.setFireTicks(60);
@@ -376,6 +383,9 @@ public final class PaperSpellEngine {
     private void knockbackNearby(Player player, double power, double range, boolean seismic) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
+                if (this.isTrustedTarget(player, living)) {
+                    continue;
+                }
                 Vector knockback = living.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(Math.max(0.2D, power / 6.0D));
                 knockback.setY(0.35D);
                 living.setVelocity(knockback);
@@ -388,6 +398,9 @@ public final class PaperSpellEngine {
     private void strikeNearest(Player player, double damage, double range, boolean lightning) {
         LivingEntity target = this.nearestLiving(player, range);
         if (target == null) {
+            return;
+        }
+        if (this.isTrustedTarget(player, target)) {
             return;
         }
         applyMinimumTrueDamage(target, damage, player);
@@ -403,6 +416,9 @@ public final class PaperSpellEngine {
                 break;
             }
             if (entity instanceof LivingEntity living && living != player) {
+                if (this.isTrustedTarget(player, living)) {
+                    continue;
+                }
                 applyMinimumTrueDamage(living, damage, player);
                 living.getWorld().strikeLightningEffect(living.getLocation());
                 hits++;
@@ -417,6 +433,7 @@ public final class PaperSpellEngine {
         Vector dir = player.getLocation().getDirection().normalize();
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (!(entity instanceof LivingEntity living) || living == player) continue;
+            if (this.isTrustedTarget(player, living)) continue;
             Vector to = living.getLocation().toVector().subtract(player.getLocation().toVector()).normalize();
             double dot = dir.dot(to);
             if (dot >= coneCos) {
@@ -583,7 +600,7 @@ public final class PaperSpellEngine {
 
     private void celestialSmite(Player player, double damage, double range) {
         LivingEntity target = this.nearestLiving(player, range);
-        if (target != null) {
+        if (target != null && !this.isTrustedTarget(player, target)) {
             target.getWorld().strikeLightningEffect(target.getLocation());
             applyMinimumTrueDamage(target, damage + 2.0D, player);
             target.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 100, 0, true, true, true));
@@ -620,6 +637,9 @@ public final class PaperSpellEngine {
     private void timeSlow(Player player, double damage, double range, int durationTicks) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
+                if (this.isTrustedTarget(player, living)) {
+                    continue;
+                }
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 3, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, durationTicks, 1, true, true, true));
                 applyMinimumTrueDamage(living, Math.max(2.0D, damage / 2.0D), player);
@@ -701,6 +721,7 @@ public final class PaperSpellEngine {
         velocity.setY(Math.max(1.2D, power / 2.0D));
         player.setVelocity(velocity);
         player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 120, 3, true, true, true));
+        this.noFallUntil.put(player.getUniqueId(), System.currentTimeMillis() + 2_500L);
     }
 
     private void craftingTemper(Player player, double power, int durationTicks) {
@@ -733,6 +754,9 @@ public final class PaperSpellEngine {
     private void corruptionBlight(Player player, double damage, double range, int durationTicks) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
+                if (this.isTrustedTarget(player, living)) {
+                    continue;
+                }
                 applyMinimumTrueDamage(living, damage, player);
                 living.addPotionEffect(new PotionEffect(PotionEffectType.POISON, durationTicks, 1, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, durationTicks / 2, 0, true, true, true));
@@ -754,6 +778,9 @@ public final class PaperSpellEngine {
         int range = manaState.archetype() == PlayerArchetype.STAFF ? 7 : 5;
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
+                if (this.isTrustedTarget(player, living)) {
+                    continue;
+                }
                 living.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 60, 1, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, witherAmplifier, true, true, true));
@@ -917,6 +944,9 @@ public final class PaperSpellEngine {
         impact.getWorld().playSound(impact, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8F, 1.4F);
         for (Entity entity : source.getNearbyEntities(8.0D, 8.0D, 8.0D)) {
             if (entity instanceof LivingEntity living) {
+                if (this.isTrustedTarget(source, living)) {
+                    continue;
+                }
                 double distance = living.getLocation().distance(impact);
                 if (distance <= 3.0D) {
                     this.damageIgnoringArmor(living, damage, source);
@@ -929,6 +959,9 @@ public final class PaperSpellEngine {
     
 
     private void damageIgnoringArmor(LivingEntity living, double damage, Player source) {
+        if (living instanceof Player target && this.isTrustedBySource(source, target)) {
+            return;
+        }
         double newHealth = Math.max(0.0D, living.getHealth() - damage);
         living.setHealth(newHealth);
         if (newHealth > 0.0D) {
@@ -950,6 +983,25 @@ public final class PaperSpellEngine {
         if (this.trustStore == null) return false;
         Player p = (Player) target;
         return this.trustStore.isTrustedEitherWay(caster.getUniqueId().toString(), p.getUniqueId().toString());
+    }
+
+    public boolean isSkyLeapProtected(Player player) {
+        Long noFallUntilMs = this.noFallUntil.get(player.getUniqueId());
+        if (noFallUntilMs == null) {
+            return false;
+        }
+        if (noFallUntilMs < System.currentTimeMillis()) {
+            this.noFallUntil.remove(player.getUniqueId());
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isTrustedBySource(Player source, Player target) {
+        if (this.trustStore == null) {
+            return false;
+        }
+        return this.trustStore.isTrustedEitherWay(source.getUniqueId().toString(), target.getUniqueId().toString());
     }
 
     private void shuffleHotbar(Player target) {
@@ -1075,6 +1127,9 @@ public final class PaperSpellEngine {
             impact.getWorld().playSound(impact, Sound.ENTITY_GENERIC_EXPLODE, 1.0F, manaState.archetype() == PlayerArchetype.STAFF ? 0.8F : 1.0F);
             for (Entity entity : player.getNearbyEntities(spread + 2.0D, spread + 2.0D, spread + 2.0D)) {
                 if (entity instanceof LivingEntity living) {
+                    if (this.isTrustedTarget(player, living)) {
+                        continue;
+                    }
                     double distance = living.getLocation().distance(impact);
                     if (distance <= 3.0D) {
                         this.ignoreArmorDamage(living, damage, player);

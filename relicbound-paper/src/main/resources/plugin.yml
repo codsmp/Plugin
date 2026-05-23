@@ -1,6 +1,6 @@
 name: RelicboundSMP
 main: com.relicbound.paper.RelicboundPaperPlugin
-version: 0.1.0-SNAPSHOT
+version: 0.1.0
 api-version: '1.21'
 author: Relicbound SMP
 load: POSTWORLD
@@ -32,10 +32,18 @@ commands:
   trust:
     description: Trust a player so they cannot damage you.
     usage: /trust <player>
+    permission: relicbound.command.trust
+  enchantlimit:
+    description: Set the allowed maximum level for an enchantment.
+    usage: /enchantlimit <enchant> <level>
 permissions:
   relicbound.command.info:
+    default: true
+  relicbound.command.trust:
     default: true
   relicbound.admin.grant:
     default: op
   relicbound.admin.reset:
+    default: op
+  relicbound.admin.enchantlimit:
     default: op

@@ -6,9 +6,13 @@ $packRoot = Join-Path $repoRoot 'resource-pack'
 $paperModelsDir = Join-Path $packRoot 'assets\minecraft\models\item'
 $spellModelsDir = Join-Path $packRoot 'assets\relicbound\models\item\spell'
 $spellTexturesDir = Join-Path $packRoot 'assets\relicbound\textures\item\spell'
+$wandModelDir = Join-Path $packRoot 'assets\relicbound\models\item'
+$wandTextureDir = Join-Path $packRoot 'assets\relicbound\textures\item'
 
 New-Item -ItemType Directory -Force -Path $paperModelsDir | Out-Null
 New-Item -ItemType Directory -Force -Path $spellModelsDir | Out-Null
+New-Item -ItemType Directory -Force -Path $wandModelDir | Out-Null
+New-Item -ItemType Directory -Force -Path $wandTextureDir | Out-Null
 
 if (Test-Path $spellTexturesDir) {
     Remove-Item -Recurse -Force $spellTexturesDir
@@ -34,6 +38,15 @@ $spells = foreach ($line in $spellLines) {
 
 if (-not $spells) {
     throw 'No spells were found in DefaultSpellCatalog.java.'
+}
+
+$rootTexture = Join-Path $repoRoot 'texture.png'
+$rootWandModel = Join-Path $repoRoot 'wand.json'
+if (Test-Path $rootTexture) {
+    Copy-Item $rootTexture (Join-Path $wandTextureDir 'texture.png') -Force
+}
+if (Test-Path $rootWandModel) {
+    Copy-Item $rootWandModel (Join-Path $wandModelDir 'wand.json') -Force
 }
 
 $paperOverrides = @()

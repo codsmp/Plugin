@@ -58,9 +58,11 @@ public final class RelicJoinListener implements Listener {
             // First join - show archetype selection
             this.archetypeSelectionMenu.open(player);
             player.sendMessage(ChatColor.AQUA + "Choose your path - Wand or Staff!");
+            player.sendMessage(ChatColor.GRAY + "Type /relicbound guide after you choose for a quick walkthrough.");
         } else {
             PlayerManaState manaState = manaStateOptional.get();
             player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "Welcome back, " + manaState.archetype().displayName() + "!");
+            player.sendMessage(ChatColor.GRAY + "Need a refresher? Use /relicbound guide.");
         }
 
         if (manaStateOptional.isEmpty()) {
@@ -92,16 +94,7 @@ public final class RelicJoinListener implements Listener {
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        Player player = event.getEntity();
-        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(m -> {
-            if (!event.getKeepInventory()) {
-                return;
-            }
-
-            if (removeOneStarterItem(player, m.archetype())) {
-                event.getDrops().add(StarterItemUtil.createStarterItem(m.archetype()));
-            }
-        });
+        event.getDrops().removeIf(StarterItemUtil::isStarterItem);
     }
 
     @EventHandler
@@ -112,22 +105,5 @@ public final class RelicJoinListener implements Listener {
         Player player = event.getPlayer();
         this.core.findPlayerState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerState);
         this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerManaState);
-    }
-
-    private boolean removeOneStarterItem(Player player, PlayerArchetype archetype) {
-        String displayName = org.bukkit.ChatColor.GOLD + archetype.displayName();
-        org.bukkit.inventory.ItemStack[] contents = player.getInventory().getContents();
-        for (int i = 0; i < contents.length; i++) {
-            org.bukkit.inventory.ItemStack item = contents[i];
-            if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
-                continue;
-            }
-            if (displayName.equals(item.getItemMeta().getDisplayName())) {
-                contents[i] = null;
-                player.getInventory().setContents(contents);
-                return true;
-            }
-        }
-        return false;
     }
 }

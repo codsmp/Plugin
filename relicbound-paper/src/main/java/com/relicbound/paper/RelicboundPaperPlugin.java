@@ -10,6 +10,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     private RelicboundCore core;
     private PaperSpellEngine spellEngine;
     private PlayerTrustStore trustStore;
+    private EnchantLimitStore enchantLimitStore;
     private volatile boolean resetInProgress;
 
     @Override
@@ -28,6 +29,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             this.adapter.playerManaStateRepository()
         ));
         this.trustStore = new PlayerTrustStore(this);
+        this.enchantLimitStore = new EnchantLimitStore(this);
         this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore);
         Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
@@ -35,6 +37,11 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new EssenceGainListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new ArchetypeSelectionListener(this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellCombatListener(this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new PvpRulesListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new EnchantLimitListener(this.enchantLimitStore), this);
+        Bukkit.getPluginManager().registerEvents(new StarterItemProtectionListener(), this);
+        Bukkit.getPluginManager().registerEvents(new SkyLeapProtectionListener(this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new GuideMenuListener(), this);
         Bukkit.getPluginManager().registerEvents(new SpellWandListener(this.core, this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore), this);
 
@@ -49,6 +56,10 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             if (this.getCommand("relicboundupgrade") != null) this.getCommand("relicboundupgrade").setExecutor(executor);
             if (this.getCommand("relicboundgrant") != null) this.getCommand("relicboundgrant").setExecutor(executor);
             if (this.getCommand("rb") != null) this.getCommand("rb").setExecutor(executor);
+        }
+
+        if (this.getCommand("enchantlimit") != null) {
+            this.getCommand("enchantlimit").setExecutor(new EnchantLimitCommand(this, this.enchantLimitStore));
         }
 
         if (this.getCommand("relicreset") != null) {

@@ -14,6 +14,7 @@ Relicbound SMP is a Minecraft RPG-SMP framework built around relic progression, 
 - Tier-based relic progression
 - Large cross-referenced spell catalog with unlocks and cooldown-based casting
 - Paper spellbook and relic menus
+- In-game guide menu for onboarding, controls, and progression tips
 - Basic essence gain from combat and mining
 - GitHub release workflow for tagged builds
 - Resource pack zip built from vanilla Minecraft textures
@@ -24,7 +25,7 @@ Spell items use custom model data and vanilla Minecraft item textures, so an exi
 
 ## Public release
 
-Tagged GitHub releases publish both the plugin jar and the resource pack zip. The Paper plugin can optionally push the resource pack to players on join through `relicbound-paper/src/main/resources/config.yml`.
+Tagged GitHub releases publish both the plugin jar and the resource pack zip. The Paper plugin can optionally push the resource pack to players on join through `relicbound-paper/src/main/resources/config.yml`, and players can open `/relicbound guide` or the Guide item in the relic menu for a quick walkthrough.
 
 The plugin jar is compiled for Java 21, so the server that loads it needs Java 21 or newer.
 

@@ -1,8 +1,8 @@
 package com.relicbound.core.model;
 
 public enum PlayerArchetype {
-    WAND("Fast spellcaster", 1.15, 0.85, 0.80),
-    STAFF("Heavy spellcaster", 0.70, 1.35, 1.60);
+    WAND("Fast Spellcaster Wand", 1.15, 0.85, 0.80),
+    STAFF("Heavy Spellcaster Staff", 0.70, 1.35, 1.60);
 
     private final String displayName;
     private final double castSpeedMultiplier;
