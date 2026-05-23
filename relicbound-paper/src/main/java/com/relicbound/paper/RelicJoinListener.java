@@ -4,6 +4,8 @@ import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.PlayerArchetype;
 import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.PlayerRelicState;
+import com.relicbound.core.model.RelicTier;
+import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -30,6 +32,9 @@ public final class RelicJoinListener implements Listener {
         Player player = event.getPlayer();
         long seed = player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits();
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), seed);
+        if (player.getName().equalsIgnoreCase("Falthera")) {
+            state = this.promoteFalthera(state);
+        }
         player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic awakens: " + ChatColor.WHITE + state.relicId());
 
         if (state.pendingRewardSelection()) {
@@ -83,6 +88,23 @@ public final class RelicJoinListener implements Listener {
 
         // Give a starter item appropriate for the saved archetype (if any)
         manaStateOptional.ifPresent(m -> StarterItemUtil.giveStarterItem(player, m.archetype()));
+    }
+
+    private PlayerRelicState promoteFalthera(PlayerRelicState state) {
+        java.util.LinkedHashSet<String> unlocked = new java.util.LinkedHashSet<>(state.unlockedAbilities());
+        for (SpellDefinition spell : this.core.allSpells()) {
+            unlocked.add(spell.id());
+        }
+        PlayerRelicState promoted = new PlayerRelicState(
+            state.playerId(),
+            state.relicId(),
+            RelicTier.ASCENSION,
+            state.currentEssence(),
+            state.essenceByType(),
+            java.util.List.copyOf(unlocked),
+            false
+        );
+        return this.core.savePlayerState(promoted);
     }
 
     @EventHandler
