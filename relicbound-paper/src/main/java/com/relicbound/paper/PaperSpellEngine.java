@@ -1238,9 +1238,9 @@ public final class PaperSpellEngine {
             }
             double current = target.getHealth();
             double newHealth = Math.max(0.0D, current - damage);
-            // Prevent instant one-shot kills of players: leave at least 1.0 health
-            if (newHealth <= 0.0D) {
-                newHealth = 1.0D;
+            // Prevent spells from leaving players at half a heart or below
+            if (newHealth < 2.0D) {
+                newHealth = 2.0D;
             }
             target.setHealth(newHealth);
             if (newHealth > 0.0D) {
