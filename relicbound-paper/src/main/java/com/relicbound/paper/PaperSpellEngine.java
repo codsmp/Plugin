@@ -223,13 +223,13 @@ public final class PaperSpellEngine {
             long secondsLeft = Math.max(1L, (readyAt - now + 999L) / 1000L);
             throw new IllegalStateException(spellDefinition.displayName() + " is on cooldown for " + secondsLeft + "s.");
         }
-        int manaCost = this.scaledManaCost(spellDefinition, manaState.archetype());
+        int manaCost = this.scaledManaCost(spellDefinition, manaState);
         if (manaState.currentMana() < manaCost) {
             throw new IllegalStateException("Not enough mana for " + spellDefinition.displayName() + ". You have " + manaState.currentMana() + "/" + manaCost + ".");
         }
         manaState = this.core.drainMana(manaState, manaCost);
         manaState = this.core.savePlayerManaState(manaState);
-        int cooldownTicks = this.scaledCooldownTicks(spellDefinition, manaState.archetype());
+        int cooldownTicks = this.scaledCooldownTicks(spellDefinition, manaState);
         this.cooldowns.get(player.getUniqueId()).put(spellDefinition.id(), now + (cooldownTicks * 50L));
         switch (spellDefinition.effectType()) {
             case CORRUPTION_CRIPPLE -> this.startChannelSpell(player, spellDefinition);
@@ -354,7 +354,7 @@ public final class PaperSpellEngine {
 
         this.applyChannelSpell(player, spell, manaState);
 
-        int drainAmount = this.effectiveChannelDrain(spell, manaState.archetype());
+        int drainAmount = this.effectiveChannelDrain(spell, manaState);
         manaState = this.core.drainMana(manaState, drainAmount);
         this.core.savePlayerManaState(manaState);
         return manaState.currentMana() > 0;
@@ -371,7 +371,7 @@ public final class PaperSpellEngine {
         SpellEffectType effect = spell.effectType();
         Location origin = player.getLocation();
         this.epicCastBurst(player, spell, manaState);
-        double scaledPower = this.scaledDamage(spell, manaState.archetype());
+        double scaledPower = this.scaledDamage(spell, manaState);
         switch (effect) {
             case FIRE_CONE -> this.emberBurst(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case FIRE_DASH -> this.dashForward(player, effectiveRange(spell.range()), 0.8D, true);
@@ -457,26 +457,34 @@ public final class PaperSpellEngine {
         player.getWorld().playSound(origin, sound, 1.0F, pitch);
     }
 
-    private int effectiveChannelDrain(SpellDefinition spell, PlayerArchetype archetype) {
+    private int effectiveChannelDrain(SpellDefinition spell, PlayerManaState manaState) {
+        PlayerArchetype archetype = manaState.archetype();
         if (spell.effectType() == SpellEffectType.CORRUPTION_CRIPPLE) {
             return archetype == PlayerArchetype.STAFF ? 20 : 10;
         }
-        return Math.max(1, (int) Math.round(spell.manaPerSecond() * archetype.manaDrainMultiplier()));
-    }
-
-    private int scaledCooldownTicks(SpellDefinition spell, PlayerArchetype archetype) {
-        double base = spell.cooldownTicks() * this.globalCooldownMultiplier() / archetype.castSpeedMultiplier();
-        base *= this.gradeCooldownMultiplier(this.resolveGrade(spell));
+        double base = spell.manaPerSecond() * archetype.manaDrainMultiplier();
+        base *= this.tierManaMultiplierForPlayer(manaState.playerId());
         return Math.max(1, (int) Math.round(base));
     }
 
-    private int scaledManaCost(SpellDefinition spell, PlayerArchetype archetype) {
+    private int scaledCooldownTicks(SpellDefinition spell, PlayerManaState manaState) {
+        PlayerArchetype archetype = manaState.archetype();
+        double base = spell.cooldownTicks() * this.globalCooldownMultiplier() / archetype.castSpeedMultiplier();
+        base *= this.gradeCooldownMultiplier(this.resolveGrade(spell));
+        base *= this.tierCooldownMultiplierForPlayer(manaState.playerId());
+        return Math.max(1, (int) Math.round(base));
+    }
+
+    private int scaledManaCost(SpellDefinition spell, PlayerManaState manaState) {
+        PlayerArchetype archetype = manaState.archetype();
         double base = spell.manaCost() * archetype.manaDrainMultiplier();
         base *= this.gradeManaMultiplier(this.resolveGrade(spell));
+        base *= this.tierManaMultiplierForPlayer(manaState.playerId());
         return Math.max(0, (int) Math.round(base));
     }
 
-    private double scaledDamage(SpellDefinition spell, PlayerArchetype archetype) {
+    private double scaledDamage(SpellDefinition spell, PlayerManaState manaState) {
+        PlayerArchetype archetype = manaState.archetype();
         double base = spell.power() * archetype.damageMultiplier() * this.globalDamageMultiplier();
         base *= this.elementalDamageMultiplier(spell.effectType());
         if (this.BOOSTED_EFFECTS.contains(spell.effectType())) {
@@ -485,6 +493,7 @@ public final class PaperSpellEngine {
                 boost *= this.boostedEffectStaffExtraMultiplier();
             }
             double result = base * boost * this.gradeDamageMultiplier(this.resolveGrade(spell));
+            result *= this.tierDamageMultiplierForPlayer(manaState.playerId());
             // Guarantee A+ spells scale to exceed configured A+ minimum after global buff
             if (this.resolveGrade(spell) == SpellBalanceGrade.A_PLUS) {
                 double minScaled = 12.01D / this.globalSpellBuff();
@@ -493,11 +502,45 @@ public final class PaperSpellEngine {
             return result;
         }
         double result = base * this.gradeDamageMultiplier(this.resolveGrade(spell));
+        result *= this.tierDamageMultiplierForPlayer(manaState.playerId());
         if (this.resolveGrade(spell) == SpellBalanceGrade.A_PLUS) {
             double minScaled = 12.01D / this.globalSpellBuff();
             return Math.max(result, minScaled);
         }
         return result;
+    }
+
+    private double tierDamageMultiplierForPlayer(String playerId) {
+        return this.core.findPlayerState(playerId)
+                .map(state -> switch (state.tier()) {
+                    case TIER_2 -> 1.05D;
+                    case TIER_3 -> 1.05D;
+                    case TIER_4 -> 1.15D;
+                    case TIER_5 -> 1.25D;
+                    case ASCENSION -> 1.35D;
+                    default -> 1.0D;
+                }).orElse(1.0D);
+    }
+
+    private double tierCooldownMultiplierForPlayer(String playerId) {
+        return this.core.findPlayerState(playerId)
+                .map(state -> switch (state.tier()) {
+                    case TIER_2 -> 0.95D;
+                    case TIER_5 -> 0.90D;
+                    case ASCENSION -> 0.90D;
+                    default -> 1.0D;
+                }).orElse(1.0D);
+    }
+
+    private double tierManaMultiplierForPlayer(String playerId) {
+        return this.core.findPlayerState(playerId)
+                .map(state -> switch (state.tier()) {
+                    case TIER_3 -> 0.90D;
+                    case TIER_4 -> 0.90D;
+                    case TIER_5 -> 0.90D;
+                    case ASCENSION -> 0.85D;
+                    default -> 1.0D;
+                }).orElse(1.0D);
     }
 
     private double effectiveRange(double range) {
