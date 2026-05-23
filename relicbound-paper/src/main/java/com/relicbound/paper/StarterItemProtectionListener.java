@@ -14,6 +14,7 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -78,8 +79,10 @@ public final class StarterItemProtectionListener implements Listener {
         }
 
         event.getInventory().setResult(null);
-        for (Player viewer : event.getViewers()) {
-            viewer.sendMessage(ChatColor.RED + "[Relicbound] Starter wands cannot be used in crafting.");
+        for (HumanEntity viewer : event.getViewers()) {
+            if (viewer instanceof Player player) {
+                player.sendMessage(ChatColor.RED + "[Relicbound] Starter wands cannot be used in crafting.");
+            }
         }
     }
 

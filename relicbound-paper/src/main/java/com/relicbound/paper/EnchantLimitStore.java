@@ -56,12 +56,7 @@ public final class EnchantLimitStore {
             }
         } catch (IllegalArgumentException ignored) {
         }
-
-        try {
-            return Optional.of(Enchantment.valueOf(normalized));
-        } catch (IllegalArgumentException exception) {
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 
     private void load() {

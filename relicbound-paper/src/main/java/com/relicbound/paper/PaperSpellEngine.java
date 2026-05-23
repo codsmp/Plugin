@@ -7,6 +7,7 @@ import com.relicbound.core.model.PlayerRelicState;
 import com.relicbound.core.model.SpellDefinition;
 import com.relicbound.core.model.SpellEffectType;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -1002,6 +1003,13 @@ public final class PaperSpellEngine {
             return false;
         }
         return this.trustStore.isTrustedEitherWay(source.getUniqueId().toString(), target.getUniqueId().toString());
+    }
+
+    private boolean isTrustedTarget(Player source, LivingEntity target) {
+        if (!(target instanceof Player targetPlayer)) {
+            return false;
+        }
+        return this.isTrustedBySource(source, targetPlayer);
     }
 
     private void shuffleHotbar(Player target) {
