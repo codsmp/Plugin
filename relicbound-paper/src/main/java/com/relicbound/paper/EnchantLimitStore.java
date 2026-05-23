@@ -37,7 +37,8 @@ public final class EnchantLimitStore {
     }
 
     public synchronized boolean isAllowed(Enchantment enchantment, int level) {
-        return this.getLimit(enchantment).map(limit -> level <= limit).orElse(true);
+        // Enchant limits disabled: always allow any enchantment level
+        return true;
     }
 
     public synchronized void clear() {

@@ -25,11 +25,8 @@ public final class EnchantLimitListener implements Listener {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-
-        if (this.containsDisallowedEnchant(event.getItem().getItemStack())) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "That item exceeds the allowed enchant limit.");
-        }
+        // Enchant limits disabled: do not block pickups
+        return;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -37,13 +34,8 @@ public final class EnchantLimitListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-
-        ItemStack cursor = event.getCursor();
-        ItemStack current = event.getCurrentItem();
-        if (this.containsDisallowedEnchant(cursor) || this.containsDisallowedEnchant(current)) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "That item exceeds the allowed enchant limit.");
-        }
+        // Enchant limits disabled: do not interfere with inventory clicks
+        return;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -51,24 +43,22 @@ public final class EnchantLimitListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-
-        if (this.containsDisallowedEnchant(event.getOldCursor())) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "That item exceeds the allowed enchant limit.");
-        }
+        // Enchant limits disabled: do not interfere with drags
+        return;
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        removeIllegalEnchantments(event.getPlayer(), this.enchantLimitStore);
+        // Enchant limits disabled: do not remove items on join
+        return;
     }
 
     private boolean containsDisallowedEnchant(ItemStack itemStack) {
         if (itemStack == null) {
             return false;
         }
-
-        return itemStack.getEnchantments().entrySet().stream().anyMatch(entry -> !this.enchantLimitStore.isAllowed(entry.getKey(), entry.getValue()));
+        // Enchant limits disabled: always report no disallowed enchant
+        return false;
     }
 
     static void removeIllegalEnchantments(Player player, EnchantLimitStore enchantLimitStore) {
@@ -101,6 +91,6 @@ public final class EnchantLimitListener implements Listener {
     }
 
     private static boolean containsDisallowedEnchant(ItemStack itemStack, EnchantLimitStore enchantLimitStore) {
-        return itemStack.getEnchantments().entrySet().stream().anyMatch(entry -> !enchantLimitStore.isAllowed(entry.getKey(), entry.getValue()));
+        return false;
     }
 }
