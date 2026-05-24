@@ -35,7 +35,7 @@ commands:
     permission: relicbound.command.trust
   team:
     description: Create and manage teams.
-    usage: /team [create|prefix|color|trust|ally|leave|disband|info|help]
+    usage: /team [create|prefix|color|invite|accept|deny|trust|ally|leave|disband|info|help]
     permission: relicbound.command.team
   graceperiod:
     description: Start or manage global no-damage grace period.

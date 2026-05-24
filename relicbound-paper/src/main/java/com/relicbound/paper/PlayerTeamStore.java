@@ -24,6 +24,7 @@ public final class PlayerTeamStore {
     private final JavaPlugin plugin;
     private final File storageFile;
     private final Map<String, TeamRecord> teamsById = new HashMap<>();
+    private final Map<String, Set<String>> invitesByTarget = new HashMap<>();
     private final Scoreboard scoreboard;
 
     public PlayerTeamStore(JavaPlugin plugin) {
@@ -96,9 +97,59 @@ public final class PlayerTeamStore {
             added = true;
         }
 
+        this.clearInvitesForPlayer(targetId);
+
         this.persist();
         this.syncAllOnlinePlayers();
         return added;
+    }
+
+    public synchronized void inviteMember(String ownerId, String targetId) {
+        TeamRecord team = this.requireOwnedTeam(ownerId);
+        if (team.ownerId.equals(targetId)) {
+            throw new IllegalStateException("You cannot invite yourself.");
+        }
+        if (this.findTeamOfPlayer(targetId).isPresent()) {
+            throw new IllegalStateException("That player is already in a team.");
+        }
+
+        this.invitesByTarget.computeIfAbsent(targetId, ignored -> new HashSet<>()).add(team.id);
+        this.persist();
+    }
+
+    public synchronized List<TeamRecord> getInvitesForPlayer(String playerId) {
+        return this.invitesByTarget.getOrDefault(playerId, Set.of()).stream()
+            .map(this.teamsById::get)
+            .filter(team -> team != null)
+            .toList();
+    }
+
+    public synchronized TeamRecord acceptInvite(String playerId, String teamIdentifier) {
+        if (this.findTeamOfPlayer(playerId).isPresent()) {
+            throw new IllegalStateException("You are already in a team.");
+        }
+
+        TeamRecord team = this.resolveInvitedTeam(playerId, teamIdentifier);
+        team.members.add(playerId);
+        this.clearInvitesForPlayer(playerId);
+        this.persist();
+        this.syncAllOnlinePlayers();
+        return team;
+    }
+
+    public synchronized boolean denyInvite(String playerId, String teamIdentifier) {
+        Set<String> invites = this.invitesByTarget.get(playerId);
+        if (invites == null || invites.isEmpty()) {
+            throw new IllegalStateException("You do not have any team invites.");
+        }
+
+        TeamRecord team = this.resolveInvitedTeam(playerId, teamIdentifier);
+        boolean removed = invites.remove(team.id);
+        if (invites.isEmpty()) {
+            this.invitesByTarget.remove(playerId);
+        }
+        this.persist();
+        return removed;
     }
 
     public synchronized boolean toggleAlliance(String ownerId, String targetIdentifier) {
@@ -156,6 +207,10 @@ public final class PlayerTeamStore {
         for (TeamRecord other : this.teamsById.values()) {
             other.allies.remove(team.id);
         }
+        for (Set<String> invites : this.invitesByTarget.values()) {
+            invites.remove(team.id);
+        }
+        this.invitesByTarget.entrySet().removeIf(entry -> entry.getValue().isEmpty());
         Team bukkitTeam = this.scoreboard.getTeam(team.scoreboardName);
         if (bukkitTeam != null) {
             bukkitTeam.unregister();
@@ -196,6 +251,10 @@ public final class PlayerTeamStore {
         if (team.isPresent()) {
             this.ensureScoreboardTeam(team.get()).addEntry(player.getName());
         }
+    }
+
+    public synchronized void clearInvitesForPlayer(String playerId) {
+        this.invitesByTarget.remove(playerId);
     }
 
     public synchronized Optional<TeamRecord> getTeamForPlayer(String playerId) {
@@ -253,6 +312,12 @@ public final class PlayerTeamStore {
             record.members.add(ownerId);
             this.teamsById.put(record.id, record);
         }
+
+        if (configuration.getConfigurationSection("invites") != null) {
+            for (String targetId : configuration.getConfigurationSection("invites").getKeys(false)) {
+                this.invitesByTarget.put(targetId, new HashSet<>(configuration.getStringList("invites." + targetId + ".teams")));
+            }
+        }
     }
 
     private void persist() {
@@ -266,6 +331,10 @@ public final class PlayerTeamStore {
             configuration.set(basePath + "owner-id", record.ownerId);
             configuration.set(basePath + "members", new ArrayList<>(record.members));
             configuration.set(basePath + "allies", new ArrayList<>(record.allies));
+        }
+
+        for (Map.Entry<String, Set<String>> entry : this.invitesByTarget.entrySet()) {
+            configuration.set("invites." + entry.getKey() + ".teams", new ArrayList<>(entry.getValue()));
         }
 
         try {
@@ -301,6 +370,33 @@ public final class PlayerTeamStore {
             }
         } while (true);
         return candidate;
+    }
+
+    private TeamRecord resolveInvitedTeam(String playerId, String teamIdentifier) {
+        Set<String> invitedTeamIds = this.invitesByTarget.getOrDefault(playerId, Set.of());
+        if (invitedTeamIds.isEmpty()) {
+            throw new IllegalStateException("You do not have any team invites.");
+        }
+
+        if (teamIdentifier == null || teamIdentifier.isBlank()) {
+            if (invitedTeamIds.size() == 1) {
+                String teamId = invitedTeamIds.iterator().next();
+                TeamRecord team = this.teamsById.get(teamId);
+                if (team == null) {
+                    throw new IllegalStateException("That invite is no longer valid.");
+                }
+                return team;
+            }
+
+            throw new IllegalStateException("You have multiple invites. Use /team accept <team>.");
+        }
+
+        TeamRecord team = this.findTeamByIdentifier(teamIdentifier)
+            .orElseThrow(() -> new IllegalStateException("That team does not exist."));
+        if (!invitedTeamIds.contains(team.id)) {
+            throw new IllegalStateException("You were not invited to that team.");
+        }
+        return team;
     }
 
     private String normalizeIdentifier(String value) {

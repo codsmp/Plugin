@@ -41,6 +41,9 @@ public final class TeamCommand implements CommandExecutor {
                 case "prefix" -> this.setPrefix(player, args);
                 case "color" -> this.setColor(player, args);
                 case "trust" -> this.toggleMember(player, args);
+                case "invite" -> this.invite(player, args);
+                case "accept" -> this.acceptInvite(player, args);
+                case "deny" -> this.denyInvite(player, args);
                 case "ally" -> this.toggleAlliance(player, args);
                 case "disband" -> this.disband(player);
                 case "leave" -> this.leave(player);
@@ -126,6 +129,48 @@ public final class TeamCommand implements CommandExecutor {
         return true;
     }
 
+    private boolean invite(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage(ChatColor.RED + "Usage: /team invite <player>");
+            return true;
+        }
+
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            player.sendMessage(ChatColor.RED + "That player must be online.");
+            return true;
+        }
+
+        if (target.getUniqueId().equals(player.getUniqueId())) {
+            player.sendMessage(ChatColor.RED + "You cannot invite yourself.");
+            return true;
+        }
+
+        this.teamStore.inviteMember(player.getUniqueId().toString(), target.getUniqueId().toString());
+        TeamRecord team = this.teamStore.getTeamForPlayer(player.getUniqueId().toString()).orElse(null);
+        String teamName = team == null ? "your team" : team.name();
+        player.sendMessage(ChatColor.GREEN + "Invited " + target.getName() + " to " + teamName + ".");
+        target.sendMessage(ChatColor.AQUA + player.getName() + ChatColor.WHITE + " invited you to join " + ChatColor.YELLOW + teamName + ChatColor.WHITE + ".");
+        target.sendMessage(ChatColor.GRAY + "Use /team accept or /team deny. If you have multiple invites, use /team accept <team>.");
+        return true;
+    }
+
+    private boolean acceptInvite(Player player, String[] args) {
+        String teamIdentifier = args.length >= 2 ? String.join(" ", List.of(args).subList(1, args.length)) : null;
+        TeamRecord team = this.teamStore.acceptInvite(player.getUniqueId().toString(), teamIdentifier);
+        player.sendMessage(ChatColor.GREEN + "You joined " + ChatColor.YELLOW + team.name() + ChatColor.GREEN + ".");
+        return true;
+    }
+
+    private boolean denyInvite(Player player, String[] args) {
+        String teamIdentifier = args.length >= 2 ? String.join(" ", List.of(args).subList(1, args.length)) : null;
+        boolean removed = this.teamStore.denyInvite(player.getUniqueId().toString(), teamIdentifier);
+        player.sendMessage(removed
+            ? ChatColor.YELLOW + "Team invite declined."
+            : ChatColor.RED + "That invite was not found.");
+        return true;
+    }
+
     private boolean toggleAlliance(Player player, String[] args) {
         if (args.length < 2) {
             player.sendMessage(ChatColor.RED + "Usage: /team ally <team>");
@@ -177,6 +222,9 @@ public final class TeamCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GRAY + "/team create <name> [prefix]");
         player.sendMessage(ChatColor.GRAY + "/team prefix <text>");
         player.sendMessage(ChatColor.GRAY + "/team color <color>");
+        player.sendMessage(ChatColor.GRAY + "/team invite <online player>");
+        player.sendMessage(ChatColor.GRAY + "/team accept [team]");
+        player.sendMessage(ChatColor.GRAY + "/team deny [team]");
         player.sendMessage(ChatColor.GRAY + "/team trust <online player>");
         player.sendMessage(ChatColor.GRAY + "/team ally <team>");
         player.sendMessage(ChatColor.GRAY + "/team leave");
