@@ -919,7 +919,7 @@ public final class PaperSpellEngine {
     }
 
     private void rootNearby(Player player, double damage, double range) {
-        final int rootTicks = 5 * 20;
+        final int rootTicks = 2 * 20;
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
                 applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
