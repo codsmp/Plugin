@@ -376,6 +376,7 @@ public final class PaperSpellEngine {
             case FIRE_CONE -> this.emberBurst(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case FIRE_DASH -> this.dashForward(player, effectiveRange(spell.range()), 0.8D, true);
             case WATER_HEAL -> this.tideSalve(player, spell.power(), effectiveRange(spell.range()));
+            case AQUATIC_BLESSING -> this.aquaticBlessing(player, spell.durationTicks());
             case WATER_WAVE -> this.knockbackNearby(player, scaledPower, effectiveRange(spell.range()), false);
             case STORM_STRIKE -> this.thunderLance(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case STORM_CHAIN -> this.tempestChain(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
@@ -433,6 +434,7 @@ public final class PaperSpellEngine {
         Sound sound = switch (spell.effectType()) {
             case FIRE_CONE, FIRE_DASH -> Sound.ENTITY_BLAZE_SHOOT;
             case WATER_HEAL, WATER_WAVE -> Sound.ITEM_TRIDENT_RIPTIDE_3;
+            case AQUATIC_BLESSING -> Sound.BLOCK_CONDUIT_AMBIENT;
             case STORM_STRIKE, STORM_CHAIN, STORM_CHARGES -> Sound.ENTITY_LIGHTNING_BOLT_THUNDER;
             case VOID_PULL, VOID_BLINK -> Sound.ENTITY_ENDERMAN_TELEPORT;
             case LIGHT_SHIELD, LIGHT_PURGE, CELESTIAL_BEACON, CELESTIAL_FALL -> Sound.BLOCK_BEACON_POWER_SELECT;
@@ -887,6 +889,14 @@ public final class PaperSpellEngine {
         this.healSelf(player, amount, true);
         player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation(), 24, 0.6, 0.6, 0.6, 0.02);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 0.9F, 1.0F);
+    }
+
+    private void aquaticBlessing(Player player, int durationTicks) {
+        player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, durationTicks, 0, true, true, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, durationTicks, 0, true, true, true));
+        player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation(), 20, 0.45, 0.45, 0.45, 0.04);
+        player.getWorld().spawnParticle(Particle.BUBBLE_COLUMN_UPWARD, player.getLocation(), 12, 0.35, 0.55, 0.35, 0.03);
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_CONDUIT_AMBIENT, 0.8F, 1.2F);
     }
 
     private void rootNearby(Player player, double damage, double range) {

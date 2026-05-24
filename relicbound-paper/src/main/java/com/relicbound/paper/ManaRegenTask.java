@@ -10,6 +10,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Optional;
 
 public final class ManaRegenTask {
+    private static final String AQUATIC_BLESSING_ID = "aquatic_blessing";
     private final JavaPlugin plugin;
     private final RelicboundCore core;
 
@@ -38,6 +39,11 @@ public final class ManaRegenTask {
 
         PlayerManaState manaState = manaStateOptional.get();
         PlayerManaState updated = this.core.updateManaRegen(manaState, currentTimeMillis);
+
+        if (updated.equippedSpellIds().contains(AQUATIC_BLESSING_ID)) {
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WATER_BREATHING, 100, 0, true, true, true));
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DOLPHINS_GRACE, 100, 0, true, true, true));
+        }
 
         // Only save if mana actually changed
         if (updated.currentMana() != manaState.currentMana()) {

@@ -5,6 +5,7 @@ public enum SpellEffectType {
     FIRE_DASH,
     WATER_HEAL,
     WATER_WAVE,
+    AQUATIC_BLESSING,
     STORM_STRIKE,
     STORM_CHAIN,
     VOID_PULL,
