@@ -1056,9 +1056,8 @@ public final class PaperSpellEngine {
     }
 
     private void summonHelper(Player player, double power) {
-        Player nearestUntrusted = null;
-        double nearestDistanceSq = Double.MAX_VALUE;
         double maxDistSq = Math.max(48.0D, power * 12.0D);
+        int revealedPlayers = 0;
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other == null || !other.isOnline() || other.equals(player)) {
                 continue;
@@ -1072,22 +1071,18 @@ public final class PaperSpellEngine {
             if (this.trustStore != null && this.trustStore.isTrustedEitherWay(player.getUniqueId().toString(), other.getUniqueId().toString())) {
                 continue;
             }
-            double distanceSq = other.getLocation().distanceSquared(player.getLocation());
-            if (distanceSq < nearestDistanceSq) {
-                nearestDistanceSq = distanceSq;
-                nearestUntrusted = other;
-            }
-        }
-
-        if (nearestUntrusted != null) {
-            player.getWorld().spawn(nearestUntrusted.getLocation().add(0, 1.0D, 0), Allay.class, allay -> {
+            player.getWorld().spawn(other.getLocation().add(0, 1.0D, 0), Allay.class, allay -> {
                 allay.setCustomName("Relic Echo");
                 allay.setCustomNameVisible(true);
                 allay.setPersistent(false);
             });
-            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "Your echo points toward " + ChatColor.YELLOW + nearestUntrusted.getName() + ChatColor.WHITE + ".");
-            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, nearestUntrusted.getLocation().add(0, 1.0D, 0), 18, 0.45, 0.65, 0.45, 0.05);
-            player.getWorld().playSound(nearestUntrusted.getLocation(), Sound.ENTITY_ALLAY_AMBIENT_WITH_ITEM, 0.9F, 1.2F);
+            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, other.getLocation().add(0, 1.0D, 0), 18, 0.45, 0.65, 0.45, 0.05);
+            player.getWorld().playSound(other.getLocation(), Sound.ENTITY_ALLAY_AMBIENT_WITH_ITEM, 0.9F, 1.2F);
+            revealedPlayers++;
+        }
+
+        if (revealedPlayers > 0) {
+            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "Your echo points toward " + ChatColor.YELLOW + revealedPlayers + ChatColor.WHITE + " untrusted player" + (revealedPlayers == 1 ? "" : "s") + ".");
             return;
         }
 
