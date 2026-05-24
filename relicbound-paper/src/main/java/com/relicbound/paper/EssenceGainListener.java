@@ -56,7 +56,21 @@ public final class EssenceGainListener implements Listener {
 
             String playerId = player.getUniqueId().toString();
             PlayerRelicState before = this.core.findPlayerState(playerId).orElse(null);
-            PlayerRelicState after = this.core.grantEssence(playerId, "mining", 6);
+
+            // Determine essence amount based on ore rarity
+            int essenceAmount = switch (type) {
+                case DIAMOND_ORE -> 30;
+                case EMERALD_ORE -> 25;
+                case ANCIENT_DEBRIS -> 0; // no essence for ancient debris
+                case GOLD_ORE, NETHER_GOLD_ORE -> 10;
+                case REDSTONE_ORE, LAPIS_ORE -> 8;
+                case COAL_ORE -> 10; // coal gives boosted essence
+                case COPPER_ORE -> 5;
+                case IRON_ORE -> 6;
+                default -> 6;
+            };
+
+            PlayerRelicState after = this.core.grantEssence(playerId, "mining", essenceAmount);
             this.announceAutoUpgrade(player, before, after);
         }
     }
