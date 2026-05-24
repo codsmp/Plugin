@@ -43,6 +43,17 @@ public final class EssenceGainListener implements Listener {
         Player player = event.getPlayer();
         Material type = event.getBlock().getType();
         if (type.name().endsWith("_ORE")) {
+            // Remap experience drops for specific ores:
+            // - Coal ore should give the same XP as diamond ore (set to 7)
+            // - Ancient debris should give no XP
+            int xpToDrop = event.getExpToDrop();
+            if (type == Material.COAL_ORE) {
+                xpToDrop = 7; // match diamond-level XP
+            } else if (type == Material.ANCIENT_DEBRIS) {
+                xpToDrop = 0;
+            }
+            event.setExpToDrop(xpToDrop);
+
             String playerId = player.getUniqueId().toString();
             PlayerRelicState before = this.core.findPlayerState(playerId).orElse(null);
             PlayerRelicState after = this.core.grantEssence(playerId, "mining", 6);
