@@ -1024,12 +1024,19 @@ public final class PaperSpellEngine {
         player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, durationTicks, 0, true, true, true));
         // Apply glowing to other players within 180 blocks, excluding trusted players
         double maxDistSq = 180.0D * 180.0D;
+        int revealedPlayers = 0;
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other == null || !other.isOnline() || other.equals(player)) continue;
             if (!other.getWorld().equals(player.getWorld())) continue;
             if (other.getLocation().distanceSquared(player.getLocation()) > maxDistSq) continue;
             if (this.trustStore != null && this.trustStore.isTrustedEitherWay(player.getUniqueId().toString(), other.getUniqueId().toString())) continue;
             other.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, durationTicks, 0, true, true, true));
+            revealedPlayers++;
+        }
+        if (revealedPlayers > 0) {
+            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "You revealed " + ChatColor.YELLOW + revealedPlayers + ChatColor.WHITE + " untrusted player" + (revealedPlayers == 1 ? "" : "s") + ".");
+        } else {
+            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "No untrusted players were nearby to reveal.");
         }
         player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 20, range / 6.0D, 1.0, range / 6.0D, 0.15);
     }
