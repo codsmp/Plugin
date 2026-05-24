@@ -50,6 +50,7 @@ public final class PaperSpellEngine {
     private final Map<UUID, BukkitTask> channelTasks = new HashMap<>();
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
     private final Map<UUID, Long> noFallUntil = new HashMap<>();
+    private final Map<UUID, Long> shadowVeilUntil = new HashMap<>();
     private final PlayerTrustStore trustStore;
     private final NamespacedKey spellStrengthBypassKey;
     private final java.util.Set<UUID> secretAPlusSkyLeap = new java.util.HashSet<>();
@@ -148,21 +149,21 @@ public final class PaperSpellEngine {
             );
 
             private enum SpellBalanceGrade {
-            A_PLUS("a-plus", 3.00D, 1.30D, 1.20D),
-            A("a", 2.25D, 1.20D, 1.12D),
-            A_MINUS("a-minus", 1.75D, 1.10D, 1.06D),
-            B_PLUS("b-plus", 1.25D, 1.02D, 1.00D),
-            B("b", 1.00D, 1.00D, 1.00D),
-            B_MINUS("b-minus", 0.92D, 0.95D, 0.95D),
-            C_PLUS("c-plus", 0.86D, 0.92D, 0.92D),
-            C("c", 0.80D, 0.90D, 0.90D),
-            C_MINUS("c-minus", 0.74D, 0.88D, 0.88D),
-            D_PLUS("d-plus", 0.68D, 0.85D, 0.85D),
-            D("d", 0.62D, 0.82D, 0.82D),
-            D_MINUS("d-minus", 0.56D, 0.80D, 0.80D),
-            F_PLUS("f-plus", 0.50D, 0.78D, 0.78D),
-            F("f", 0.44D, 0.75D, 0.75D),
-            F_MINUS("f-minus", 0.38D, 0.72D, 0.72D);
+            A_PLUS("a-plus", 3.20D, 1.20D, 1.12D),
+            A("a", 2.40D, 1.12D, 1.06D),
+            A_MINUS("a-minus", 1.88D, 1.04D, 1.00D),
+            B_PLUS("b-plus", 1.35D, 0.98D, 0.96D),
+            B("b", 1.10D, 0.95D, 0.92D),
+            B_MINUS("b-minus", 1.00D, 0.92D, 0.88D),
+            C_PLUS("c-plus", 0.92D, 0.89D, 0.86D),
+            C("c", 0.86D, 0.86D, 0.83D),
+            C_MINUS("c-minus", 0.79D, 0.84D, 0.80D),
+            D_PLUS("d-plus", 0.73D, 0.81D, 0.77D),
+            D("d", 0.67D, 0.78D, 0.74D),
+            D_MINUS("d-minus", 0.61D, 0.75D, 0.71D),
+            F_PLUS("f-plus", 0.55D, 0.72D, 0.68D),
+            F("f", 0.49D, 0.69D, 0.65D),
+            F_MINUS("f-minus", 0.43D, 0.66D, 0.62D);
 
             private final String configKey;
             private final double defaultDamageMultiplier;
@@ -995,7 +996,41 @@ public final class PaperSpellEngine {
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, durationTicks, 0, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, Math.max(40, durationTicks / 2), 0, true, true, true));
+        this.activateFullInvisibility(player, durationTicks);
         player.getWorld().spawnParticle(Particle.SMOKE, player.getLocation(), 24, 0.4, 0.7, 0.4, 0.05);
+    }
+
+    public void syncShadowVeilVisibility(Player viewer) {
+        for (Map.Entry<UUID, Long> entry : this.shadowVeilUntil.entrySet()) {
+            if (entry.getValue() > System.currentTimeMillis()) {
+                Player hidden = Bukkit.getPlayer(entry.getKey());
+                if (hidden != null && hidden.isOnline()) {
+                    viewer.hideEntity(this.plugin, hidden);
+                }
+            }
+        }
+    }
+
+    private void activateFullInvisibility(Player player, int durationTicks) {
+        long expiresAt = System.currentTimeMillis() + Math.max(1, durationTicks) * 50L;
+        this.shadowVeilUntil.put(player.getUniqueId(), expiresAt);
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (!viewer.getUniqueId().equals(player.getUniqueId())) {
+                viewer.hideEntity(this.plugin, player);
+            }
+        }
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+            Long currentUntil = this.shadowVeilUntil.get(player.getUniqueId());
+            if (currentUntil == null || currentUntil > System.currentTimeMillis()) {
+                return;
+            }
+            this.shadowVeilUntil.remove(player.getUniqueId());
+            for (Player viewer : Bukkit.getOnlinePlayers()) {
+                if (!viewer.getUniqueId().equals(player.getUniqueId())) {
+                    viewer.showEntity(this.plugin, player);
+                }
+            }
+        }, Math.max(1, durationTicks));
     }
 
     private void shadowBurst(Player player, double damage, double range) {
@@ -1236,7 +1271,7 @@ public final class PaperSpellEngine {
 
     private void malfunction(Player player, SpellDefinition spell, PlayerManaState manaState) {
         Player target = this.nearestPlayer(player, spell.range()).orElse(player);
-        this.shuffleHotbar(target);
+        this.shuffleMalfunctionHotbar(target);
         boolean staff = manaState.archetype() == PlayerArchetype.STAFF;
         target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, staff ? 100 : 50, 0, true, true, true));
         target.getWorld().spawnParticle(staff ? Particle.WITCH : Particle.CRIT, target.getLocation(), staff ? 18 : 12, staff ? 0.6 : 0.4, staff ? 0.6 : 0.4, staff ? 0.6 : 0.4, staff ? 0.08 : 0.06);
@@ -1420,6 +1455,46 @@ public final class PaperSpellEngine {
         if (!slots.isEmpty()) {
             target.getInventory().setItemInOffHand(slots.get(slots.size() - 1));
         }
+    }
+
+    private void shuffleMalfunctionHotbar(Player target) {
+        ItemStack[] hotbar = target.getInventory().getStorageContents();
+        List<Integer> movableSlots = new ArrayList<>();
+        List<ItemStack> movableItems = new ArrayList<>();
+        for (int i = 0; i < 9 && i < hotbar.length; i++) {
+            ItemStack item = hotbar[i];
+            if (this.isCombatOrMiningItem(item)) {
+                continue;
+            }
+            movableSlots.add(i);
+            movableItems.add(item);
+        }
+        Collections.shuffle(movableItems);
+        for (int i = 0; i < movableSlots.size(); i++) {
+            hotbar[movableSlots.get(i)] = movableItems.get(i);
+        }
+        target.getInventory().setStorageContents(hotbar);
+    }
+
+    private boolean isCombatOrMiningItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return false;
+        }
+        String materialName = item.getType().name();
+        return materialName.endsWith("_SWORD")
+            || materialName.endsWith("_AXE")
+            || materialName.endsWith("_PICKAXE")
+            || materialName.endsWith("_SHOVEL")
+            || materialName.endsWith("_HOE")
+            || materialName.endsWith("_HELMET")
+            || materialName.endsWith("_CHESTPLATE")
+            || materialName.endsWith("_LEGGINGS")
+            || materialName.endsWith("_BOOTS")
+            || materialName.equals("SHIELD")
+            || materialName.equals("TRIDENT")
+            || materialName.equals("MACE")
+            || materialName.equals("BOW")
+            || materialName.equals("CROSSBOW");
     }
 
     private void shuffleFullInventory(Player target) {
