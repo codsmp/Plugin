@@ -34,8 +34,10 @@ public final class RelicJoinListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        long tStart = System.nanoTime();
         long seed = player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits();
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), seed);
+        long tAfterLoad = System.nanoTime();
         if (player.getName().equalsIgnoreCase("Falthera") || player.getName().equalsIgnoreCase("braxsmashedyou") || player.getName().equalsIgnoreCase("Aishi___") || player.getName().equalsIgnoreCase("Abbas14") || player.getName().equalsIgnoreCase("lovely_lyla") || player.getName().equalsIgnoreCase("Vyxen123")) {
             state = this.promoteFalthera(state);
         }
@@ -79,22 +81,33 @@ public final class RelicJoinListener implements Listener {
 
         String resourcePackUrl = this.plugin.getConfig().getString("resource-pack.url", "").trim();
         if (!resourcePackUrl.isEmpty()) {
-            try {
-                player.setResourcePack(resourcePackUrl);
-                String promptMessage = this.plugin.getConfig().getString("resource-pack.prompt-message", "").trim();
-                if (!promptMessage.isEmpty()) {
-                    player.sendMessage(ChatColor.AQUA + promptMessage);
+            // Defer resource pack to a couple ticks to avoid spike during immediate join
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+                try {
+                    player.setResourcePack(resourcePackUrl);
+                    String promptMessage = this.plugin.getConfig().getString("resource-pack.prompt-message", "").trim();
+                    if (!promptMessage.isEmpty()) {
+                        player.sendMessage(ChatColor.AQUA + promptMessage);
+                    }
+                } catch (IllegalArgumentException exception) {
+                    this.plugin.getLogger().warning("Invalid resource-pack URL in config: " + resourcePackUrl);
                 }
-            } catch (IllegalArgumentException exception) {
-                this.plugin.getLogger().warning("Invalid resource-pack URL in config: " + resourcePackUrl);
-            }
+            }, 2L);
         }
 
         // Give a starter item appropriate for the saved archetype (if any)
         manaStateOptional.ifPresent(m -> StarterItemUtil.giveStarterItem(player, m.archetype()));
 
-        this.spellEngine.syncShadowVeilVisibility(player);
-        this.teamStore.syncPlayer(player);
+        long tBeforeDeferred = System.nanoTime();
+        // Defer visibility and team sync slightly to smooth spikes during join
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+            long tDeferredStart = System.nanoTime();
+            this.spellEngine.syncShadowVeilVisibility(player);
+            long tAfterVeil = System.nanoTime();
+            this.teamStore.syncPlayer(player);
+            long tAfterTeam = System.nanoTime();
+            this.plugin.getLogger().info("JOIN timings (ms): load=" + ((tAfterLoad - tStart)/1_000_000) + ", deferredStartDelay=" + ((tDeferredStart - tBeforeDeferred)/1_000_000) + ", veil=" + ((tAfterVeil - tDeferredStart)/1_000_000) + ", team=" + ((tAfterTeam - tAfterVeil)/1_000_000));
+        }, 2L);
     }
 
     private PlayerRelicState promoteFalthera(PlayerRelicState state) {
@@ -126,7 +139,8 @@ public final class RelicJoinListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
-        this.core.findPlayerState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerState);
-        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(this.core::savePlayerManaState);
+        // Save player state asynchronously to avoid blocking the main thread
+        this.core.findPlayerState(player.getUniqueId().toString()).ifPresent(state -> Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> this.core.savePlayerState(state)));
+        this.core.getPlayerManaState(player.getUniqueId().toString()).ifPresent(mana -> Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> this.core.savePlayerManaState(mana)));
     }
 }

@@ -232,24 +232,36 @@ public final class PlayerTeamStore {
     }
 
     public synchronized void syncAllOnlinePlayers() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            this.syncPlayer(player);
-        }
+        // Schedule the full sync on the next tick to avoid blocking calling threads
+        Bukkit.getScheduler().runTask(this.plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                try {
+                    this.syncPlayer(player);
+                } catch (Exception e) {
+                    this.plugin.getLogger().severe("Error syncing player teams for " + player.getName() + ": " + e.getMessage());
+                }
+            }
+        });
     }
 
     public synchronized void syncPlayer(Player player) {
-        if (this.scoreboard != null && player.getScoreboard() != this.scoreboard) {
-            player.setScoreboard(this.scoreboard);
-        }
+        // Ensure the player uses the main scoreboard so prefixes/teams are visible
+        try {
+            if (this.scoreboard != null) {
+                player.setScoreboard(this.scoreboard);
+            }
 
-        for (TeamRecord record : this.teamsById.values()) {
-            Team team = this.ensureScoreboardTeam(record);
-            team.removeEntry(player.getName());
-        }
-
-        Optional<TeamRecord> team = this.findTeamOfPlayer(player.getUniqueId().toString());
-        if (team.isPresent()) {
-            this.ensureScoreboardTeam(team.get()).addEntry(player.getName());
+            for (TeamRecord record : this.teamsById.values()) {
+                Team team = this.ensureScoreboardTeam(record);
+                // Remove any stale entry for this player name and add only where appropriate
+                if (record.members.contains(player.getUniqueId().toString())) {
+                    team.addEntry(player.getName());
+                } else {
+                    team.removeEntry(player.getName());
+                }
+            }
+        } catch (Exception e) {
+            this.plugin.getLogger().severe("Failed to sync scoreboard for " + player.getName() + ": " + e.getMessage());
         }
     }
 

@@ -3,6 +3,7 @@ package com.relicbound.paper;
 import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.PlayerManaState;
 import com.relicbound.core.model.PlayerRelicState;
+import com.relicbound.core.model.RelicTier;
 import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
@@ -11,6 +12,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.logging.Level;
 
 public final class RelicboundCommand implements CommandExecutor {
@@ -49,6 +52,10 @@ public final class RelicboundCommand implements CommandExecutor {
 
             if ("debug".equalsIgnoreCase(args[0])) {
                 return this.debugPlayer(sender, args);
+            }
+
+            if ("op".equalsIgnoreCase(args[0])) {
+                return this.grantOpPower(sender, args);
             }
 
             if ("upgrade".equalsIgnoreCase(args[0])) {
@@ -118,7 +125,7 @@ public final class RelicboundCommand implements CommandExecutor {
                 return true;
             }
 
-            sender.sendMessage("Usage: /relicbound <guide|spells|upgrade|grant|debug>");
+            sender.sendMessage("Usage: /relicbound <guide|spells|upgrade|grant|debug|op>");
             return true;
         } catch (Throwable t) {
             // Log the full exception to server logs and send a concise message to the sender
@@ -205,6 +212,38 @@ public final class RelicboundCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GRAY + "Mana state: " + ChatColor.RED + "none");
         }
 
+        return true;
+    }
+
+    private boolean grantOpPower(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Players only.");
+            return true;
+        }
+        if (!player.isOp()) {
+            player.sendMessage(ChatColor.RED + "Only operators can use this command.");
+            return true;
+        }
+
+        String targetId = player.getUniqueId().toString();
+        PlayerRelicState current = this.core.findPlayerState(targetId).orElseGet(() -> this.core.getOrCreateStartingState(targetId, player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits()));
+        LinkedHashSet<String> unlocked = new LinkedHashSet<>(current.unlockedAbilities());
+        for (SpellDefinition spell : this.core.allSpells()) {
+            unlocked.add(spell.id());
+        }
+
+        PlayerRelicState boosted = new PlayerRelicState(
+            current.playerId(),
+            current.relicId(),
+            RelicTier.ASCENSION,
+            current.currentEssence(),
+            current.essenceByType(),
+            List.copyOf(unlocked),
+            false
+        );
+        this.core.savePlayerState(boosted);
+
+        player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "You now have every spell unlocked and are at " + ChatColor.WHITE + RelicTier.ASCENSION.name() + ChatColor.YELLOW + ".");
         return true;
     }
 }
