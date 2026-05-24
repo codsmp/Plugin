@@ -11,9 +11,11 @@ import org.bukkit.projectiles.ProjectileSource;
 
 public final class TrustDamageListener implements Listener {
     private final PlayerTrustStore trustStore;
+    private final PlayerTeamStore teamStore;
 
-    public TrustDamageListener(PlayerTrustStore trustStore) {
+    public TrustDamageListener(PlayerTrustStore trustStore, PlayerTeamStore teamStore) {
         this.trustStore = trustStore;
+        this.teamStore = teamStore;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -27,7 +29,8 @@ public final class TrustDamageListener implements Listener {
             return;
         }
 
-        if (this.trustStore.isTrustedEitherWay(attacker.getUniqueId().toString(), victim.getUniqueId().toString())) {
+        if (this.trustStore.isTrustedEitherWay(attacker.getUniqueId().toString(), victim.getUniqueId().toString())
+            || this.teamStore.isAlliedOrSame(attacker.getUniqueId().toString(), victim.getUniqueId().toString())) {
             event.setCancelled(true);
         }
     }

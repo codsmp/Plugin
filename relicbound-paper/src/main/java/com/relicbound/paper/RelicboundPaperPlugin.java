@@ -15,6 +15,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     private RelicboundCore core;
     private PaperSpellEngine spellEngine;
     private PlayerTrustStore trustStore;
+    private PlayerTeamStore teamStore;
     private GracePeriodController gracePeriodController;
     private volatile boolean resetInProgress;
 
@@ -34,9 +35,10 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             this.adapter.playerManaStateRepository()
         ));
         this.trustStore = new PlayerTrustStore(this);
+        this.teamStore = new PlayerTeamStore(this);
         this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore);
         this.gracePeriodController = new GracePeriodController(this);
-        Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core), this);
+        Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core, this.spellEngine, this.teamStore), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellMenuListener(this, this.core, this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new EssenceGainListener(this, this.core), this);
@@ -48,7 +50,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SecretPhraseListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new GuideMenuListener(), this);
         Bukkit.getPluginManager().registerEvents(new SpellWandListener(this.core, this.spellEngine), this);
-        Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore), this);
+        Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore, this.teamStore), this);
         Bukkit.getPluginManager().registerEvents(this.gracePeriodController, this);
 
         // Start mana-related tasks
@@ -73,6 +75,12 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         if (this.getCommand("trust") != null) {
             this.getCommand("trust").setExecutor(new TrustCommand(this, this.trustStore));
         }
+
+        if (this.getCommand("team") != null) {
+            this.getCommand("team").setExecutor(new TeamCommand(this, this.teamStore));
+        }
+
+        this.teamStore.syncAllOnlinePlayers();
 
         if (this.getCommand("graceperiod") != null) {
             this.getCommand("graceperiod").setExecutor(this.gracePeriodController);

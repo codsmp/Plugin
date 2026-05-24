@@ -33,6 +33,10 @@ commands:
     description: Trust a player so they cannot damage you.
     usage: /trust <player>
     permission: relicbound.command.trust
+  team:
+    description: Create and manage teams.
+    usage: /team [create|prefix|color|trust|ally|leave|disband|info|help]
+    permission: relicbound.command.team
   graceperiod:
     description: Start or manage global no-damage grace period.
     usage: /graceperiod [status|stop]
@@ -41,6 +45,8 @@ permissions:
   relicbound.command.info:
     default: true
   relicbound.command.trust:
+    default: true
+  relicbound.command.team:
     default: true
   relicbound.admin.grant:
     default: op

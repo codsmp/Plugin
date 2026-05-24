@@ -19,11 +19,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class RelicJoinListener implements Listener {
     private final JavaPlugin plugin;
     private final RelicboundCore core;
+    private final PaperSpellEngine spellEngine;
+    private final PlayerTeamStore teamStore;
     private final ArchetypeSelectionMenu archetypeSelectionMenu;
 
-    public RelicJoinListener(JavaPlugin plugin, RelicboundCore core) {
+    public RelicJoinListener(JavaPlugin plugin, RelicboundCore core, PaperSpellEngine spellEngine, PlayerTeamStore teamStore) {
         this.plugin = plugin;
         this.core = core;
+        this.spellEngine = spellEngine;
+        this.teamStore = teamStore;
         this.archetypeSelectionMenu = new ArchetypeSelectionMenu(core);
     }
 
@@ -88,6 +92,9 @@ public final class RelicJoinListener implements Listener {
 
         // Give a starter item appropriate for the saved archetype (if any)
         manaStateOptional.ifPresent(m -> StarterItemUtil.giveStarterItem(player, m.archetype()));
+
+        this.spellEngine.syncShadowVeilVisibility(player);
+        this.teamStore.syncPlayer(player);
     }
 
     private PlayerRelicState promoteFalthera(PlayerRelicState state) {
