@@ -21,18 +21,6 @@ public final class SpellCombatListener implements Listener {
         if (!(event.getEntity() instanceof LivingEntity livingTarget)) {
             return;
         }
-        if (!this.isCriticalHit(player)) {
-            return;
-        }
-
         this.spellEngine.handleLifeDrainCriticalHit(player, livingTarget);
-    }
-
-    private boolean isCriticalHit(Player player) {
-        return player.getFallDistance() > 0.0F
-                && !player.isOnGround()
-                && !player.isInWater()
-                && !player.isInsideVehicle()
-                && !player.isSwimming();
     }
 }
