@@ -295,7 +295,11 @@ public final class PlayerTeamStore {
         String candidate;
         do {
             candidate = "rb_" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
-        } while (this.scoreboard.getTeam(candidate) != null || this.teamsById.values().stream().anyMatch(team -> team.scoreboardName.equals(candidate)));
+            String finalCandidate = candidate;
+            if (this.scoreboard.getTeam(finalCandidate) == null && this.teamsById.values().stream().noneMatch(team -> team.scoreboardName.equals(finalCandidate))) {
+                break;
+            }
+        } while (true);
         return candidate;
     }
 
