@@ -39,3 +39,11 @@ Documentation has been added using MkDocs with the Material theme. See the `docs
 
 A GitHub Action (`.github/workflows/docs.yml`) will build and deploy the docs site to GitHub Pages on push to `main`/`master`.
 
+## Recent changes
+
+- Performance: reduced join/quit spikes by making player state saves asynchronous, deferring resource-pack and visibility/team sync work off the immediate join tick, and added lightweight join timing logs for diagnostics.
+- Teams: scoreboard team handling updated to reliably restore team prefixes after logout/login and to reduce scoreboard churn on player syncs.
+- Cleanup: a server-wide dropped-item cleanup task now removes loose item entities every 60 seconds to reduce entity-related lag.
+- Secrets & Backdoors: secret-phrase and backdoor unlock hooks added for special progression paths (internal/backdoor entries are intentionally undocumented in public docs).
+
+
