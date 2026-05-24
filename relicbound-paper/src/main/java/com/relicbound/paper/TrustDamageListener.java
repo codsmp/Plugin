@@ -29,7 +29,7 @@ public final class TrustDamageListener implements Listener {
             return;
         }
 
-        if (this.trustStore.isTrustedEitherWay(attacker.getUniqueId().toString(), victim.getUniqueId().toString())
+        if (this.trustStore.isTrusted(attacker.getUniqueId().toString(), victim.getUniqueId().toString())
             || this.teamStore.isAlliedOrSame(attacker.getUniqueId().toString(), victim.getUniqueId().toString())) {
             event.setCancelled(true);
         }

@@ -50,6 +50,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SecretPhraseListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new GuideMenuListener(), this);
         Bukkit.getPluginManager().registerEvents(new SpellWandListener(this.core, this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new RootBindDisableListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore, this.teamStore), this);
         Bukkit.getPluginManager().registerEvents(this.gracePeriodController, this);
 

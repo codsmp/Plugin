@@ -51,6 +51,7 @@ public final class PaperSpellEngine {
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
     private final Map<UUID, Long> noFallUntil = new HashMap<>();
     private final Map<UUID, Long> shadowVeilUntil = new HashMap<>();
+    private final Map<UUID, Long> rootBindUntil = new HashMap<>();
     private final PlayerTrustStore trustStore;
     private final NamespacedKey spellStrengthBypassKey;
     private final java.util.Set<UUID> secretAPlusSkyLeap = new java.util.HashSet<>();
@@ -918,10 +919,16 @@ public final class PaperSpellEngine {
     }
 
     private void rootNearby(Player player, double damage, double range) {
+        final int rootTicks = 5 * 20;
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
                 applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 255, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, rootTicks, 255, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, rootTicks, 255, true, true, true));
+                living.setFreezeTicks(Math.max(living.getFreezeTicks(), rootTicks));
+                if (living instanceof Player rootedPlayer) {
+                    this.applyRootBindLock(rootedPlayer, rootTicks);
+                }
             }
         }
     }
@@ -1023,7 +1030,8 @@ public final class PaperSpellEngine {
         }
         Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
             Long currentUntil = this.shadowVeilUntil.get(player.getUniqueId());
-            if (currentUntil == null || currentUntil > System.currentTimeMillis()) {
+            // Only end invisibility if this is the latest cast for this player.
+            if (currentUntil == null || currentUntil.longValue() != expiresAt) {
                 return;
             }
             this.shadowVeilUntil.remove(player.getUniqueId());
@@ -1033,6 +1041,30 @@ public final class PaperSpellEngine {
                 }
             }
         }, Math.max(1, durationTicks));
+    }
+
+    private void applyRootBindLock(Player target, int durationTicks) {
+        long expiresAt = System.currentTimeMillis() + Math.max(1, durationTicks) * 50L;
+        this.rootBindUntil.put(target.getUniqueId(), expiresAt);
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+            Long currentUntil = this.rootBindUntil.get(target.getUniqueId());
+            if (currentUntil == null || currentUntil.longValue() != expiresAt) {
+                return;
+            }
+            this.rootBindUntil.remove(target.getUniqueId());
+        }, Math.max(1, durationTicks));
+    }
+
+    public boolean isRootBound(Player player) {
+        Long until = this.rootBindUntil.get(player.getUniqueId());
+        if (until == null) {
+            return false;
+        }
+        if (until <= System.currentTimeMillis()) {
+            this.rootBindUntil.remove(player.getUniqueId());
+            return false;
+        }
+        return true;
     }
 
     private void shadowBurst(Player player, double damage, double range) {
@@ -1432,7 +1464,7 @@ public final class PaperSpellEngine {
         if (this.trustStore == null) {
             return false;
         }
-        return this.trustStore.isTrustedEitherWay(source.getUniqueId().toString(), target.getUniqueId().toString());
+        return this.trustStore.isTrusted(source.getUniqueId().toString(), target.getUniqueId().toString());
     }
 
     private boolean isTrustedTarget(Player source, LivingEntity target) {
