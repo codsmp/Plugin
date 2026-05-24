@@ -911,7 +911,7 @@ public final class PaperSpellEngine {
         player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, durationTicks, 0, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, durationTicks, 0, true, true, true));
         player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation(), 20, 0.45, 0.45, 0.45, 0.04);
-        player.getWorld().spawnParticle(Particle.BUBBLE_COLUMN_UPWARD, player.getLocation(), 12, 0.35, 0.55, 0.35, 0.03);
+        player.getWorld().spawnParticle(Particle.BUBBLE_COLUMN_UP, player.getLocation(), 12, 0.35, 0.55, 0.35, 0.03);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_CONDUIT_AMBIENT, 0.8F, 1.2F);
     }
 
