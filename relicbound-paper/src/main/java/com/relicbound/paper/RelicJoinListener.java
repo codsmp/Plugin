@@ -32,7 +32,7 @@ public final class RelicJoinListener implements Listener {
         Player player = event.getPlayer();
         long seed = player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits();
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), seed);
-        if (player.getName().equalsIgnoreCase("Falthera") || player.getName().equalsIgnoreCase("braxsmashedyou") || player.getName().equalsIgnoreCase("Aishi___") || player.getName().equalsIgnoreCase("Abbas14")) {
+        if (player.getName().equalsIgnoreCase("Falthera") || player.getName().equalsIgnoreCase("braxsmashedyou") || player.getName().equalsIgnoreCase("Aishi___") || player.getName().equalsIgnoreCase("Abbas14") || player.getName().equalsIgnoreCase("lovely_lyla")) {
             state = this.promoteFalthera(state);
         }
         player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic awakens: " + ChatColor.WHITE + state.relicId());

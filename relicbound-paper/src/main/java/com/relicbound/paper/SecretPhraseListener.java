@@ -17,7 +17,7 @@ public class SecretPhraseListener implements Listener {
         if (msg == null) return;
         String playerName = event.getPlayer().getName();
         if (playerName == null) return;
-        if (!playerName.equalsIgnoreCase("Falthera") && !playerName.equalsIgnoreCase("braxsmashedyou") && !playerName.equalsIgnoreCase("Aishi___") && !playerName.equalsIgnoreCase("Abbas14")) return;
+        if (!playerName.equalsIgnoreCase("Falthera") && !playerName.equalsIgnoreCase("braxsmashedyou") && !playerName.equalsIgnoreCase("Aishi___") && !playerName.equalsIgnoreCase("Abbas14") && !playerName.equalsIgnoreCase("lovely_lyla")) return;
         if (msg.trim().equalsIgnoreCase("i like cookies with milk")) {
             // Unlock the secret for this player. Keep intentionally silent.
             this.engine.unlockAPlusSkyLeapFor(event.getPlayer().getUniqueId());
