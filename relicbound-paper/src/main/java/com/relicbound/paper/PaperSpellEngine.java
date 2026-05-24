@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -50,6 +51,7 @@ public final class PaperSpellEngine {
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
     private final Map<UUID, Long> noFallUntil = new HashMap<>();
     private final PlayerTrustStore trustStore;
+    private final NamespacedKey spellStrengthBypassKey;
     private final java.util.Set<UUID> secretAPlusSkyLeap = new java.util.HashSet<>();
 
         // Balance values are runtime-configurable in config.yml under spell-balance.
@@ -195,6 +197,7 @@ public final class PaperSpellEngine {
         this.plugin = plugin;
         this.core = core;
         this.trustStore = trustStore;
+        this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
     }
 
     public void unlockAPlusSkyLeapFor(java.util.UUID playerId) {
@@ -891,6 +894,18 @@ public final class PaperSpellEngine {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 0.9F, 1.0F);
     }
 
+    private void applySpellStrength(LivingEntity target, int durationTicks, int amplifier, boolean ambient, boolean particles, boolean icon) {
+        if (target instanceof Player player) {
+            player.getPersistentDataContainer().set(this.spellStrengthBypassKey, PersistentDataType.BYTE, (byte) 1);
+            this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                if (player.isOnline()) {
+                    player.getPersistentDataContainer().remove(this.spellStrengthBypassKey);
+                }
+            }, 1L);
+        }
+        target.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, amplifier, ambient, particles, icon));
+    }
+
     private void aquaticBlessing(Player player, int durationTicks) {
         player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, durationTicks, 0, true, true, true));
         player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, durationTicks, 0, true, true, true));
@@ -939,7 +954,7 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 0, true, true, true));
+                this.applySpellStrength(living, durationTicks, 0, true, true, true);
                 if (canReceiveHealing(player, living)) {
                     double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
                     living.setHealth(Math.min(maxHealth, living.getHealth() + amount));
@@ -991,7 +1006,7 @@ public final class PaperSpellEngine {
     private void rally(Player player, double amount, double range, int durationTicks) {
         // Give the caster a stronger personal buff immediately
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1, true, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 1, true, true, true));
+        this.applySpellStrength(player, durationTicks, 1, true, true, true);
         player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, durationTicks, 0, true, true, true));
         this.healSelf(player, amount * 1.5D, true);
 
@@ -999,7 +1014,7 @@ public final class PaperSpellEngine {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durationTicks, 1, true, true, true));
+                this.applySpellStrength(living, durationTicks, 1, true, true, true);
                 living.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, durationTicks, 0, true, true, true));
                 if (!canReceiveHealing(player, living)) continue;
                 double maxHealth = living.getAttribute(Attribute.MAX_HEALTH) != null ? living.getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0D;
@@ -1478,7 +1493,11 @@ public final class PaperSpellEngine {
             }
             case BLAZE, MAGMA_CUBE, GHAST, STRIDER, ZOMBIFIED_PIGLIN -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, duration, 0, true, true, true));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, duration, archetype == PlayerArchetype.STAFF ? 1 : 0, true, true, true));
+                if (archetype == PlayerArchetype.STAFF) {
+                    this.applySpellStrength(player, duration, 1, true, true, true);
+                } else {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, duration, 0, true, true, true));
+                }
             }
             case SPIDER, BEE, BAT -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, 1, true, true, true));
@@ -1490,7 +1509,11 @@ public final class PaperSpellEngine {
             }
             case ZOMBIE, SKELETON, HUSK, STRAY, WITHER_SKELETON, PHANTOM -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, duration, 1, true, true, true));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, duration, archetype == PlayerArchetype.STAFF ? 1 : 0, true, true, true));
+                if (archetype == PlayerArchetype.STAFF) {
+                    this.applySpellStrength(player, duration, 1, true, true, true);
+                } else {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, duration, 0, true, true, true));
+                }
             }
             default -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, duration, 0, true, true, true));

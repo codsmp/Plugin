@@ -3,6 +3,7 @@ package com.relicbound.paper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -21,6 +22,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
@@ -44,9 +46,11 @@ public final class PvpRulesListener implements Listener {
     private final Map<UUID, CombatTag> combatTags = new HashMap<>();
     private final Map<UUID, Long> warningCooldowns = new HashMap<>();
     private final JavaPlugin plugin;
+    private final NamespacedKey spellStrengthBypassKey;
 
     public PvpRulesListener(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
         Bukkit.getScheduler().runTaskTimer(this.plugin, this::broadcastCombatCountdowns, 20L, 20L);
     }
 
@@ -130,6 +134,9 @@ public final class PvpRulesListener implements Listener {
             return;
         }
         if (newEffect.getAmplifier() <= 0) {
+            return;
+        }
+        if (player.getPersistentDataContainer().has(this.spellStrengthBypassKey, PersistentDataType.BYTE)) {
             return;
         }
 
