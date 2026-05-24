@@ -955,14 +955,15 @@ public final class PaperSpellEngine {
     private void timeSlow(Player player, double damage, double range, int durationTicks) {
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
-                if (this.isTrustedTarget(player, living)) {
-                    continue;
-                }
-                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 3, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, durationTicks, 1, true, true, true));
-                applyMinimumTrueDamage(living, Math.max(2.0D, damage / 2.0D), player);
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 255, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, durationTicks, 3, true, true, true));
+                living.setFreezeTicks(Math.max(living.getFreezeTicks(), durationTicks));
             }
         }
+
+        player.getWorld().spawnParticle(Particle.SNOWFLAKE, player.getLocation(), 40, range / 4.0D, 0.8, range / 4.0D, 0.08);
+        player.getWorld().spawnParticle(Particle.BLOCK_CRUMBLE, player.getLocation(), 24, range / 5.0D, 0.4, range / 5.0D, 0.05);
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.9F, 0.7F);
     }
 
     private void shadowVeil(Player player, double amount, int durationTicks) {
