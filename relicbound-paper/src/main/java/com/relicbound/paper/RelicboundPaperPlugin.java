@@ -57,7 +57,6 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         // Start mana-related tasks
         new ManaBarDisplay(this, this.core, this.spellEngine).startDisplayTask();
         new ManaRegenTask(this, this.core).startRegenTask();
-        new DroppedItemCleanupTask(this).startCleanupTask();
 
         if (this.getCommand("relicbound") != null) {
             RelicboundCommand executor = new RelicboundCommand(this, this.core, this.spellEngine);
