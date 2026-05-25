@@ -949,7 +949,7 @@ public final class PaperSpellEngine {
         final int rootTicks = 2 * 20;
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
-                applyMinimumTrueDamage(living, Math.max(2.0D, damage), player);
+                // Root bind should not deal direct damage; only apply crowd-control effects
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, rootTicks, 255, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, rootTicks, 255, true, true, true));
                 living.setFreezeTicks(Math.max(living.getFreezeTicks(), rootTicks));
@@ -1168,7 +1168,8 @@ public final class PaperSpellEngine {
         velocity.setY(Math.max(1.2D, power / 2.0D));
         player.setVelocity(velocity);
         player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 120, 3, true, true, true));
-        this.noFallUntil.put(player.getUniqueId(), System.currentTimeMillis() + 2_500L);
+        // Keep players protected from fall damage after a sky leap for 5 seconds
+        this.noFallUntil.put(player.getUniqueId(), System.currentTimeMillis() + 5_000L);
     }
 
     private void craftingTemper(Player player, double power, int durationTicks) {
@@ -1252,8 +1253,10 @@ public final class PaperSpellEngine {
     }
 
     private void witheringCripple(Player player, PlayerManaState manaState) {
-        int witherAmplifier = manaState.archetype() == PlayerArchetype.STAFF ? 4 : 2;
+        // Reduce damage: lower wither amplifier and shorten duration
+        int witherAmplifier = manaState.archetype() == PlayerArchetype.STAFF ? 2 : 1;
         int range = manaState.archetype() == PlayerArchetype.STAFF ? 7 : 5;
+        int witherDuration = manaState.archetype() == PlayerArchetype.STAFF ? 40 : 30;
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
                 if (this.isTrustedTarget(player, living)) {
@@ -1261,7 +1264,7 @@ public final class PaperSpellEngine {
                 }
                 living.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 60, 1, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1, true, true, true));
-                living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, witherAmplifier, true, true, true));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witherDuration, witherAmplifier, true, true, true));
             }
         }
         player.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation(), 56, 0.9, 0.8, 0.9, 0.06);
@@ -1442,7 +1445,8 @@ public final class PaperSpellEngine {
             if (gm == org.bukkit.GameMode.CREATIVE) {
                 return; // don't damage creative players
             }
-            double appliedDamage = Math.max(4.0D, Math.min(10.0D, damage));
+            // Cap applied true damage to 6.0 (3 hearts) for players and ensure minimum 4.0
+            double appliedDamage = Math.max(4.0D, Math.min(6.0D, damage));
             double current = target.getHealth();
             double newHealth = Math.max(2.0D, current - appliedDamage);
             target.setHealth(newHealth);
@@ -1465,7 +1469,8 @@ public final class PaperSpellEngine {
         }
         // Global buff factor applied to all spells; adjust if needed for SMP balance
         double scaled = damage * this.globalSpellBuff();
-        this.damageIgnoringArmor(living, Math.max(10.0D, scaled), source);
+        // Reduce minimum guaranteed true damage from 10.0D (5 hearts) to 6.0D (3 hearts)
+        this.damageIgnoringArmor(living, Math.max(6.0D, scaled), source);
     }
 
     private double globalSpellBuff() {
