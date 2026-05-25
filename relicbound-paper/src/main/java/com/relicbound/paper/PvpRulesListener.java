@@ -42,6 +42,7 @@ public final class PvpRulesListener implements Listener {
     private static final int MAX_COBWEBS = 192;
     private static final int MAX_GOD_APPLES = 1;
     private static final int MAX_BREEZE_RODS = 64;
+    private static final int MAX_MACES = 3;
 
     private final Map<UUID, CombatTag> combatTags = new HashMap<>();
     private final Map<UUID, Long> warningCooldowns = new HashMap<>();
@@ -272,6 +273,7 @@ public final class PvpRulesListener implements Listener {
         changed |= this.capMaterialTotal(inventory, Material.COBWEB, MAX_COBWEBS);
         changed |= this.capMaterialTotal(inventory, Material.ENCHANTED_GOLDEN_APPLE, MAX_GOD_APPLES);
         changed |= this.capMaterialTotal(inventory, Material.BREEZE_ROD, MAX_BREEZE_RODS);
+        changed |= this.capMaterialTotal(inventory, Material.MACE, MAX_MACES);
 
         PotionEffect strength = player.getPotionEffect(PotionEffectType.STRENGTH);
         if (strength != null && strength.getAmplifier() > 0) {
@@ -288,7 +290,7 @@ public final class PvpRulesListener implements Listener {
         }
 
         if (changed && notify) {
-            this.warn(player, "PvP limitations applied: Prot III, Strength I, XP/Web caps, 1 god apple, 1 stack breeze rods.");
+            this.warn(player, "PvP limitations applied: Prot III, Strength I, XP/Web caps, 1 god apple, 1 stack breeze rods, 3 maces.");
         }
     }
 
