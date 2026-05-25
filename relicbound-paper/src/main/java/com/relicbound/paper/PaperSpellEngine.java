@@ -22,6 +22,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
 import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -304,6 +305,9 @@ public final class PaperSpellEngine {
     }
 
     public boolean handleLifeDrainCriticalHit(Player attacker, LivingEntity target) {
+        if (target instanceof Villager) {
+            return false;
+        }
         LifeDrainSession session = this.lifeDrainSessions.get(attacker.getUniqueId());
         if (session == null || session.locked || session.expired()) {
             return false;
@@ -1404,6 +1408,9 @@ public final class PaperSpellEngine {
     
 
     private void damageIgnoringArmor(LivingEntity living, double damage, Player source) {
+        if (living instanceof Villager) {
+            return;
+        }
         if (living instanceof Player target) {
             if (this.isTrustedBySource(source, target)) {
                 return;
@@ -1430,6 +1437,9 @@ public final class PaperSpellEngine {
     }
 
     private void applyMinimumTrueDamage(LivingEntity living, double damage, Player source) {
+        if (living instanceof Villager) {
+            return;
+        }
         // Global buff factor applied to all spells; adjust if needed for SMP balance
         double scaled = damage * this.globalSpellBuff();
         this.damageIgnoringArmor(living, Math.max(10.0D, scaled), source);
@@ -1659,6 +1669,9 @@ public final class PaperSpellEngine {
     }
 
     private void ignoreArmorDamage(LivingEntity living, double damage, Player source) {
+        if (living instanceof Villager) {
+            return;
+        }
         double newHealth = Math.max(0.0D, living.getHealth() - damage);
         living.setHealth(newHealth);
         if (newHealth > 0.0D) {

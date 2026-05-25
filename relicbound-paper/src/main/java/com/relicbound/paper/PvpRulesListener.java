@@ -154,13 +154,7 @@ public final class PvpRulesListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        if (!this.isTagged(player.getUniqueId())) {
-            return;
-        }
-
-        this.clearPair(player.getUniqueId());
-        player.setHealth(0.0D);
+        this.clearPair(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
