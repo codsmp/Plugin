@@ -43,6 +43,8 @@ public final class PvpRulesListener implements Listener {
     private static final int MAX_GOD_APPLES = 1;
     private static final int MAX_BREEZE_RODS = 64;
     private static final int MAX_MACES = 3;
+    private static final int MAX_MACE_DENSITY_LEVEL = 1;
+    private static final int MAX_MACE_WIND_BURST_LEVEL = 1;
 
     private final Map<UUID, CombatTag> combatTags = new HashMap<>();
     private final Map<UUID, Long> warningCooldowns = new HashMap<>();
@@ -274,6 +276,38 @@ public final class PvpRulesListener implements Listener {
         changed |= this.capMaterialTotal(inventory, Material.ENCHANTED_GOLDEN_APPLE, MAX_GOD_APPLES);
         changed |= this.capMaterialTotal(inventory, Material.BREEZE_ROD, MAX_BREEZE_RODS);
         changed |= this.capMaterialTotal(inventory, Material.MACE, MAX_MACES);
+
+        // Ensure mace enchants stay within the PvP limits
+        for (ItemStack item : inventory.getContents()) {
+            if (item == null || item.getType() != Material.MACE) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            for (Map.Entry<Enchantment, Integer> e : meta.getEnchants().entrySet()) {
+                Enchantment ench = e.getKey();
+                try {
+                    NamespacedKey key = ench.getKey();
+                    if (key != null && "density".equalsIgnoreCase(key.getKey())) {
+                        int level = e.getValue();
+                        if (level > MAX_MACE_DENSITY_LEVEL) {
+                            meta.removeEnchant(ench);
+                            meta.addEnchant(ench, MAX_MACE_DENSITY_LEVEL, true);
+                            item.setItemMeta(meta);
+                            changed = true;
+                        }
+                    } else if (key != null && "wind_burst".equalsIgnoreCase(key.getKey())) {
+                        int level = e.getValue();
+                        if (level > MAX_MACE_WIND_BURST_LEVEL) {
+                            meta.removeEnchant(ench);
+                            meta.addEnchant(ench, MAX_MACE_WIND_BURST_LEVEL, true);
+                            item.setItemMeta(meta);
+                            changed = true;
+                        }
+                    }
+                } catch (NoSuchMethodError ignored) {
+                    // Some older server APIs may not support Enchantment#getKey(); ignore in that case
+                }
+            }
+        }
 
         PotionEffect strength = player.getPotionEffect(PotionEffectType.STRENGTH);
         if (strength != null && strength.getAmplifier() > 0) {
