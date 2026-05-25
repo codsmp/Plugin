@@ -59,7 +59,18 @@ public final class YamlPlayerRelicStateRepository implements PlayerRelicStateRep
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(this.storageFile);
         for (String playerId : configuration.getKeys(false)) {
             String relicId = configuration.getString(playerId + ".relicId", "");
-            RelicTier tier = RelicTier.valueOf(configuration.getString(playerId + ".tier", RelicTier.TIER_1.name()));
+            String tierName = configuration.getString(playerId + ".tier", RelicTier.TIER_1.name());
+            RelicTier tier;
+            if ("ASCENSION".equalsIgnoreCase(tierName)) {
+                // Legacy value: map old single ASCENSION to the new max ascension tier
+                tier = RelicTier.ASCENSION_5;
+            } else {
+                try {
+                    tier = RelicTier.valueOf(tierName);
+                } catch (IllegalArgumentException ex) {
+                    tier = RelicTier.TIER_1;
+                }
+            }
             int essence = configuration.getInt(playerId + ".essence", 0);
             Map<String, Integer> essenceByType = new HashMap<>();
             if (configuration.getConfigurationSection(playerId + ".essenceByType") != null) {
