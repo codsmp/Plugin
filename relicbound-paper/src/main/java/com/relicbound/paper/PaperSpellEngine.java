@@ -327,7 +327,7 @@ public final class PaperSpellEngine {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.7F, 1.2F);
     }
 
-    public boolean handleLifeDrainCriticalHit(Player attacker, LivingEntity target) {
+    public boolean handleLifeDrainHit(Player attacker, LivingEntity target) {
         if (target instanceof Villager) {
             return false;
         }
@@ -339,8 +339,8 @@ public final class PaperSpellEngine {
             return false;
         }
 
-        // Drain 2 hearts (4.0 health points) per critical hit and cap at 10 steals
-        target.setHealth(Math.max(0.0D, target.getHealth() - 4.0D));
+        // Drain 1.5 hearts (3.0 health points) per hit and cap at 10 steals
+        target.setHealth(Math.max(0.0D, target.getHealth() - 3.0D));
         session.stolenHealthPoints = Math.min(10, session.stolenHealthPoints + 1);
         attacker.getWorld().spawnParticle(Particle.SOUL, target.getLocation().add(0, 1, 0), 10, 0.3, 0.4, 0.3, 0.02);
         attacker.playSound(attacker.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7F, 0.8F);
@@ -359,8 +359,8 @@ public final class PaperSpellEngine {
             return;
         }
 
-        // Grant absorption equal to drained health (4.0 per steal)
-        player.setAbsorptionAmount(session.stolenHealthPoints * 4.0D);
+        // Grant absorption equal to drained health (3.0 per steal)
+        player.setAbsorptionAmount(session.stolenHealthPoints * 3.0D);
         player.getWorld().spawnParticle(Particle.SOUL, player.getLocation(), 20, 0.4, 0.5, 0.4, 0.04);
         Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
             LifeDrainSession current = this.lifeDrainSessions.remove(playerId);

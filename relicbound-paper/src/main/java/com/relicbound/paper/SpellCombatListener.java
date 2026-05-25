@@ -21,6 +21,6 @@ public final class SpellCombatListener implements Listener {
         if (!(event.getEntity() instanceof LivingEntity livingTarget)) {
             return;
         }
-        this.spellEngine.handleLifeDrainCriticalHit(player, livingTarget);
+        this.spellEngine.handleLifeDrainHit(player, livingTarget);
     }
 }
