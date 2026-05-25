@@ -121,8 +121,8 @@ public class DefaultRelicboundCore implements RelicboundCore {
         PlayerRelicState updated = this.context.relicProgressionService().grantEssence(state, essenceType, amount);
         PlayerRelicState current = this.applyUnlockedSpells(updated);
         this.savePlayerState(current);
-        while (current.tier() != com.relicbound.core.model.RelicTier.ASCENSION
-                && current.currentEssence() >= this.context.relicProgressionService().essenceRequiredForNextTier(current)) {
+        while (!current.tier().isAscension()
+            && current.currentEssence() >= this.context.relicProgressionService().essenceRequiredForNextTier(current)) {
             current = this.context.relicProgressionService().upgradeTier(current);
             current = this.applyUnlockedSpells(current);
             this.savePlayerState(current);

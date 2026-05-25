@@ -118,7 +118,7 @@ public final class RelicJoinListener implements Listener {
         PlayerRelicState promoted = new PlayerRelicState(
             state.playerId(),
             state.relicId(),
-            RelicTier.ASCENSION,
+            RelicTier.ASCENSION_5,
             state.currentEssence(),
             state.essenceByType(),
             java.util.List.copyOf(unlocked),

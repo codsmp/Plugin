@@ -26,6 +26,6 @@ public final class DroppedItemCleanupTask {
                     }
                 }
             }
-        }.runTaskTimer(this.plugin, 20L * 60L, 20L * 60L);
+        }.runTaskTimer(this.plugin, 20L * 60L * 5L, 20L * 60L * 5L);
     }
 }

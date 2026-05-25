@@ -61,8 +61,12 @@ public final class DefaultRelicProgressionService implements RelicProgressionSer
             case TIER_2 -> RelicTier.TIER_3;
             case TIER_3 -> RelicTier.TIER_4;
             case TIER_4 -> RelicTier.TIER_5;
-            case TIER_5 -> RelicTier.ASCENSION;
-            case ASCENSION -> RelicTier.ASCENSION;
+            case TIER_5 -> RelicTier.ASCENSION_1;
+            case ASCENSION_1 -> RelicTier.ASCENSION_2;
+            case ASCENSION_2 -> RelicTier.ASCENSION_3;
+            case ASCENSION_3 -> RelicTier.ASCENSION_4;
+            case ASCENSION_4 -> RelicTier.ASCENSION_5;
+            case ASCENSION_5 -> RelicTier.ASCENSION_5;
         };
     }
 
@@ -73,7 +77,7 @@ public final class DefaultRelicProgressionService implements RelicProgressionSer
             case TIER_3 -> 2;
             case TIER_4 -> 3;
             case TIER_5 -> 4;
-            case ASCENSION -> 5;
+            case ASCENSION_1, ASCENSION_2, ASCENSION_3, ASCENSION_4, ASCENSION_5 -> 5;
         };
     }
 }

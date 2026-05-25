@@ -235,7 +235,7 @@ public final class RelicboundCommand implements CommandExecutor {
         PlayerRelicState boosted = new PlayerRelicState(
             current.playerId(),
             current.relicId(),
-            RelicTier.ASCENSION,
+            RelicTier.ASCENSION_5,
             current.currentEssence(),
             current.essenceByType(),
             List.copyOf(unlocked),
@@ -243,7 +243,7 @@ public final class RelicboundCommand implements CommandExecutor {
         );
         this.core.savePlayerState(boosted);
 
-        player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "You now have every spell unlocked and are at " + ChatColor.WHITE + RelicTier.ASCENSION.name() + ChatColor.YELLOW + ".");
+        player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "You now have every spell unlocked and are at " + ChatColor.WHITE + RelicTier.ASCENSION_5.name() + ChatColor.YELLOW + ".");
         return true;
     }
 }

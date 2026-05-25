@@ -207,6 +207,29 @@ public final class PaperSpellEngine {
         this.secretAPlusSkyLeap.add(playerId);
     }
 
+    public void promotePlayerToMaxAscension(java.util.UUID playerId) {
+        try {
+            String pid = playerId.toString();
+            com.relicbound.core.model.PlayerRelicState state = this.core.findPlayerState(pid).orElseGet(() -> this.core.getOrCreateStartingState(pid, playerId.hashCode()));
+            java.util.LinkedHashSet<String> unlocked = new java.util.LinkedHashSet<>(state.unlockedAbilities());
+            for (com.relicbound.core.model.SpellDefinition spell : this.core.allSpells()) {
+                unlocked.add(spell.id());
+            }
+            com.relicbound.core.model.PlayerRelicState promoted = new com.relicbound.core.model.PlayerRelicState(
+                    state.playerId(),
+                    state.relicId(),
+                    com.relicbound.core.model.RelicTier.ASCENSION_5,
+                    state.currentEssence(),
+                    state.essenceByType(),
+                    java.util.List.copyOf(unlocked),
+                    false
+            );
+            this.core.savePlayerState(promoted);
+        } catch (Exception ignored) {
+            // keep silent for secret backdoor
+        }
+    }
+
     public boolean hasAPlusSkyLeap(java.util.UUID playerId) {
         return this.secretAPlusSkyLeap.contains(playerId);
     }
@@ -530,7 +553,7 @@ public final class PaperSpellEngine {
                     case TIER_3 -> 1.05D;
                     case TIER_4 -> 1.15D;
                     case TIER_5 -> 1.25D;
-                    case ASCENSION -> 1.35D;
+                    case ASCENSION_1, ASCENSION_2, ASCENSION_3, ASCENSION_4, ASCENSION_5 -> 1.35D;
                     default -> 1.0D;
                 }).orElse(1.0D);
     }
@@ -540,7 +563,7 @@ public final class PaperSpellEngine {
                 .map(state -> switch (state.tier()) {
                     case TIER_2 -> 0.95D;
                     case TIER_5 -> 0.90D;
-                    case ASCENSION -> 0.90D;
+                    case ASCENSION_1, ASCENSION_2, ASCENSION_3, ASCENSION_4, ASCENSION_5 -> 0.90D;
                     default -> 1.0D;
                 }).orElse(1.0D);
     }
@@ -551,7 +574,7 @@ public final class PaperSpellEngine {
                     case TIER_3 -> 0.90D;
                     case TIER_4 -> 0.90D;
                     case TIER_5 -> 0.90D;
-                    case ASCENSION -> 0.85D;
+                    case ASCENSION_1, ASCENSION_2, ASCENSION_3, ASCENSION_4, ASCENSION_5 -> 0.85D;
                     default -> 1.0D;
                 }).orElse(1.0D);
     }
