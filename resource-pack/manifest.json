@@ -1,6 +1,6 @@
 ﻿{
     "generatedAt":  "2026-05-23T13:39:06",
-    "spellCount":  38,
+    "spellCount":  37,
     "entries":  [
                     {
                         "Id":  "ember_burst",
@@ -384,18 +384,6 @@
                         "Effect":  "CELESTIAL_METEOR_RAIN",
                         "Description":  "Rain meteors over a broad area.",
                         "ManaCost":  28,
-                        "ManaPerSecond":  0
-                    },
-                    {
-                        "Id":  "malfunction",
-                        "Name":  "Malfunction",
-                        "ModelKey":  "spell_malfunction",
-                        "Material":  "CLOCK",
-                        "CustomModelData":  3704,
-                        "Tier":  "TIER_2",
-                        "Effect":  "UTILITY_MALFUNCTION",
-                        "Description":  "Scramble the target\u0027s tools and timing.",
-                        "ManaCost":  14,
                         "ManaPerSecond":  0
                     },
                     {

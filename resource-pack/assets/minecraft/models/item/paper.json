@@ -198,12 +198,6 @@
                       },
                       {
                           "predicate":  {
-                                            "custom_model_data":  3704
-                                        },
-                          "model":  "relicbound:item/spell/malfunction"
-                      },
-                      {
-                          "predicate":  {
                                             "custom_model_data":  3705
                                         },
                           "model":  "relicbound:item/spell/lifedrain"
