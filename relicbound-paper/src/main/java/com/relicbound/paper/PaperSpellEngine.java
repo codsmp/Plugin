@@ -952,6 +952,9 @@ public final class PaperSpellEngine {
         final int rootTicks = 2 * 20;
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (entity instanceof LivingEntity living && living != player) {
+                if (this.isTrustedTarget(player, living)) {
+                    continue;
+                }
                 // Root bind should not deal direct damage; only apply crowd-control effects
                 living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, rootTicks, 255, true, true, true));
                 living.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, rootTicks, 255, true, true, true));
