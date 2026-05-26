@@ -985,8 +985,18 @@ public final class PaperSpellEngine {
         LivingEntity target = this.nearestLiving(player, range);
         if (target != null && !this.isTrustedTarget(player, target)) {
             target.getWorld().strikeLightningEffect(target.getLocation());
-            applyMinimumTrueDamage(target, damage + 2.0D, player);
+            applyMinimumTrueDamage(target, damage + 5.0D, player);
             target.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 100, 0, true, true, true));
+
+            for (Entity entity : target.getNearbyEntities(3.5D, 3.5D, 3.5D)) {
+                if (entity instanceof LivingEntity living && living != player && living != target) {
+                    if (this.isTrustedTarget(player, living)) {
+                        continue;
+                    }
+                    applyMinimumTrueDamage(living, Math.max(3.0D, damage * 0.6D), player);
+                    living.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 80, 0, true, true, true));
+                }
+            }
         }
     }
 
