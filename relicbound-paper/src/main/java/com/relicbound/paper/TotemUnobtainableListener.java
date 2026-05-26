@@ -16,6 +16,8 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 public final class TotemUnobtainableListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -52,7 +54,7 @@ public final class TotemUnobtainableListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryOpen(InventoryOpenEvent event) {
         Inventory inventory = event.getInventory();
-        boolean stripped = stripTotems(inventory.getContents());
+        boolean stripped = stripTotems(inventory);
         if (stripped && event.getPlayer() instanceof Player player) {
             player.sendMessage(ChatColor.RED + "[Relicbound] Totems of Undying are disabled on this server.");
         }
@@ -72,6 +74,24 @@ public final class TotemUnobtainableListener implements Listener {
         if (stripped) {
             player.sendMessage(ChatColor.RED + "[Relicbound] Totems of Undying are disabled on this server.");
         }
+    }
+
+    private boolean stripTotems(List<ItemStack> drops) {
+        if (drops == null || drops.isEmpty()) {
+            return false;
+        }
+
+        boolean changed = false;
+        for (int i = drops.size() - 1; i >= 0; i--) {
+            ItemStack item = drops.get(i);
+            if (item == null || item.getType() != Material.TOTEM_OF_UNDYING) {
+                continue;
+            }
+
+            drops.remove(i);
+            changed = true;
+        }
+        return changed;
     }
 
     private boolean stripTotems(Inventory inventory) {
