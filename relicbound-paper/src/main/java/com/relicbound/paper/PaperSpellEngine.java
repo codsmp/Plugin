@@ -331,9 +331,6 @@ public final class PaperSpellEngine {
         if (target instanceof Villager) {
             return false;
         }
-        if (attacker.hasPotionEffect(PotionEffectType.STRENGTH)) {
-            return false;
-        }
         LifeDrainSession session = this.lifeDrainSessions.get(attacker.getUniqueId());
         if (session == null || session.locked || session.expired()) {
             return false;
@@ -342,9 +339,12 @@ public final class PaperSpellEngine {
             return false;
         }
 
-        // Drain 1.5 hearts (3.0 health points) per hit and cap at 10 steals
-        target.setHealth(Math.max(0.0D, target.getHealth() - 3.0D));
+        double drainAmount = attacker.hasPotionEffect(PotionEffectType.STRENGTH) ? 1.5D : 3.0D;
+
+        // Drain 1.5 hearts (3.0 health points) per hit, or half that while Strength is active
+        target.setHealth(Math.max(0.0D, target.getHealth() - drainAmount));
         session.stolenHealthPoints = Math.min(10, session.stolenHealthPoints + 1);
+        session.stolenHealthAmount += drainAmount;
         attacker.getWorld().spawnParticle(Particle.SOUL, target.getLocation().add(0, 1, 0), 10, 0.3, 0.4, 0.3, 0.02);
         attacker.playSound(attacker.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7F, 0.8F);
         return true;
@@ -362,8 +362,8 @@ public final class PaperSpellEngine {
             return;
         }
 
-        // Grant absorption equal to drained health (3.0 per steal)
-        player.setAbsorptionAmount(session.stolenHealthPoints * 3.0D);
+        // Grant absorption equal to the actual drained health total
+        player.setAbsorptionAmount(session.stolenHealthAmount);
         player.getWorld().spawnParticle(Particle.SOUL, player.getLocation(), 20, 0.4, 0.5, 0.4, 0.04);
         Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
             LifeDrainSession current = this.lifeDrainSessions.remove(playerId);
@@ -1738,6 +1738,7 @@ public final class PaperSpellEngine {
         private final long expiresAt;
         private BukkitTask finalizeTask;
         private int stolenHealthPoints;
+        private double stolenHealthAmount;
         private boolean locked;
 
         private LifeDrainSession(UUID playerId, String spellId, PlayerArchetype archetype) {
