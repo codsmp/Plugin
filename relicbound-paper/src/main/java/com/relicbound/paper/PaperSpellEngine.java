@@ -136,8 +136,7 @@ public final class PaperSpellEngine {
 
             private static final Set<String> C_MINUS_SPELLS = Set.of(
                 "rift_step",
-                "temper_touch",
-                "malfunction"
+                "temper_touch"
             );
 
             private static final Set<String> D_PLUS_SPELLS = Set.of(
@@ -446,7 +445,6 @@ public final class PaperSpellEngine {
             case ELEMENTAL_GOURMET -> this.gourmet(player, spell, manaState);
             case CELESTIAL_METEOR -> this.meteorStorm(player, spell, manaState);
             case CELESTIAL_METEOR_RAIN -> this.meteorRain(player, spell, manaState);
-            case UTILITY_MALFUNCTION -> this.malfunction(player, spell, manaState);
             case STORM_CHARGES -> this.lightningCharges(player, spell, manaState);
             case CORRUPTION_LIFEDRAIN -> this.beginLifeDrain(player, spell, manaState);
         }
@@ -486,7 +484,6 @@ public final class PaperSpellEngine {
             case CRAFTING_TEMPER -> Sound.BLOCK_ANVIL_USE;
             case SUMMONER_CALL -> Sound.ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM;
             case CORRUPTION_BLIGHT, CORRUPTION_RIFT, CORRUPTION_CRIPPLE, CORRUPTION_LIFEDRAIN -> Sound.ENTITY_WITHER_SPAWN;
-            case UTILITY_MALFUNCTION -> Sound.ENTITY_ENDERMAN_TELEPORT;
             case ELEMENTAL_FROSTBITE -> Sound.BLOCK_GLASS_BREAK;
             case ELEMENTAL_COOKER -> Sound.ITEM_FIRECHARGE_USE;
             case ELEMENTAL_GOURMET -> Sound.ENTITY_GENERIC_EAT;
@@ -1349,14 +1346,6 @@ public final class PaperSpellEngine {
         this.applyGourmetBuff(player, type, manaState.archetype());
     }
 
-    private void malfunction(Player player, SpellDefinition spell, PlayerManaState manaState) {
-        Player target = this.nearestPlayer(player, spell.range()).orElse(player);
-        this.shuffleMalfunctionHotbar(target);
-        boolean staff = manaState.archetype() == PlayerArchetype.STAFF;
-        target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, staff ? 100 : 50, 0, true, true, true));
-        target.getWorld().spawnParticle(staff ? Particle.WITCH : Particle.CRIT, target.getLocation(), staff ? 18 : 12, staff ? 0.6 : 0.4, staff ? 0.6 : 0.4, staff ? 0.6 : 0.4, staff ? 0.08 : 0.06);
-        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.8F, staff ? 0.7F : 1.3F);
-    }
 
     private void meteorRain(Player player, SpellDefinition spell, PlayerManaState manaState) {
         int meteors = manaState.archetype() == PlayerArchetype.STAFF ? ThreadLocalRandom.current().nextInt(4, 6) : ThreadLocalRandom.current().nextInt(5, 7);
@@ -1545,24 +1534,6 @@ public final class PaperSpellEngine {
         }
     }
 
-    private void shuffleMalfunctionHotbar(Player target) {
-        ItemStack[] hotbar = target.getInventory().getStorageContents();
-        List<Integer> movableSlots = new ArrayList<>();
-        List<ItemStack> movableItems = new ArrayList<>();
-        for (int i = 0; i < 9 && i < hotbar.length; i++) {
-            ItemStack item = hotbar[i];
-            if (this.isCombatOrMiningItem(item)) {
-                continue;
-            }
-            movableSlots.add(i);
-            movableItems.add(item);
-        }
-        Collections.shuffle(movableItems);
-        for (int i = 0; i < movableSlots.size(); i++) {
-            hotbar[movableSlots.get(i)] = movableItems.get(i);
-        }
-        target.getInventory().setStorageContents(hotbar);
-    }
 
     private boolean isCombatOrMiningItem(ItemStack item) {
         if (item == null || item.getType().isAir()) {
