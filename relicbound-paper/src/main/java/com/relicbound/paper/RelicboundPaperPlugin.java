@@ -45,6 +45,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ArchetypeSelectionListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellCombatListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new PvpRulesListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new TotemUnobtainableListener(), this);
         Bukkit.getPluginManager().registerEvents(new StarterItemProtectionListener(), this);
         Bukkit.getPluginManager().registerEvents(new SkyLeapProtectionListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new SecretPhraseListener(this.spellEngine), this);

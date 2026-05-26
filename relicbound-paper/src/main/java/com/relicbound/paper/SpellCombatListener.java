@@ -34,7 +34,8 @@ public final class SpellCombatListener implements Listener {
         }
 
         String materialName = item.getType().name();
-        return materialName.endsWith("_AXE")
+        return materialName.endsWith("_SWORD")
+            || materialName.endsWith("_AXE")
             || materialName.endsWith("_PICKAXE")
             || materialName.endsWith("_SHOVEL")
             || materialName.endsWith("_HOE")
