@@ -331,6 +331,9 @@ public final class PaperSpellEngine {
         if (target instanceof Villager) {
             return false;
         }
+        if (attacker.hasPotionEffect(PotionEffectType.STRENGTH)) {
+            return false;
+        }
         LifeDrainSession session = this.lifeDrainSessions.get(attacker.getUniqueId());
         if (session == null || session.locked || session.expired()) {
             return false;
@@ -1343,9 +1346,9 @@ public final class PaperSpellEngine {
     }
 
     private void meteorRain(Player player, SpellDefinition spell, PlayerManaState manaState) {
-        int meteors = manaState.archetype() == PlayerArchetype.STAFF ? ThreadLocalRandom.current().nextInt(3, 5) : ThreadLocalRandom.current().nextInt(4, 6);
-        double damage = manaState.archetype() == PlayerArchetype.STAFF ? 6.0D : 4.0D;
-        double radius = manaState.archetype() == PlayerArchetype.STAFF ? 6.0D : 8.0D;
+        int meteors = manaState.archetype() == PlayerArchetype.STAFF ? ThreadLocalRandom.current().nextInt(4, 6) : ThreadLocalRandom.current().nextInt(5, 7);
+        double damage = manaState.archetype() == PlayerArchetype.STAFF ? 7.0D : 5.0D;
+        double radius = manaState.archetype() == PlayerArchetype.STAFF ? 7.0D : 9.0D;
         for (int i = 0; i < meteors; i++) {
             double offsetX = ThreadLocalRandom.current().nextDouble(-radius, radius);
             double offsetZ = ThreadLocalRandom.current().nextDouble(-radius, radius);
