@@ -182,10 +182,8 @@ public final class PvpRulesListener implements Listener {
     }
 
     private boolean isRestockInventory(InventoryType type) {
-        return switch (type) {
-            case CRAFTING, CREATIVE, WORKBENCH, ANVIL, SMITHING, GRINDSTONE, LOOM, STONECUTTER, ENCHANTING, MERCHANT, CARTOGRAPHY -> false;
-            default -> true;
-        };
+        // Restock checks disabled: treat all inventories as non-restockable to avoid blocking
+        return false;
     }
 
     private Player resolveAttacker(org.bukkit.entity.Entity damager) {
