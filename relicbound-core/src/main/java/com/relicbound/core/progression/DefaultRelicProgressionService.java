@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 public final class DefaultRelicProgressionService implements RelicProgressionService {
-    private static final List<Integer> TIER_THRESHOLDS = List.of(0, 100, 250, 500, 900, 1500);
+    // thresholds for: TIER_1, TIER_2, TIER_3, TIER_4, TIER_5,
+    // ASCENSION_1, ASCENSION_2, ASCENSION_3, ASCENSION_4, ASCENSION_5
+    private static final List<Integer> TIER_THRESHOLDS = List.of(0, 100, 250, 500, 900, 1500, 2500, 4000, 6000, 9000);
 
     @Override
     public PlayerRelicState grantEssence(PlayerRelicState state, String essenceType, int amount) {
@@ -77,7 +79,11 @@ public final class DefaultRelicProgressionService implements RelicProgressionSer
             case TIER_3 -> 2;
             case TIER_4 -> 3;
             case TIER_5 -> 4;
-            case ASCENSION_1, ASCENSION_2, ASCENSION_3, ASCENSION_4, ASCENSION_5 -> 5;
+            case ASCENSION_1 -> 5;
+            case ASCENSION_2 -> 6;
+            case ASCENSION_3 -> 7;
+            case ASCENSION_4 -> 8;
+            case ASCENSION_5 -> 9;
         };
     }
 }
