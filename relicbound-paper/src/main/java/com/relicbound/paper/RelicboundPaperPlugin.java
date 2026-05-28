@@ -4,8 +4,12 @@ import com.relicbound.core.CoreContext;
 import com.relicbound.core.RelicboundCore;
 import com.relicbound.core.model.SpellDefinition;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.WorldLoadEvent;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,6 +94,24 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
 
         if (this.getCommand("graceperiod") != null) {
             this.getCommand("graceperiod").setExecutor(this.gracePeriodController);
+        }
+
+        // Disable server advancement announcements so players won't see advancement messages in chat.
+        try {
+            for (org.bukkit.World w : Bukkit.getWorlds()) {
+                w.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+            }
+            // Also enforce for newly loaded worlds
+            Bukkit.getPluginManager().registerEvents(new Listener() {
+                @EventHandler
+                public void onWorldLoad(WorldLoadEvent evt) {
+                    try {
+                        evt.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+                    } catch (Throwable ignored) {}
+                }
+            }, this);
+        } catch (Throwable t) {
+            this.getLogger().warning("Could not set announceAdvancements gamerule: " + t.getMessage());
         }
 
         this.runStartupChecks();
