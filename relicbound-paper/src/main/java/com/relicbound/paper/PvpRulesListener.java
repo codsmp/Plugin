@@ -41,7 +41,7 @@ public final class PvpRulesListener implements Listener {
     private static final int MAX_MACE_DENSITY_LEVEL = 1;
     private static final int MAX_MACE_WIND_BURST_LEVEL = 1;
 
-    private final Map<UUID, CombatTag> combatTags = new HashMap<>();
+    // Combat tagging removed for Season 3; only keep warning cooldowns.
     private final Map<UUID, Long> warningCooldowns = new HashMap<>();
     private final JavaPlugin plugin;
     private final NamespacedKey spellStrengthBypassKey;
@@ -194,7 +194,7 @@ public final class PvpRulesListener implements Listener {
     }
 
     private void clearPair(UUID playerId) {
-        this.combatTags.remove(playerId);
+        // Combat tagging removed: no-op.
     }
 
     private void broadcastCombatCountdowns() {
