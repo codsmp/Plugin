@@ -37,6 +37,8 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         this.trustStore = new PlayerTrustStore(this);
         this.teamStore = new PlayerTeamStore(this);
         this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore);
+        // Load any persisted Bliss return locations from previous sessions
+        this.spellEngine.loadBlissReturns();
         this.gracePeriodController = new GracePeriodController(this);
         Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core, this.spellEngine, this.teamStore), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
@@ -96,6 +98,9 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     public void onDisable() {
         if (this.core != null) {
             this.core.shutdown();
+        }
+        if (this.spellEngine != null) {
+            this.spellEngine.saveBlissReturns();
         }
     }
 

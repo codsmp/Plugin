@@ -45,6 +45,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public final class PaperSpellEngine {
     private final JavaPlugin plugin;
@@ -211,6 +217,52 @@ public final class PaperSpellEngine {
 
     public Location popBlissReturn(java.util.UUID playerId) {
         return this.blissReturnLocations.remove(playerId);
+    }
+
+    // Persist bliss return mappings to disk so players disconnected while in Bliss can return after restart.
+    public void saveBlissReturns() {
+        File data = new File(this.plugin.getDataFolder(), "bliss_returns.dat");
+        if (!data.getParentFile().exists()) data.getParentFile().mkdirs();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(data, false))) {
+            for (Map.Entry<UUID, Location> e : this.blissReturnLocations.entrySet()) {
+                UUID id = e.getKey();
+                Location l = e.getValue();
+                if (l == null || l.getWorld() == null) continue;
+                writer.write(id.toString() + "|" + l.getWorld().getName() + "|" + l.getX() + "|" + l.getY() + "|" + l.getZ() + "|" + l.getYaw() + "|" + l.getPitch());
+                writer.newLine();
+            }
+        } catch (IOException ex) {
+            this.plugin.getLogger().warning("Failed to save bliss returns: " + ex.getMessage());
+        }
+    }
+
+    public void loadBlissReturns() {
+        File data = new File(this.plugin.getDataFolder(), "bliss_returns.dat");
+        if (!data.exists()) return;
+        try (BufferedReader reader = new BufferedReader(new FileReader(data))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                try {
+                    String[] parts = line.split("\\|", -1);
+                    if (parts.length < 7) continue;
+                    UUID id = UUID.fromString(parts[0]);
+                    String world = parts[1];
+                    double x = Double.parseDouble(parts[2]);
+                    double y = Double.parseDouble(parts[3]);
+                    double z = Double.parseDouble(parts[4]);
+                    float yaw = Float.parseFloat(parts[5]);
+                    float pitch = Float.parseFloat(parts[6]);
+                    World w = Bukkit.getWorld(world);
+                    if (w == null) continue;
+                    Location loc = new Location(w, x, y, z, yaw, pitch);
+                    this.blissReturnLocations.put(id, loc);
+                } catch (Throwable t) {
+                    // ignore malformed line
+                }
+            }
+        } catch (IOException ex) {
+            this.plugin.getLogger().warning("Failed to load bliss returns: " + ex.getMessage());
+        }
     }
 
     public boolean cast(Player player, SpellDefinition spellDefinition) {
@@ -1642,6 +1694,28 @@ public final class PaperSpellEngine {
             origin.getYaw(),
             origin.getPitch()
         );
+
+        // Ensure chunk is loaded and the teleport destination is safe (not inside blocks or below world).
+        try {
+            bliss.getChunkAt(blissPoint).load();
+        } catch (Throwable t) {
+            // ignore if chunk API not available or fails
+        }
+
+        // If the chosen Y is inside a block or below min height, try to nudge upward a bit (up to 50 blocks).
+        int safetyTries = 0;
+        while (safetyTries < 50) {
+            if (blissPoint.getBlock().isPassable() && blissPoint.getBlock().getType() != Material.LAVA && blissPoint.getY() >= bliss.getMinHeight() + 1) {
+                break;
+            }
+            blissPoint.setY(blissPoint.getY() + 1.0D);
+            safetyTries++;
+        }
+
+        // final fallbacks
+        if (blissPoint.getY() < bliss.getMinHeight() + 2) {
+            blissPoint.setY(bliss.getSeaLevel() + 2.0D);
+        }
 
         target.teleport(blissPoint);
         target.hidePlayer(this.plugin, caster);
