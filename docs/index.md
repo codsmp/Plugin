@@ -1,6 +1,6 @@
 <div class="spell-page-shell">
 	<section class="spell-hero">
-		<p class="spell-eyebrow">Relicbound SMP</p>
+		<p class="spell-eyebrow">Witch Plugin</p>
 		<h1>Minecraft Cod SMP Full Spell Ability List</h1>
 		<p class="spell-subtitle">A dark, markdown-driven spell compendium organized by school, with a live outline on the side.</p>
 		<div class="spell-loader-state" id="spell-loader-state">Loading spell markdown...</div>

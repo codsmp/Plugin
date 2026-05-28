@@ -1,6 +1,6 @@
 # Branding & Assets
 
-This folder contains the official Relicbound branding assets and a short style guide.
+This folder contains the official Witch Plugin branding assets and a short style guide.
 
 - Logo: `assets/branding/logo.svg` (vector). Use this for headers and converted PNGs for server icons.
 - Colors:

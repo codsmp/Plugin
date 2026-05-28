@@ -1,6 +1,6 @@
 # Quickstart
 
-This guide helps server admins install the Relicbound plugin and resource-pack.
+This guide helps server admins install the Witch Plugin and resource-pack.
 
 1. Build the plugin with Gradle:
 

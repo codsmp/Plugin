@@ -225,6 +225,12 @@
                                             "custom_model_data":  3709
                                         },
                           "model":  "relicbound:item/spell/gourmet"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3999
+                                        },
+                          "model":  "relicbound:item/spell/spell_bliss_egg"
                       }
                   ]
 }

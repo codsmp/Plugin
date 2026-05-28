@@ -1,6 +1,6 @@
-# Relicbound SMP Resource Pack
+# Witch Plugin Resource Pack
 
-This folder is generated to provide spell item models for Relicbound SMP.
+This folder is generated to provide spell item models for Witch Plugin.
 
 ## What it contains
 

@@ -64,6 +64,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new TabIsolationListener(this), this);
         Bukkit.getPluginManager().registerEvents(new RandomSpawnListener(this), this);
         Bukkit.getPluginManager().registerEvents(new JoinQuitSuppressListener(), this);
+        Bukkit.getPluginManager().registerEvents(new OneDayBanListener(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerVisibilityEnforcer(this, this.teamStore, this.trustStore), this);
 
         // Start mana-related tasks

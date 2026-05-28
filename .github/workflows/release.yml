@@ -39,14 +39,14 @@ jobs:
       - name: Upload Paper jar artifact
         uses: actions/upload-artifact@v4
         with:
-          name: relicbound-paper-${{ github.ref_name }}
+          name: witch-paper-${{ github.ref_name }}
           path: relicbound-paper/build/libs/*.jar
           if-no-files-found: error
 
       - name: Upload resource pack artifact
         uses: actions/upload-artifact@v4
         with:
-          name: relicbound-resource-pack-${{ github.ref_name }}
+          name: witch-resource-pack-${{ github.ref_name }}
           path: relicbound-resource-pack.zip
           if-no-files-found: error
 
@@ -54,7 +54,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Relicbound SMP ${{ github.ref_name }}
+          name: Witch Plugin ${{ github.ref_name }}
           files: |
             relicbound-paper/build/libs/*.jar
             relicbound-resource-pack.zip

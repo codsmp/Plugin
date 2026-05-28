@@ -1,6 +1,6 @@
-site_name: Relicbound SMP
-site_description: Documentation for the Relicbound SMP project
-site_author: Relicbound Team
+site_name: Witch Plugin
+site_description: Documentation for the Witch Plugin project
+site_author: Witch Team
 theme:
   name: material
   favicon: 'assets/branding/favicon.svg'

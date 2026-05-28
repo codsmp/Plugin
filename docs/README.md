@@ -1,7 +1,7 @@
-Relicbound — Documentation
+Witch Plugin — Documentation
 ==========================
 
-Welcome to the Relicbound docs. This repository contains the plugin source, a generated resource-pack, and documentation to help server admins and contributors.
+Welcome to the Witch Plugin docs. This repository contains the plugin source, a generated resource-pack, and documentation to help server admins and contributors.
 
 Docs included:
 

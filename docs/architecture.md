@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Relicbound is split into two main modules:
+Witch Plugin is split into two main modules:
 
 - `relicbound-core`: platform-agnostic logic, models and services (spell catalog, mana service, repositories).
 - `relicbound-paper`: Paper (Minecraft) adapter, event listeners, and `PaperSpellEngine` which executes spells.
