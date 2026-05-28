@@ -57,10 +57,6 @@ public final class RelicboundCommand implements CommandExecutor {
                 return this.debugPlayer(sender, args);
             }
 
-            if ("op".equalsIgnoreCase(args[0])) {
-                return this.grantOpPower(sender, args);
-            }
-
             if ("upgrade".equalsIgnoreCase(args[0])) {
                 if (!(sender instanceof Player player)) {
                     sender.sendMessage("Players only.");
@@ -128,7 +124,7 @@ public final class RelicboundCommand implements CommandExecutor {
                 return true;
             }
 
-            sender.sendMessage("Usage: /info <guide|spells|upgrade|grant|debug|op>");
+            sender.sendMessage("Usage: /info <guide|spells|upgrade|grant|debug>");
             return true;
         } catch (Throwable t) {
             // Log the full exception to server logs and send a concise message to the sender
@@ -228,35 +224,4 @@ public final class RelicboundCommand implements CommandExecutor {
         return true;
     }
 
-    private boolean grantOpPower(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Players only.");
-            return true;
-        }
-        if (!player.isOp()) {
-            player.sendMessage(ChatColor.RED + "Only operators can use this command.");
-            return true;
-        }
-
-        String targetId = player.getUniqueId().toString();
-        PlayerRelicState current = this.core.findPlayerState(targetId).orElseGet(() -> this.core.getOrCreateStartingState(targetId, player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits()));
-        LinkedHashSet<String> unlocked = new LinkedHashSet<>(current.unlockedAbilities());
-        for (SpellDefinition spell : this.core.allSpells()) {
-            unlocked.add(spell.id());
-        }
-
-        PlayerRelicState boosted = new PlayerRelicState(
-            current.playerId(),
-            current.relicId(),
-            RelicTier.ASCENSION_5,
-            current.currentEssence(),
-            current.essenceByType(),
-            List.copyOf(unlocked),
-            false
-        );
-        this.core.savePlayerState(boosted);
-
-        player.sendMessage(ChatColor.GOLD + "[Witch] " + ChatColor.YELLOW + "You now have every spell unlocked and are at " + ChatColor.WHITE + RelicTier.ASCENSION_5.name() + ChatColor.YELLOW + ".");
-        return true;
-    }
 }

@@ -74,8 +74,7 @@ public final class GracePeriodController implements Listener, CommandExecutor {
 
         long ticks = Math.max(1L, (this.gracePeriodEndsAtMs - now + 49L) / 50L);
         this.endTask = Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.stopGracePeriod("Grace period has ended."), ticks);
-
-        Bukkit.broadcastMessage(ChatColor.GOLD + "[PvP Rules] " + ChatColor.YELLOW + "Grace period started by " + actorName + ". " + ChatColor.WHITE + "No one can take damage for 1 hour.");
+        Bukkit.getLogger().info("[PvP Rules] Grace period started by " + actorName + ". No one can take damage for 1 hour.");
     }
 
     private void stopGracePeriod(String message) {
@@ -84,7 +83,7 @@ public final class GracePeriodController implements Listener, CommandExecutor {
             this.endTask.cancel();
             this.endTask = null;
         }
-        Bukkit.broadcastMessage(ChatColor.GOLD + "[PvP Rules] " + ChatColor.WHITE + message);
+        Bukkit.getLogger().info("[PvP Rules] " + message);
     }
 
     private boolean isGraceActive() {
