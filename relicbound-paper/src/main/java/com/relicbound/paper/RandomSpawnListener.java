@@ -59,9 +59,19 @@ public final class RandomSpawnListener implements Listener {
             int z = this.randomSigned(min, max);
             int y = world.getHighestBlockYAt(x, z);
             Location candidate = new Location(world, x + 0.5D, y + 1.0D, z + 0.5D);
-            if (this.isSafe(candidate)) {
-                return candidate;
+            // Avoid spawning in unsafe biomes or too close to other players
+            if (!this.isSafe(candidate)) continue;
+            boolean nearPlayer = false;
+            for (org.bukkit.entity.Player p : world.getPlayers()) {
+                if (p.getLocation().distanceSquared(candidate) < (48 * 48)) {
+                    nearPlayer = true;
+                    break;
+                }
             }
+            if (nearPlayer) continue;
+            // Ensure chunk is loaded to avoid teleporting into unloaded terrain
+            if (!candidate.getChunk().isLoaded()) candidate.getChunk().load();
+            return candidate;
         }
 
         Location fallback = world.getSpawnLocation().clone();

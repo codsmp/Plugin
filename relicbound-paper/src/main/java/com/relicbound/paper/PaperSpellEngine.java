@@ -204,6 +204,15 @@ public final class PaperSpellEngine {
         this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
     }
 
+    // Bliss return helpers used by lifecycle listeners
+    public boolean hasBlissReturn(java.util.UUID playerId) {
+        return this.blissReturnLocations.containsKey(playerId);
+    }
+
+    public Location popBlissReturn(java.util.UUID playerId) {
+        return this.blissReturnLocations.remove(playerId);
+    }
+
     public boolean cast(Player player, SpellDefinition spellDefinition) {
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), player.getUniqueId().getMostSignificantBits());
         if (!state.unlockedAbilities().contains(spellDefinition.id())) {
