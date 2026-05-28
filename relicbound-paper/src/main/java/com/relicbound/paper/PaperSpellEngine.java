@@ -216,7 +216,10 @@ public final class PaperSpellEngine {
     }
 
     public Location popBlissReturn(java.util.UUID playerId) {
-        return this.blissReturnLocations.remove(playerId);
+        Location loc = this.blissReturnLocations.remove(playerId);
+        // Persist change immediately
+        this.saveBlissReturns();
+        return loc;
     }
 
     // Persist bliss return mappings to disk so players disconnected while in Bliss can return after restart.
@@ -1685,6 +1688,8 @@ public final class PaperSpellEngine {
 
         Location origin = target.getLocation().clone();
         this.blissReturnLocations.put(target.getUniqueId(), origin);
+        // Persist immediately so disconnected players are preserved
+        this.saveBlissReturns();
 
         Location blissPoint = new Location(
             bliss,
@@ -1726,6 +1731,7 @@ public final class PaperSpellEngine {
         int ticks = Math.max(40, durationTicks);
         Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
             Location returnLocation = this.blissReturnLocations.remove(target.getUniqueId());
+            this.saveBlissReturns();
             if (target.isOnline()) {
                 target.showPlayer(this.plugin, caster);
                 if (returnLocation != null) {
