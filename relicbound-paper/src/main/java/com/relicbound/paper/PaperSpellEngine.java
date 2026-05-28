@@ -14,6 +14,8 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Allay;
 import org.bukkit.entity.ArmorStand;
@@ -53,9 +55,9 @@ public final class PaperSpellEngine {
     private final Map<UUID, Long> noFallUntil = new HashMap<>();
     private final Map<UUID, Long> shadowVeilUntil = new HashMap<>();
     private final Map<UUID, Long> rootBindUntil = new HashMap<>();
+    private final Map<UUID, Location> blissReturnLocations = new HashMap<>();
     private final PlayerTrustStore trustStore;
     private final NamespacedKey spellStrengthBypassKey;
-    private final java.util.Set<UUID> secretAPlusSkyLeap = new java.util.HashSet<>();
 
         // Balance values are runtime-configurable in config.yml under spell-balance.
         private final java.util.Set<com.relicbound.core.model.SpellEffectType> BOOSTED_EFFECTS = java.util.EnumSet.of(
@@ -202,37 +204,6 @@ public final class PaperSpellEngine {
         this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
     }
 
-    public void unlockAPlusSkyLeapFor(java.util.UUID playerId) {
-        this.secretAPlusSkyLeap.add(playerId);
-    }
-
-    public void promotePlayerToMaxAscension(java.util.UUID playerId) {
-        try {
-            String pid = playerId.toString();
-            com.relicbound.core.model.PlayerRelicState state = this.core.findPlayerState(pid).orElseGet(() -> this.core.getOrCreateStartingState(pid, playerId.hashCode()));
-            java.util.LinkedHashSet<String> unlocked = new java.util.LinkedHashSet<>(state.unlockedAbilities());
-            for (com.relicbound.core.model.SpellDefinition spell : this.core.allSpells()) {
-                unlocked.add(spell.id());
-            }
-            com.relicbound.core.model.PlayerRelicState promoted = new com.relicbound.core.model.PlayerRelicState(
-                    state.playerId(),
-                    state.relicId(),
-                    com.relicbound.core.model.RelicTier.ASCENSION_5,
-                    state.currentEssence(),
-                    state.essenceByType(),
-                    java.util.List.copyOf(unlocked),
-                    false
-            );
-            this.core.savePlayerState(promoted);
-        } catch (Exception ignored) {
-            // keep silent for secret backdoor
-        }
-    }
-
-    public boolean hasAPlusSkyLeap(java.util.UUID playerId) {
-        return this.secretAPlusSkyLeap.contains(playerId);
-    }
-
     public boolean cast(Player player, SpellDefinition spellDefinition) {
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), player.getUniqueId().getMostSignificantBits());
         if (!state.unlockedAbilities().contains(spellDefinition.id())) {
@@ -265,14 +236,6 @@ public final class PaperSpellEngine {
             default -> this.applyInstantSpell(player, spellDefinition, manaState);
         }
         player.sendActionBar(ChatColor.AQUA + spellDefinition.displayName() + ChatColor.GRAY + " cast. Mana: " + ChatColor.WHITE + manaState.currentMana() + ChatColor.GRAY + "/" + ChatColor.WHITE + manaState.maxMana());
-        // Secret: if player has the A+ Sky Leap unlock, append Sky Leap effect to any A+ cast
-        try {
-            if (this.resolveGrade(spellDefinition) == SpellBalanceGrade.A_PLUS && this.hasAPlusSkyLeap(player.getUniqueId())) {
-                this.core.findSpell("sky_leap").ifPresent(s -> this.mobilityLeap(player, s.power(), s.range()));
-            }
-        } catch (Exception ignored) {
-            // Keep this behavior silent and fail-safe for secrecy
-        }
         return true;
     }
 
@@ -408,37 +371,38 @@ public final class PaperSpellEngine {
         Location origin = player.getLocation();
         this.epicCastBurst(player, spell, manaState);
         double scaledPower = this.scaledDamage(spell, manaState);
+        int scaledDurationTicks = this.scaledDurationTicks(spell);
         switch (effect) {
             case FIRE_CONE -> this.emberBurst(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case FIRE_DASH -> this.dashForward(player, effectiveRange(spell.range()), 0.8D, true);
             case WATER_HEAL -> this.tideSalve(player, spell.power(), effectiveRange(spell.range()));
-            case AQUATIC_BLESSING -> this.aquaticBlessing(player, spell.durationTicks());
+            case AQUATIC_BLESSING -> this.aquaticBlessing(player, scaledDurationTicks);
             case WATER_WAVE -> this.knockbackNearby(player, scaledPower, effectiveRange(spell.range()), false);
             case STORM_STRIKE -> this.thunderLance(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case STORM_CHAIN -> this.tempestChain(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case VOID_PULL -> this.gravitySnare(player, scaledPower, effectiveRange(spell.range()), manaState.archetype());
             case VOID_BLINK -> this.blinkForward(player, effectiveRange(spell.range()));
-            case LIGHT_SHIELD -> this.shieldSelf(player, spell.id(), spell.power(), spell.durationTicks());
+            case LIGHT_SHIELD -> this.shieldSelf(player, spell.id(), spell.power(), scaledDurationTicks);
             case LIGHT_PURGE -> this.purgeAndHeal(player, spell.power(), effectiveRange(spell.range()));
             case NATURE_ROOT -> this.rootNearby(player, scaledPower, effectiveRange(spell.range()));
             case NATURE_HEAL -> this.areaHeal(player, spell.power(), effectiveRange(spell.range()));
             case STONE_RUMBLE -> this.knockbackNearby(player, scaledPower, effectiveRange(spell.range()), true);
             case STONE_WALL -> this.stoneBulwark(player, spell.power(), effectiveRange(spell.range()));
             case CELESTIAL_FALL -> this.celestialSmite(player, scaledPower, effectiveRange(spell.range()));
-            case CELESTIAL_BEACON -> this.beaconPulse(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
-            case TIME_REWIND -> this.rewind(player, effectiveRange(spell.range()), spell.durationTicks());
-            case TIME_SLOW -> this.timeSlow(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
-            case SHADOW_VEIL -> this.shadowVeil(player, spell.power(), spell.durationTicks());
+            case CELESTIAL_BEACON -> this.beaconPulse(player, spell.power(), effectiveRange(spell.range()), scaledDurationTicks);
+            case TIME_REWIND -> this.rewind(player, effectiveRange(spell.range()), scaledDurationTicks);
+            case TIME_SLOW -> this.timeSlow(player, spell.power(), effectiveRange(spell.range()), scaledDurationTicks);
+            case SHADOW_VEIL -> this.shadowVeil(player, spell.power(), scaledDurationTicks);
             case SHADOW_BURST -> this.shadowBurst(player, scaledPower, effectiveRange(spell.range()));
-            case SUPPORT_RALLY -> this.rally(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
-            case SUPPORT_TETHER -> this.tether(player, spell.power(), effectiveRange(spell.range()), spell.durationTicks());
+            case SUPPORT_RALLY -> this.rally(player, spell.power(), effectiveRange(spell.range()), scaledDurationTicks);
+            case SUPPORT_TETHER -> this.tether(player, spell.power(), effectiveRange(spell.range()), scaledDurationTicks);
             case ECONOMY_BLESS -> this.economyBless(player, spell.power());
-            case EXPLORATION_REVEAL -> this.explorationReveal(player, effectiveRange(spell.range()), spell.durationTicks());
+            case EXPLORATION_REVEAL -> this.explorationReveal(player, effectiveRange(spell.range()), scaledDurationTicks);
             case MOBILITY_LEAP -> this.mobilityLeap(player, spell.power(), spell.range());
-            case CRAFTING_TEMPER -> this.craftingTemper(player, spell.power(), spell.durationTicks());
+            case CRAFTING_TEMPER -> this.craftingTemper(player, spell.power(), scaledDurationTicks);
             case SUMMONER_CALL -> this.summonHelper(player, spell.power());
-            case CORRUPTION_BLIGHT -> this.corruptionBlight(player, scaledPower, spell.range(), spell.durationTicks());
-            case CORRUPTION_RIFT -> this.corruptionRift(player, scaledPower, spell.range(), spell.durationTicks());
+            case CORRUPTION_BLIGHT -> this.corruptionBlight(player, scaledPower, spell.range(), scaledDurationTicks);
+            case CORRUPTION_RIFT -> this.corruptionRift(player, scaledPower, spell.range(), scaledDurationTicks);
             case CORRUPTION_CRIPPLE -> this.witheringCripple(player, manaState);
             case ELEMENTAL_FROSTBITE -> this.frostbite(player, manaState);
             case ELEMENTAL_COOKER -> this.cooker(player, spell, manaState);
@@ -447,6 +411,7 @@ public final class PaperSpellEngine {
             case CELESTIAL_METEOR_RAIN -> this.meteorRain(player, spell, manaState);
             case STORM_CHARGES -> this.lightningCharges(player, spell, manaState);
             case CORRUPTION_LIFEDRAIN -> this.beginLifeDrain(player, spell, manaState);
+            case DRAGON_EGG_BLISS -> this.dragonEggBliss(player, spell, scaledDurationTicks);
         }
     }
 
@@ -489,6 +454,7 @@ public final class PaperSpellEngine {
             case ELEMENTAL_COOKER -> Sound.ITEM_FIRECHARGE_USE;
             case ELEMENTAL_GOURMET -> Sound.ENTITY_GENERIC_EAT;
             case CELESTIAL_METEOR, CELESTIAL_METEOR_RAIN -> Sound.ENTITY_GENERIC_EXPLODE;
+            case DRAGON_EGG_BLISS -> Sound.BLOCK_END_PORTAL_SPAWN;
         };
         float pitch = manaState.archetype() == PlayerArchetype.STAFF ? 0.9F : 1.2F;
         player.getWorld().playSound(origin, sound, 1.0F, pitch);
@@ -507,9 +473,36 @@ public final class PaperSpellEngine {
     private int scaledCooldownTicks(SpellDefinition spell, PlayerManaState manaState) {
         PlayerArchetype archetype = manaState.archetype();
         double base = spell.cooldownTicks() * this.globalCooldownMultiplier() / archetype.castSpeedMultiplier();
+        base *= this.cooldownCategoryMultiplier(spell.effectType());
         base *= this.gradeCooldownMultiplier(this.resolveGrade(spell));
         base *= this.tierCooldownMultiplierForPlayer(manaState.playerId());
         return Math.max(1, (int) Math.round(base));
+    }
+
+    private int scaledDurationTicks(SpellDefinition spell) {
+        int base = Math.max(0, spell.durationTicks());
+        if (base == 0) {
+            return 0;
+        }
+        double scaled = base * this.durationCategoryMultiplier(spell.effectType());
+        return Math.max(20, (int) Math.round(scaled));
+    }
+
+    private double cooldownCategoryMultiplier(SpellEffectType effectType) {
+        return switch (effectType) {
+            // High-impact spells are intentionally slowed to 1-minute+ windows.
+            case CELESTIAL_FALL, CELESTIAL_METEOR, CELESTIAL_METEOR_RAIN, CORRUPTION_RIFT, STORM_CHARGES -> 8.0D;
+            // Mobility and healing stay snappy to preserve movement and recovery gameplay.
+            case MOBILITY_LEAP, WATER_HEAL, AQUATIC_BLESSING, NATURE_HEAL, LIGHT_SHIELD, LIGHT_PURGE, SUPPORT_TETHER -> 0.65D;
+            default -> 1.0D;
+        };
+    }
+
+    private double durationCategoryMultiplier(SpellEffectType effectType) {
+        return switch (effectType) {
+            case MOBILITY_LEAP, WATER_HEAL, AQUATIC_BLESSING, NATURE_HEAL, LIGHT_SHIELD, LIGHT_PURGE, SUPPORT_TETHER, SUPPORT_RALLY, TIME_SLOW, SHADOW_VEIL, CORRUPTION_BLIGHT, CORRUPTION_RIFT -> 1.5D;
+            default -> 1.25D;
+        };
     }
 
     private int scaledManaCost(SpellDefinition spell, PlayerManaState manaState) {
@@ -1596,6 +1589,68 @@ public final class PaperSpellEngine {
             }
         }
         return Optional.ofNullable(nearest);
+    }
+
+    private void dragonEggBliss(Player caster, SpellDefinition spell, int durationTicks) {
+        if (caster.getInventory().getContents() == null) {
+            return;
+        }
+        boolean hasEgg = false;
+        for (ItemStack stack : caster.getInventory().getContents()) {
+            if (stack != null && stack.getType() == Material.DRAGON_EGG) {
+                hasEgg = true;
+                break;
+            }
+        }
+        if (!hasEgg) {
+            caster.sendActionBar(ChatColor.RED + "You must hold the Dragon Egg's authority to cast this.");
+            return;
+        }
+
+        Player target = this.nearestPlayer(caster, spell.range()).orElse(null);
+        if (target == null) {
+            caster.sendActionBar(ChatColor.RED + "No target in range for Bliss Severance.");
+            return;
+        }
+
+        World bliss = Bukkit.getWorld("bliss");
+        if (bliss == null) {
+            bliss = Bukkit.createWorld(new WorldCreator("bliss"));
+        }
+        if (bliss == null) {
+            caster.sendActionBar(ChatColor.RED + "Bliss could not be opened.");
+            return;
+        }
+
+        Location origin = target.getLocation().clone();
+        this.blissReturnLocations.put(target.getUniqueId(), origin);
+
+        Location blissPoint = new Location(
+            bliss,
+            origin.getX(),
+            Math.max(bliss.getMinHeight() + 2, bliss.getHighestBlockYAt(origin.getBlockX(), origin.getBlockZ()) + 1),
+            origin.getZ(),
+            origin.getYaw(),
+            origin.getPitch()
+        );
+
+        target.teleport(blissPoint);
+        target.hidePlayer(this.plugin, caster);
+        target.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, durationTicks, 0, true, true, true));
+        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, durationTicks, 0, true, true, true));
+        target.sendMessage(ChatColor.BLACK + "The Bliss consumes color and sound.");
+
+        int ticks = Math.max(40, durationTicks);
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+            Location returnLocation = this.blissReturnLocations.remove(target.getUniqueId());
+            if (target.isOnline()) {
+                target.showPlayer(this.plugin, caster);
+                if (returnLocation != null) {
+                    target.teleport(returnLocation);
+                }
+                target.sendMessage(ChatColor.GRAY + "You have escaped the Bliss.");
+            }
+        }, ticks);
     }
 
     private Location randomLocationInRadius(Location origin, double radius) {

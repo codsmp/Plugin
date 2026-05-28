@@ -57,6 +57,7 @@ public final class DefaultSpellCatalog implements SpellCatalog {
         register(new SpellDefinition("frostbite", "Frostbite", "spell_frostbite", binding("PACKED_ICE", 3707), RelicTier.TIER_2, SpellEffectType.ELEMENTAL_FROSTBITE, List.of(RelicFamily.WATER, RelicFamily.STONE), 110, 0.0, 6.0, 120, "Freeze enemies and ice the ground around you.", 20, 0));
         register(new SpellDefinition("cooker", "Cooker", "spell_cooker", binding("FURNACE", 3708), RelicTier.TIER_1, SpellEffectType.ELEMENTAL_COOKER, List.of(RelicFamily.FIRE), 75, 1.5, 7.0, 0, "Seer the nearby area with scorching heat.", 15, 0));
         register(new SpellDefinition("gourmet", "Gourmet", "spell_gourmet", binding("COOKED_BEEF", 3709), RelicTier.TIER_3, SpellEffectType.ELEMENTAL_GOURMET, List.of(RelicFamily.NATURE, RelicFamily.SUPPORT), 150, 0.0, 7.0, 0, "Devour a creature to gain its boons.", 24, 0));
+        register(new SpellDefinition("bliss_egg", "Bliss Severance", "spell_bliss_egg", binding("DRAGON_EGG", 3999), RelicTier.TIER_1, SpellEffectType.DRAGON_EGG_BLISS, List.of(RelicFamily.DRAGON, RelicFamily.ARCANE), 1200, 0.0, 32.0, 300, "Banish a target into the monochrome Bliss where the egg wielder cannot be seen.", 35, 0));
     }
 
     private static SpellDefinition.MaterialBinding binding(String material, Integer customModelData) {

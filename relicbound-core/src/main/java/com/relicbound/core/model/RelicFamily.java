@@ -17,5 +17,8 @@ public enum RelicFamily {
     MOBILITY,
     CRAFTING,
     SUMMONER,
-    CORRUPTION
+    CORRUPTION,
+    DRAGON,
+    BLOOD,
+    ARCANE
 }

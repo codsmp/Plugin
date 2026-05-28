@@ -38,10 +38,7 @@ public final class RelicJoinListener implements Listener {
         long seed = player.getUniqueId().getMostSignificantBits() ^ player.getUniqueId().getLeastSignificantBits();
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), seed);
         long tAfterLoad = System.nanoTime();
-        if (player.getName().equalsIgnoreCase("Falthera") || player.getName().equalsIgnoreCase("braxsmashedyou") || player.getName().equalsIgnoreCase("Aishi___") || player.getName().equalsIgnoreCase("Abbas14") || player.getName().equalsIgnoreCase("lovely_lyla") || player.getName().equalsIgnoreCase("Vyxen123")) {
-            state = this.promoteFalthera(state);
-        }
-        player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic awakens: " + ChatColor.WHITE + state.relicId());
+        player.sendMessage(ChatColor.GOLD + "[Witch] " + ChatColor.YELLOW + "Your sigil awakens: " + ChatColor.WHITE + state.relicId());
 
         if (state.pendingRewardSelection()) {
             this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
@@ -68,11 +65,11 @@ public final class RelicJoinListener implements Listener {
             // First join - show archetype selection
             this.archetypeSelectionMenu.open(player);
             player.sendMessage(ChatColor.AQUA + "Choose your path - Wand or Staff!");
-            player.sendMessage(ChatColor.GRAY + "Type /relicbound guide after you choose for a quick walkthrough.");
+            player.sendMessage(ChatColor.GRAY + "Type /info guide after you choose for a quick walkthrough.");
         } else {
             PlayerManaState manaState = manaStateOptional.get();
-            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "Welcome back, " + manaState.archetype().displayName() + "!");
-            player.sendMessage(ChatColor.GRAY + "Need a refresher? Use /relicbound guide.");
+            player.sendMessage(ChatColor.AQUA + "[Witch] " + ChatColor.WHITE + "Welcome back, " + manaState.archetype().displayName() + "!");
+            player.sendMessage(ChatColor.GRAY + "Need a refresher? Use /info guide.");
         }
 
         if (manaStateOptional.isEmpty()) {
@@ -108,23 +105,6 @@ public final class RelicJoinListener implements Listener {
             long tAfterTeam = System.nanoTime();
             this.plugin.getLogger().info("JOIN timings (ms): load=" + ((tAfterLoad - tStart)/1_000_000) + ", deferredStartDelay=" + ((tDeferredStart - tBeforeDeferred)/1_000_000) + ", veil=" + ((tAfterVeil - tDeferredStart)/1_000_000) + ", team=" + ((tAfterTeam - tAfterVeil)/1_000_000));
         }, 2L);
-    }
-
-    private PlayerRelicState promoteFalthera(PlayerRelicState state) {
-        java.util.LinkedHashSet<String> unlocked = new java.util.LinkedHashSet<>(state.unlockedAbilities());
-        for (SpellDefinition spell : this.core.allSpells()) {
-            unlocked.add(spell.id());
-        }
-        PlayerRelicState promoted = new PlayerRelicState(
-            state.playerId(),
-            state.relicId(),
-            RelicTier.ASCENSION_5,
-            state.currentEssence(),
-            state.essenceByType(),
-            java.util.List.copyOf(unlocked),
-            false
-        );
-        return this.core.savePlayerState(promoted);
     }
 
     @EventHandler

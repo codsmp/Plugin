@@ -36,13 +36,8 @@ import java.util.UUID;
 import java.util.ArrayList;
 
 public final class PvpRulesListener implements Listener {
-    private static final long COMBAT_TAG_DURATION_MS = 15_000L;
     private static final int MAX_PROTECTION_LEVEL = 3;
-    private static final int MAX_XP_BOTTLES = 192;
-    private static final int MAX_COBWEBS = 192;
-    private static final int MAX_GOD_APPLES = 1;
-    private static final int MAX_BREEZE_RODS = 64;
-    private static final int MAX_MACES = 3;
+    private static final int MAX_MACES = 1;
     private static final int MAX_MACE_DENSITY_LEVEL = 1;
     private static final int MAX_MACE_WIND_BURST_LEVEL = 1;
 
@@ -54,7 +49,6 @@ public final class PvpRulesListener implements Listener {
     public PvpRulesListener(JavaPlugin plugin) {
         this.plugin = plugin;
         this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
-        Bukkit.getScheduler().runTaskTimer(this.plugin, this::broadcastCombatCountdowns, 20L, 20L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -71,12 +65,7 @@ public final class PvpRulesListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCombatDamage(EntityDamageByEntityEvent event) {
-        Player attacker = this.resolveAttacker(event.getDamager());
-        if (attacker == null || !(event.getEntity() instanceof Player victim)) {
-            return;
-        }
-
-        this.tagCombat(attacker, victim);
+        // Combat logging/tagging removed for Season 3.
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -166,19 +155,7 @@ public final class PvpRulesListener implements Listener {
     }
 
     private void tagCombat(Player attacker, Player victim) {
-        long expiresAt = System.currentTimeMillis() + COMBAT_TAG_DURATION_MS;
-        this.combatTags.put(attacker.getUniqueId(), new CombatTag(victim.getUniqueId(), expiresAt));
-        this.combatTags.put(victim.getUniqueId(), new CombatTag(attacker.getUniqueId(), expiresAt));
-
-        if (this.isRestockInventory(attacker.getOpenInventory().getTopInventory().getType())) {
-            attacker.closeInventory();
-        }
-        if (this.isRestockInventory(victim.getOpenInventory().getTopInventory().getType())) {
-            victim.closeInventory();
-        }
-
-        this.warn(attacker, "You are now combat tagged.");
-        this.warn(victim, "You are now combat tagged.");
+        // Combat tagging removed.
     }
 
     private boolean isRestockInventory(InventoryType type) {
@@ -213,49 +190,15 @@ public final class PvpRulesListener implements Listener {
     }
 
     private boolean isTagged(UUID playerId) {
-        CombatTag tag = this.combatTags.get(playerId);
-        if (tag == null) {
-            return false;
-        }
-
-        if (tag.expiresAtMs() >= System.currentTimeMillis()) {
-            return true;
-        }
-
-        this.combatTags.remove(playerId);
         return false;
     }
 
     private void clearPair(UUID playerId) {
-        CombatTag tag = this.combatTags.remove(playerId);
-        if (tag != null) {
-            this.combatTags.remove(tag.opponentId());
-        }
+        this.combatTags.remove(playerId);
     }
 
     private void broadcastCombatCountdowns() {
-        long now = System.currentTimeMillis();
-        for (UUID playerId : new ArrayList<>(this.combatTags.keySet())) {
-            CombatTag tag = this.combatTags.get(playerId);
-            if (tag == null) {
-                continue;
-            }
-
-            long remainingMs = tag.expiresAtMs() - now;
-            Player player = Bukkit.getPlayer(playerId);
-            if (remainingMs <= 0L) {
-                this.clearPair(playerId);
-                if (player != null && player.isOnline()) {
-                    player.sendMessage(ChatColor.GREEN + "[PvP Rules] " + ChatColor.WHITE + "You are now out of combat.");
-                }
-                continue;
-            }
-
-            if (player != null && player.isOnline()) {
-                long secondsLeft = Math.max(1L, (remainingMs + 999L) / 1000L);
-                player.sendMessage(ChatColor.RED + "[PvP Rules] " + ChatColor.WHITE + "Combat tag ends in " + ChatColor.YELLOW + secondsLeft + "s" + ChatColor.WHITE + ".");
-            }
-        }
+        // Combat countdown removed.
     }
 
     private void enforcePvpLimits(Player player, boolean notify) {
@@ -269,10 +212,6 @@ public final class PvpRulesListener implements Listener {
         changed |= this.capEnchantmentLevel(inventory.getContents(), Enchantment.PROTECTION, MAX_PROTECTION_LEVEL);
         changed |= this.capEnchantmentLevel(inventory.getArmorContents(), Enchantment.PROTECTION, MAX_PROTECTION_LEVEL);
 
-        changed |= this.capMaterialTotal(inventory, Material.EXPERIENCE_BOTTLE, MAX_XP_BOTTLES);
-        changed |= this.capMaterialTotal(inventory, Material.COBWEB, MAX_COBWEBS);
-        changed |= this.capMaterialTotal(inventory, Material.ENCHANTED_GOLDEN_APPLE, MAX_GOD_APPLES);
-        changed |= this.capMaterialTotal(inventory, Material.BREEZE_ROD, MAX_BREEZE_RODS);
         changed |= this.capMaterialTotal(inventory, Material.MACE, MAX_MACES);
 
         // Ensure mace enchants stay within the PvP limits
@@ -307,22 +246,8 @@ public final class PvpRulesListener implements Listener {
             }
         }
 
-        PotionEffect strength = player.getPotionEffect(PotionEffectType.STRENGTH);
-        if (strength != null && strength.getAmplifier() > 0) {
-            player.removePotionEffect(PotionEffectType.STRENGTH);
-            player.addPotionEffect(new PotionEffect(
-                PotionEffectType.STRENGTH,
-                strength.getDuration(),
-                0,
-                strength.isAmbient(),
-                strength.hasParticles(),
-                strength.hasIcon()
-            ));
-            changed = true;
-        }
-
         if (changed && notify) {
-            this.warn(player, "PvP limitations applied: Prot III, Strength I, XP/Web caps, 1 god apple, 1 stack breeze rods, 3 maces.");
+            this.warn(player, "PvP limitations applied: enchant caps and max 1 mace.");
         }
     }
 
@@ -387,6 +312,4 @@ public final class PvpRulesListener implements Listener {
         return changed;
     }
 
-    private record CombatTag(UUID opponentId, long expiresAtMs) {
-    }
 }

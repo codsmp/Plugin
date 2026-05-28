@@ -62,9 +62,6 @@ public final class GracePeriodController implements Listener, CommandExecutor {
         }
 
         event.setCancelled(true);
-        if (event.getEntity() instanceof Player player) {
-            player.sendActionBar(ChatColor.GREEN + "Grace period active: no damage can be taken.");
-        }
     }
 
     private void startGracePeriod(long durationMs, String actorName) {

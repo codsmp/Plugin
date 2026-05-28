@@ -2,6 +2,12 @@ resource-pack:
   url: ""
   prompt-message: ""
 
+season3:
+  random-spawn:
+    enabled: true
+    min-radius: 300
+    max-radius: 3000
+
 spell-balance:
   global-damage-multiplier: 1.5
   global-cooldown-multiplier: 0.9

@@ -30,12 +30,15 @@ public final class RelicboundCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
-            if (command.getName().equalsIgnoreCase("relicboundspells")) {
+            if (command.getName().equalsIgnoreCase("spell") || command.getName().equalsIgnoreCase("relicboundspells")) {
                 return this.openSpellMenu(sender);
             }
 
-            if (command.getName().equalsIgnoreCase("relicbound") && args.length == 0) {
-                return this.openRelicMenu(sender);
+            if ((command.getName().equalsIgnoreCase("info")
+                    || command.getName().equalsIgnoreCase("relicbound")
+                    || command.getName().equalsIgnoreCase("rb"))
+                    && args.length == 0) {
+                return this.openInfo(sender);
             }
 
             if (args.length == 0) {
@@ -67,7 +70,7 @@ public final class RelicboundCommand implements CommandExecutor {
                     PlayerRelicState before = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
                     PlayerRelicState after = this.core.upgradeTier(player.getUniqueId().toString());
                     if (after != null && (before == null || before.tier() != after.tier())) {
-                        player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
+                        player.sendMessage(ChatColor.GOLD + "[Witch] " + ChatColor.YELLOW + "Your tier advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
                     } else {
                         player.sendMessage(ChatColor.GREEN + "Your relic has advanced.");
                     }
@@ -115,7 +118,7 @@ public final class RelicboundCommand implements CommandExecutor {
                     }
                 }
                 if (after != null && after.pendingRewardSelection()) {
-                    target.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "Your relic advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
+                    target.sendMessage(ChatColor.GOLD + "[Witch] " + ChatColor.YELLOW + "Your tier advanced to " + ChatColor.WHITE + after.tier().name() + ChatColor.YELLOW + "!");
                 }
                 return true;
             }
@@ -125,11 +128,11 @@ public final class RelicboundCommand implements CommandExecutor {
                 return true;
             }
 
-            sender.sendMessage("Usage: /relicbound <guide|spells|upgrade|grant|debug|op>");
+            sender.sendMessage("Usage: /info <guide|spells|upgrade|grant|debug|op>");
             return true;
         } catch (Throwable t) {
             // Log the full exception to server logs and send a concise message to the sender
-            this.plugin.getLogger().log(Level.SEVERE, "Error executing /relicbound command", t);
+            this.plugin.getLogger().log(Level.SEVERE, "Error executing /info command", t);
             sender.sendMessage(ChatColor.RED + "An unexpected error occurred while executing that command. See server logs for details.");
             if (sender.hasPermission("relicbound.admin.grant") || (sender instanceof org.bukkit.entity.Player p && p.isOp())) {
                 sender.sendMessage(ChatColor.RED + t.getClass().getSimpleName() + ": " + (t.getMessage() == null ? "(no message)" : t.getMessage()));
@@ -143,6 +146,16 @@ public final class RelicboundCommand implements CommandExecutor {
             sender.sendMessage("Players only.");
             return true;
         }
+        new RelicMenu(this.core).open(player);
+        return true;
+    }
+
+    private boolean openInfo(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Players only.");
+            return true;
+        }
+        player.sendMessage(ChatColor.DARK_AQUA + "[Witch] " + ChatColor.GRAY + "Use " + ChatColor.WHITE + "/spell" + ChatColor.GRAY + " to manage loadout, and " + ChatColor.WHITE + "/info guide" + ChatColor.GRAY + " for the guide.");
         new RelicMenu(this.core).open(player);
         return true;
     }
@@ -185,7 +198,7 @@ public final class RelicboundCommand implements CommandExecutor {
         PlayerRelicState relicState = this.core.findPlayerState(playerId).orElse(null);
         PlayerManaState manaState = this.core.getPlayerManaState(playerId).orElse(null);
 
-        sender.sendMessage(ChatColor.GOLD + "[Relicbound Debug] " + ChatColor.YELLOW + target.getName());
+        sender.sendMessage(ChatColor.GOLD + "[Witch Debug] " + ChatColor.YELLOW + target.getName());
         if (relicState != null) {
             sender.sendMessage(ChatColor.GRAY + "Tier: " + ChatColor.WHITE + relicState.tier().name());
             sender.sendMessage(ChatColor.GRAY + "Unlocked spells: " + ChatColor.WHITE + relicState.unlockedAbilities().size());
@@ -243,7 +256,7 @@ public final class RelicboundCommand implements CommandExecutor {
         );
         this.core.savePlayerState(boosted);
 
-        player.sendMessage(ChatColor.GOLD + "[Relicbound] " + ChatColor.YELLOW + "You now have every spell unlocked and are at " + ChatColor.WHITE + RelicTier.ASCENSION_5.name() + ChatColor.YELLOW + ".");
+        player.sendMessage(ChatColor.GOLD + "[Witch] " + ChatColor.YELLOW + "You now have every spell unlocked and are at " + ChatColor.WHITE + RelicTier.ASCENSION_5.name() + ChatColor.YELLOW + ".");
         return true;
     }
 }

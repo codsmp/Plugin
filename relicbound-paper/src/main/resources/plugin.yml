@@ -1,20 +1,28 @@
-name: RelicboundSMP
+name: Witch
 main: com.relicbound.paper.RelicboundPaperPlugin
 version: 0.1.0
 api-version: '1.21'
-author: Relicbound SMP
+author: Witch SMP
 load: POSTWORLD
 commands:
+  info:
+    description: View your Witch status, progression, and controls.
+    usage: /info
+    permission: relicbound.command.info
+  spell:
+    description: Open your spell loadout menu.
+    usage: /spell
+    permission: relicbound.command.info
   relicbound:
-    description: View your relic state.
+    description: Legacy alias for /info.
     usage: /relicbound
     permission: relicbound.command.info
   relicboundspells:
-    description: Open the relic spells menu.
+    description: Legacy alias for /spell.
     usage: /relicboundspells
     permission: relicbound.command.info
   relicboundupgrade:
-    description: Upgrade your relic tier.
+    description: Upgrade your Witch tier.
     usage: /relicboundupgrade
     permission: relicbound.command.info
   relicboundgrant:
@@ -26,17 +34,13 @@ commands:
     usage: /relicreset
     permission: relicbound.admin.reset
   rb:
-    description: Alias for /relicbound
+    description: Legacy alias for /info
     usage: /rb
     permission: relicbound.command.info
   trust:
     description: Trust a player so they cannot damage you.
     usage: /trust <player>
     permission: relicbound.command.trust
-  team:
-    description: Create and manage teams.
-    usage: /team [create|prefix|color|invite|accept|deny|trust|ally|leave|disband|info|help]
-    permission: relicbound.command.team
   graceperiod:
     description: Start or manage global no-damage grace period.
     usage: /graceperiod [status|stop]
@@ -45,8 +49,6 @@ permissions:
   relicbound.command.info:
     default: true
   relicbound.command.trust:
-    default: true
-  relicbound.command.team:
     default: true
   relicbound.admin.grant:
     default: op

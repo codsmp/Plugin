@@ -48,20 +48,24 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new TotemUnobtainableListener(), this);
         Bukkit.getPluginManager().registerEvents(new StarterItemProtectionListener(), this);
         Bukkit.getPluginManager().registerEvents(new SkyLeapProtectionListener(this.spellEngine), this);
-        Bukkit.getPluginManager().registerEvents(new SecretPhraseListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new GuideMenuListener(), this);
         Bukkit.getPluginManager().registerEvents(new SpellWandListener(this.core, this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new RootBindDisableListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore, this.teamStore), this);
+        Bukkit.getPluginManager().registerEvents(new DragonEggUnlockListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(this.gracePeriodController, this);
+        Bukkit.getPluginManager().registerEvents(new TabIsolationListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new RandomSpawnListener(this), this);
 
         // Start mana-related tasks
         new ManaBarDisplay(this, this.core, this.spellEngine).startDisplayTask();
         new ManaRegenTask(this, this.core).startRegenTask();
 
-        if (this.getCommand("relicbound") != null) {
+        if (this.getCommand("info") != null) {
             RelicboundCommand executor = new RelicboundCommand(this, this.core, this.spellEngine);
-            this.getCommand("relicbound").setExecutor(executor);
+            this.getCommand("info").setExecutor(executor);
+            if (this.getCommand("spell") != null) this.getCommand("spell").setExecutor(executor);
+            if (this.getCommand("relicbound") != null) this.getCommand("relicbound").setExecutor(executor);
             if (this.getCommand("relicboundspells") != null) this.getCommand("relicboundspells").setExecutor(executor);
             if (this.getCommand("relicboundupgrade") != null) this.getCommand("relicboundupgrade").setExecutor(executor);
             if (this.getCommand("relicboundgrant") != null) this.getCommand("relicboundgrant").setExecutor(executor);
@@ -76,10 +80,6 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
 
         if (this.getCommand("trust") != null) {
             this.getCommand("trust").setExecutor(new TrustCommand(this, this.trustStore));
-        }
-
-        if (this.getCommand("team") != null) {
-            this.getCommand("team").setExecutor(new TeamCommand(this, this.teamStore));
         }
 
         this.teamStore.syncAllOnlinePlayers();
@@ -108,10 +108,10 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         this.trustStore.clear();
 
         for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
-            player.kickPlayer(org.bukkit.ChatColor.RED + "Relicbound data has been reset. Please reconnect.");
+            player.kickPlayer(org.bukkit.ChatColor.RED + "Witch data has been reset. Please reconnect.");
         }
 
-        this.getLogger().warning("Relicbound data was reset by " + actorName);
+        this.getLogger().warning("Witch data was reset by " + actorName);
         org.bukkit.Bukkit.getScheduler().runTaskLater(this, () -> this.resetInProgress = false, 40L);
     }
 
