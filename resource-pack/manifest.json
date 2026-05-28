@@ -1,6 +1,6 @@
 ﻿{
-    "generatedAt":  "2026-05-23T13:39:06",
-    "spellCount":  37,
+    "generatedAt":  "2026-05-28T08:45:00",
+    "spellCount":  38,
     "entries":  [
                     {
                         "Id":  "ember_burst",
@@ -444,6 +444,18 @@
                         "Effect":  "ELEMENTAL_GOURMET",
                         "Description":  "Devour a creature to gain its boons.",
                         "ManaCost":  24,
+                        "ManaPerSecond":  0
+                    },
+                    {
+                        "Id":  "bliss_egg",
+                        "Name":  "Bliss Severance",
+                        "ModelKey":  "spell_bliss_egg",
+                        "Material":  "DRAGON_EGG",
+                        "CustomModelData":  3999,
+                        "Tier":  "TIER_1",
+                        "Effect":  "DRAGON_EGG_BLISS",
+                        "Description":  "Banish a target into the monochrome Bliss where the egg wielder cannot be seen.",
+                        "ManaCost":  35,
                         "ManaPerSecond":  0
                     }
                 ]
