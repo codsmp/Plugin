@@ -61,16 +61,15 @@ public final class RootBindDisableListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player player && this.spellEngine.isRootBound(player)) {
-            event.setCancelled(true);
-        }
+        // Allow inventory interactions while root-bound so players can move items.
+        // Previous behavior cancelled clicks; we intentionally do nothing here.
+        return;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getWhoClicked() instanceof Player player && this.spellEngine.isRootBound(player)) {
-            event.setCancelled(true);
-        }
+        // Allow inventory drag while root-bound.
+        return;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
