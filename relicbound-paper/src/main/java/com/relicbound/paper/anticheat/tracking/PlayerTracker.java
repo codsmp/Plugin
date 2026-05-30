@@ -23,6 +23,7 @@ public final class PlayerTracker {
     private long lastAirNanoTime;
     private long lastVelocityNanoTime;
     private long lastTeleportNanoTime;
+    private long abilityGraceUntilNanos;
     private double totalHorizontalVelocity;
     private double totalVerticalVelocity;
     private boolean sprinting;
@@ -80,6 +81,14 @@ public final class PlayerTracker {
 
     public void markTeleport(long nanoTime) {
         this.lastTeleportNanoTime = nanoTime;
+    }
+
+    public void markAbilityGrace(long untilNanos) {
+        this.abilityGraceUntilNanos = Math.max(this.abilityGraceUntilNanos, untilNanos);
+    }
+
+    public boolean hasAbilityGrace(long nowNanos) {
+        return this.abilityGraceUntilNanos > nowNanos;
     }
 
     public List<MovementSnapshot> movements() {

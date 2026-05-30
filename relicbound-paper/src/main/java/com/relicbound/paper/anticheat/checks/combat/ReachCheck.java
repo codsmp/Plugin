@@ -21,6 +21,7 @@ public final class ReachCheck extends AbstractCheck {
         if (player == null) return;
         var settings = this.settings(service);
         if (!settings.enabled()) return;
+        if (tracker.hasAbilityGrace(nowNanos)) return;
         CombatSnapshot latest = tracker.latestCombat();
         if (latest == null) return;
         double measured = latest.distance();

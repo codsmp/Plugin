@@ -25,7 +25,7 @@ public record AnticheatConfig(
         checks.put("autoclicker", new CheckSettings(true, 4.0D, 8.5D, 0.08D, 7.0D, 3, 0.0D, false));
         checks.put("velocity", new CheckSettings(true, 4.0D, 8.0D, 0.10D, 10.0D, 3, 0.0D, true));
         checks.put("speed", new CheckSettings(true, 4.0D, 8.0D, 0.10D, 9.0D, 3, 0.0D, true));
-        checks.put("fly", new CheckSettings(true, 4.5D, 9.0D, 0.06D, 10.0D, 3, 0.0D, true));
+        checks.put("fly", new CheckSettings(true, 4.5D, 10.0D, 0.12D, 14.0D, 2, 0.0D, true));
         checks.put("nofall", new CheckSettings(true, 4.0D, 8.0D, 0.08D, 8.0D, 3, 0.0D, false));
         checks.put("jesus", new CheckSettings(true, 3.5D, 7.0D, 0.08D, 8.0D, 3, 0.0D, false));
         checks.put("step", new CheckSettings(true, 3.5D, 7.0D, 0.08D, 7.0D, 3, 0.0D, false));
@@ -43,7 +43,7 @@ public record AnticheatConfig(
                 new AlertSettings(true, 3, true, "witchsmp.anticheat.alerts"),
                 new AnnouncementSettings(true, 85.0D, 30, true, "", "⚡ Witch SMP Anticheat ⚡"),
                 new LoggingSettings(true, true, true, true, true),
-                new PunishmentSettings(true, PunishmentAction.KICK, 85.0D, "minecraft:kick {player} Cheating detected by Witch SMP Anticheat.", "minecraft:ban {player} Witch SMP anticheat", "", 75),
+                new PunishmentSettings(true, PunishmentAction.KICK, 90.0D, "minecraft:kick {player} Cheating detected by Witch SMP Anticheat.", "", "", 90),
                 new TrackingSettings(64, 64, 64, 32, 48),
                 checks
         );
@@ -57,9 +57,6 @@ public record AnticheatConfig(
     public record TrackingSettings(int movementHistory, int rotationHistory, int velocityHistory, int clickHistory, int combatHistory) {}
 
     public enum PunishmentAction {
-        KICK,
-        COMMAND,
-        TEMP_BAN,
-        PERM_BAN
+        KICK
     }
 }

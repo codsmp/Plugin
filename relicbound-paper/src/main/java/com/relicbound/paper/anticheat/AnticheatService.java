@@ -33,6 +33,7 @@ public final class AnticheatService {
         this.checkRegistry = new com.relicbound.paper.anticheat.checks.CheckRegistry();
         // register core checks
         this.checkRegistry.register(new com.relicbound.paper.anticheat.checks.movement.SpeedCheck());
+        this.checkRegistry.register(new com.relicbound.paper.anticheat.checks.movement.FlyCheck());
         this.checkRegistry.register(new com.relicbound.paper.anticheat.checks.combat.ReachCheck());
         this.alertService = new com.relicbound.paper.anticheat.alerts.AlertService(this.config);
         this.announcementService = new com.relicbound.paper.anticheat.announcements.AnnouncementService(this.config);
@@ -107,7 +108,7 @@ public final class AnticheatService {
                 String playerName = "(unknown)";
                 var player = org.bukkit.Bukkit.getPlayer(pid);
                 if (player != null) playerName = player.getName();
-                // Kick by default
+                // Kick only; ban actions are intentionally not executed by this service.
                 if (this.config.punishments().action() == AnticheatConfig.PunishmentAction.KICK) {
                     if (player != null) {
                         player.kickPlayer(this.config.punishments().kickCommandTemplate().replace("{player}", playerName));

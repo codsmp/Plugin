@@ -55,6 +55,7 @@ import java.io.IOException;
 public final class PaperSpellEngine {
     private final JavaPlugin plugin;
     private final RelicboundCore core;
+    private final com.relicbound.paper.anticheat.AnticheatService anticheatService;
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
     private final Map<UUID, BukkitTask> channelTasks = new HashMap<>();
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
@@ -204,9 +205,14 @@ public final class PaperSpellEngine {
             }
 
     public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore) {
+        this(plugin, core, trustStore, null);
+    }
+
+    public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore, com.relicbound.paper.anticheat.AnticheatService anticheatService) {
         this.plugin = plugin;
         this.core = core;
         this.trustStore = trustStore;
+        this.anticheatService = anticheatService;
         this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
     }
 
@@ -668,6 +674,7 @@ public final class PaperSpellEngine {
     }
 
     private void dashForward(Player player, double range, double verticalBoost, boolean fireTrail) {
+        this.markAbilityGrace(player, 25L);
         Vector direction = player.getLocation().getDirection().normalize().multiply(Math.max(0.8D, range / 4.0D));
         direction.setY(verticalBoost);
         player.setVelocity(direction);
@@ -820,6 +827,7 @@ public final class PaperSpellEngine {
     }
 
     private void blinkForward(Player player, double range) {
+        this.markAbilityGrace(player, 30L);
         Location target = player.getLocation().clone().add(player.getLocation().getDirection().normalize().multiply(range));
         target.setPitch(player.getLocation().getPitch());
         target.setYaw(player.getLocation().getYaw());
@@ -1177,6 +1185,14 @@ public final class PaperSpellEngine {
         return true;
     }
 
+    private void markAbilityGrace(Player player, long ticks) {
+        if (this.anticheatService == null || player == null) {
+            return;
+        }
+        long until = System.nanoTime() + Math.max(1L, ticks) * 50_000_000L;
+        this.anticheatService.registry().getOrCreate(player).markAbilityGrace(until);
+    }
+
     private void shadowBurst(Player player, double damage, double range) {
         this.damageNearby(player, damage, range, false, true);
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, true, true, true));
@@ -1247,6 +1263,7 @@ public final class PaperSpellEngine {
     }
 
     private void mobilityLeap(Player player, double power, double range) {
+        this.markAbilityGrace(player, 30L);
         Vector velocity = player.getLocation().getDirection().normalize().multiply(Math.max(1.0D, range / 5.0D));
         velocity.setY(Math.max(1.2D, power / 2.0D));
         player.setVelocity(velocity);
@@ -1668,6 +1685,7 @@ public final class PaperSpellEngine {
     }
 
     private void dragonEggBliss(Player caster, SpellDefinition spell, int durationTicks) {
+        this.markAbilityGrace(caster, 20L);
         if (caster.getInventory().getContents() == null) {
             return;
         }

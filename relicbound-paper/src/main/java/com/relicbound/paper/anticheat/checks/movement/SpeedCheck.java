@@ -21,6 +21,7 @@ public final class SpeedCheck extends AbstractCheck {
         if (player == null) return;
         var settings = this.settings(service);
         if (!settings.enabled()) return;
+        if (tracker.hasAbilityGrace(nowNanos)) return;
         MovementSnapshot latest = tracker.latestMovement();
         if (latest == null) return;
         double horiz = Math.hypot(latest.deltaX(), latest.deltaZ());

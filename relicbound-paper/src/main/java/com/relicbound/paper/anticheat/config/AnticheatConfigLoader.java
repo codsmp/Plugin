@@ -158,10 +158,9 @@ public final class AnticheatConfigLoader {
     }
 
     private AnticheatConfig.PunishmentAction loadPunishmentAction(String value) {
-        try {
-            return AnticheatConfig.PunishmentAction.valueOf(value.toUpperCase(java.util.Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            return AnticheatConfig.PunishmentAction.KICK;
+        if (value != null && !value.isBlank() && !"KICK".equalsIgnoreCase(value)) {
+            this.plugin.getLogger().warning("Unsupported anticheat punishment action '" + value + "' ignored; using KICK only.");
         }
+        return AnticheatConfig.PunishmentAction.KICK;
     }
 }

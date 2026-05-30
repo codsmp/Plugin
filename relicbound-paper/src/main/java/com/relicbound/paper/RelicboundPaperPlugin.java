@@ -41,12 +41,12 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         ));
         this.trustStore = new PlayerTrustStore(this);
         this.teamStore = new PlayerTeamStore(this);
-        this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore);
+        // Initialize anticheat service
+        this.anticheatService = new com.relicbound.paper.anticheat.AnticheatService(this);
+        this.spellEngine = new PaperSpellEngine(this, this.core, this.trustStore, this.anticheatService);
         // Load any persisted Bliss return locations from previous sessions
         this.spellEngine.loadBlissReturns();
         this.gracePeriodController = new GracePeriodController(this);
-        // Initialize anticheat service
-        this.anticheatService = new com.relicbound.paper.anticheat.AnticheatService(this);
         if (this.anticheatService.enabled()) {
             Bukkit.getPluginManager().registerEvents(new com.relicbound.paper.anticheat.listener.MovementListener(this.anticheatService), this);
             Bukkit.getPluginManager().registerEvents(new com.relicbound.paper.anticheat.listener.CombatListener(this.anticheatService), this);
