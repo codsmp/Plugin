@@ -21,14 +21,7 @@ public final class InvisibleKillerDeathListener implements Listener {
         if (killer == null) return;
 
         if (this.spellEngine.isShadowVeiled(killer)) {
-            String msg = event.getDeathMessage();
-            if (msg == null) return;
-            String name = killer.getName();
-            if (name == null || name.isEmpty()) return;
-
-            String obf = ChatColor.MAGIC + "########" + ChatColor.RESET;
-            String newMsg = msg.replace(name, obf);
-            event.setDeathMessage(newMsg);
+            event.setDeathMessage(victim.getName() + " was slain by " + ChatColor.MAGIC + killer.getName() + ChatColor.RESET);
         }
     }
 }
