@@ -3,6 +3,7 @@ package com.relicbound.paper;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,13 +32,10 @@ public final class RandomSpawnListener implements Listener {
         }
         World world = player.getWorld();
         Location random = this.pickSafeSpawn(world);
-        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-            if (!player.isOnline()) {
-                return;
-            }
+        if (player.isOnline()) {
             player.teleport(random);
             player.sendMessage(ChatColor.DARK_AQUA + "[Witch] " + ChatColor.GRAY + "You awaken in unknown territory.");
-        }, 2L);
+        }
     }
 
     @EventHandler
@@ -54,9 +52,31 @@ public final class RandomSpawnListener implements Listener {
         int min = Math.max(100, this.plugin.getConfig().getInt("season3.random-spawn.min-radius", 300));
         int max = Math.max(min + 50, this.plugin.getConfig().getInt("season3.random-spawn.max-radius", 3000));
 
-        for (int attempts = 0; attempts < 64; attempts++) {
-            int x = this.randomSigned(min, max);
-            int z = this.randomSigned(min, max);
+        WorldBorder border = world.getWorldBorder();
+        Location borderCenter = border.getCenter();
+        double borderRadius = Math.max(128.0D, border.getSize() / 2.0D);
+        double usableRadius = Math.max(128.0D, borderRadius - 24.0D);
+        int borderBound = (int) Math.floor(usableRadius);
+        int effectiveMax = Math.min(max, Math.max(min, borderBound));
+        int effectiveMin = Math.min(min, Math.max(64, effectiveMax / 4));
+
+        for (int attempts = 0; attempts < 48; attempts++) {
+            int x = this.randomSigned(effectiveMin, effectiveMax);
+            int z = this.randomSigned(effectiveMin, effectiveMax);
+            if (this.plugin.getConfig().getBoolean("season3.random-spawn.adapt-to-world-border", true)) {
+                if (ThreadLocalRandom.current().nextBoolean()) {
+                    x = borderCenter.getBlockX() + x;
+                    z = borderCenter.getBlockZ() + z;
+                } else {
+                    x = borderCenter.getBlockX() - x;
+                    z = borderCenter.getBlockZ() - z;
+                }
+            }
+
+            if (!this.isInsideBorder(world, x, z)) {
+                continue;
+            }
+
             int y = world.getHighestBlockYAt(x, z);
             Location candidate = new Location(world, x + 0.5D, y + 1.0D, z + 0.5D);
             // Avoid spawning in unsafe biomes or too close to other players
@@ -75,8 +95,20 @@ public final class RandomSpawnListener implements Listener {
         }
 
         Location fallback = world.getSpawnLocation().clone();
+        if (!this.isInsideBorder(world, fallback.getBlockX(), fallback.getBlockZ())) {
+            fallback = borderCenter.clone();
+        }
         fallback.setY(world.getHighestBlockYAt(fallback) + 1.0D);
         return fallback;
+    }
+
+    private boolean isInsideBorder(World world, int x, int z) {
+        WorldBorder border = world.getWorldBorder();
+        Location center = border.getCenter();
+        double half = border.getSize() / 2.0D;
+        double dx = Math.abs((x + 0.5D) - center.getX());
+        double dz = Math.abs((z + 0.5D) - center.getZ());
+        return dx <= half && dz <= half;
     }
 
     private int randomSigned(int min, int max) {
