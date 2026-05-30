@@ -33,7 +33,7 @@ public final class StarterItemProtectionListener implements Listener {
         }
 
         event.setCancelled(true);
-        event.getPlayer().sendMessage(ChatColor.RED + "[Relicbound] Starter wands cannot be dropped.");
+        event.getPlayer().sendMessage(ChatColor.RED + "[Witch] Starter wands cannot be dropped.");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -47,7 +47,7 @@ public final class StarterItemProtectionListener implements Listener {
                 && (event.getAction() == InventoryAction.DROP_ALL_CURSOR || event.getAction() == InventoryAction.DROP_ONE_CURSOR)
                 && StarterItemUtil.isStarterItem(event.getCursor())) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "[Relicbound] Starter wands cannot be dropped.");
+            player.sendMessage(ChatColor.RED + "[Witch] Starter wands cannot be dropped.");
             return;
         }
 
@@ -61,7 +61,7 @@ public final class StarterItemProtectionListener implements Listener {
         }
 
         event.setCancelled(true);
-        player.sendMessage(ChatColor.RED + "[Relicbound] Starter wands cannot be dropped.");
+        player.sendMessage(ChatColor.RED + "[Witch] Starter wands cannot be dropped.");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -81,7 +81,7 @@ public final class StarterItemProtectionListener implements Listener {
         event.getInventory().setResult(null);
         for (HumanEntity viewer : event.getViewers()) {
             if (viewer instanceof Player player) {
-                player.sendMessage(ChatColor.RED + "[Relicbound] Starter wands cannot be used in crafting.");
+                player.sendMessage(ChatColor.RED + "[Witch] Starter wands cannot be used in crafting.");
             }
         }
     }
@@ -102,7 +102,7 @@ public final class StarterItemProtectionListener implements Listener {
 
         event.setCancelled(true);
         if (event.getWhoClicked() instanceof Player player) {
-            player.sendMessage(ChatColor.RED + "[Relicbound] Starter wands cannot be used in crafting.");
+            player.sendMessage(ChatColor.RED + "[Witch] Starter wands cannot be used in crafting.");
         }
     }
 
@@ -146,10 +146,10 @@ public final class StarterItemProtectionListener implements Listener {
 
         if (!stillPending.isEmpty()) {
             this.pendingDeathRestore.put(player.getUniqueId(), stillPending);
-            player.sendMessage(ChatColor.YELLOW + "[Relicbound] Your starter item will be restored when you have inventory space.");
+            player.sendMessage(ChatColor.YELLOW + "[Witch] Your starter item will be restored when you have inventory space.");
             return;
         }
 
-        player.sendMessage(ChatColor.AQUA + "[Relicbound] Your starter item was kept through death.");
+        player.sendMessage(ChatColor.AQUA + "[Witch] Your starter item was kept through death.");
     }
 }

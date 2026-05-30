@@ -84,11 +84,21 @@ public final class SpellMenuListener implements Listener {
             } else {
                 PlayerRelicState currentState = this.core.findPlayerState(player.getUniqueId().toString()).orElse(null);
                 if (currentState != null) {
-                    this.core.savePlayerState(currentState.withPendingRewardSelection(false));
+                    int remainingSelections = currentState.pendingRewardSelections();
+                    if (remainingSelections > 1) {
+                        this.core.savePlayerState(currentState.withPendingRewardSelections(remainingSelections - 1));
+                    } else {
+                        this.core.savePlayerState(currentState.withPendingRewardSelection(false));
+                    }
                 }
                 this.claimRewardSpell(player, spellDefinition.id());
-                player.sendMessage(ChatColor.GOLD + "You claimed " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.GOLD + ".");
-                new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.ASSIGN);
+                if (currentState != null && currentState.pendingRewardSelections() > 1) {
+                    player.sendMessage(ChatColor.GOLD + "You claimed " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.GOLD + ". Pick one more spell.");
+                    player.closeInventory();
+                } else {
+                    player.sendMessage(ChatColor.GOLD + "You claimed " + ChatColor.WHITE + spellDefinition.displayName() + ChatColor.GOLD + ".");
+                    new SpellMenu(this.plugin, this.core).open(player, SpellMenuMode.ASSIGN);
+                }
             }
         } catch (IllegalStateException exception) {
             player.sendMessage(ChatColor.RED + exception.getMessage());
@@ -118,13 +128,19 @@ public final class SpellMenuListener implements Listener {
 
     private void claimRewardSpell(Player player, String spellId) {
         String playerId = player.getUniqueId().toString();
+        // Protect Bliss Severance: only claimable if player already unlocked or holds a Dragon Egg
+        if ("bliss_egg".equals(spellId) && !this.core.findPlayerState(playerId).map(s -> s.unlockedAbilities().contains(spellId)).orElse(false)) {
+            if (!player.getInventory().contains(org.bukkit.Material.DRAGON_EGG)) {
+                throw new IllegalStateException("You must be a dragon egg wielder to claim Bliss Severance.");
+            }
+        }
         this.core.learnSpell(playerId, spellId);
         PlayerManaState manaState = this.core.getPlayerManaState(playerId).orElse(null);
         if (manaState == null) {
             return;
         }
         if (manaState.equippedSpellIds().size() >= 2 || manaState.equippedSpellIds().contains(spellId)) {
-            player.sendMessage(ChatColor.GRAY + "The spell was added to your spellbook. Use /relicboundspells to equip it later.");
+            player.sendMessage(ChatColor.GRAY + "The spell was added to your spellbook. Use /witchspells to equip it later.");
             return;
         }
         this.core.equipSpell(playerId, spellId);

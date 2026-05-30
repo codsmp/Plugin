@@ -26,7 +26,7 @@ public final class GracePeriodController implements Listener, CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("relicbound.admin.grace")) {
+        if (!sender.hasPermission("witch.admin.grace")) {
             sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
             return true;
         }

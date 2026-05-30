@@ -21,6 +21,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
     private PlayerTrustStore trustStore;
     private PlayerTeamStore teamStore;
     private GracePeriodController gracePeriodController;
+    private com.relicbound.paper.anticheat.AnticheatService anticheatService;
     private volatile boolean resetInProgress;
 
     @Override
@@ -44,6 +45,14 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         // Load any persisted Bliss return locations from previous sessions
         this.spellEngine.loadBlissReturns();
         this.gracePeriodController = new GracePeriodController(this);
+        // Initialize anticheat service
+        this.anticheatService = new com.relicbound.paper.anticheat.AnticheatService(this);
+        if (this.anticheatService.enabled()) {
+            Bukkit.getPluginManager().registerEvents(new com.relicbound.paper.anticheat.listener.MovementListener(this.anticheatService), this);
+            Bukkit.getPluginManager().registerEvents(new com.relicbound.paper.anticheat.listener.CombatListener(this.anticheatService), this);
+            Bukkit.getPluginManager().registerEvents(new com.relicbound.paper.anticheat.listener.ClickListener(this.anticheatService), this);
+            Bukkit.getPluginManager().registerEvents(new com.relicbound.paper.anticheat.listener.VelocityListener(this.anticheatService), this);
+        }
         Bukkit.getPluginManager().registerEvents(new RelicJoinListener(this, this.core, this.spellEngine, this.teamStore), this);
         Bukkit.getPluginManager().registerEvents(new RelicMenuListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new SpellMenuListener(this, this.core, this.spellEngine), this);
@@ -60,6 +69,7 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new TrustDamageListener(this.trustStore, this.teamStore), this);
         Bukkit.getPluginManager().registerEvents(new DragonEggUnlockListener(this, this.core), this);
         Bukkit.getPluginManager().registerEvents(new BlissLifecycleListener(this, this.spellEngine), this);
+        Bukkit.getPluginManager().registerEvents(new InvisibleKillerDeathListener(this.spellEngine), this);
         Bukkit.getPluginManager().registerEvents(this.gracePeriodController, this);
         Bukkit.getPluginManager().registerEvents(new TabIsolationListener(this), this);
         Bukkit.getPluginManager().registerEvents(new RandomSpawnListener(this), this);
@@ -75,11 +85,11 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
             RelicboundCommand executor = new RelicboundCommand(this, this.core, this.spellEngine);
             this.getCommand("info").setExecutor(executor);
             if (this.getCommand("spell") != null) this.getCommand("spell").setExecutor(executor);
-            if (this.getCommand("relicbound") != null) this.getCommand("relicbound").setExecutor(executor);
-            if (this.getCommand("relicboundspells") != null) this.getCommand("relicboundspells").setExecutor(executor);
-            if (this.getCommand("relicboundupgrade") != null) this.getCommand("relicboundupgrade").setExecutor(executor);
-            if (this.getCommand("relicboundgrant") != null) this.getCommand("relicboundgrant").setExecutor(executor);
-            if (this.getCommand("rb") != null) this.getCommand("rb").setExecutor(executor);
+            if (this.getCommand("witch") != null) this.getCommand("witch").setExecutor(executor);
+            if (this.getCommand("witchspells") != null) this.getCommand("witchspells").setExecutor(executor);
+            if (this.getCommand("witchupgrade") != null) this.getCommand("witchupgrade").setExecutor(executor);
+            if (this.getCommand("witchgrant") != null) this.getCommand("witchgrant").setExecutor(executor);
+            if (this.getCommand("witchreset") != null) this.getCommand("witchreset").setExecutor(new RelicResetCommand(this, this.adapter, this.trustStore));
         }
 
         // enchantlimit command removed
@@ -96,6 +106,10 @@ public final class RelicboundPaperPlugin extends JavaPlugin {
 
         if (this.getCommand("graceperiod") != null) {
             this.getCommand("graceperiod").setExecutor(this.gracePeriodController);
+        }
+
+        if (this.getCommand("ac") != null) {
+            this.getCommand("ac").setExecutor(new com.relicbound.paper.anticheat.command.AnticheatCommand(this.anticheatService));
         }
 
         // Disable server advancement announcements so players won't see advancement messages in chat.

@@ -111,7 +111,8 @@ public class DefaultRelicboundCore implements RelicboundCore {
                 state.currentEssence(),
                 state.essenceByType(),
             List.copyOf(unlocked),
-            state.pendingRewardSelection()
+            state.pendingRewardSelection(),
+            state.pendingRewardSelections()
         ));
     }
 
@@ -217,7 +218,8 @@ public class DefaultRelicboundCore implements RelicboundCore {
                 state.currentEssence(),
                 state.essenceByType(),
             List.copyOf(unlocked),
-            state.pendingRewardSelection()
+            state.pendingRewardSelection(),
+            state.pendingRewardSelections()
         );
     }
 }

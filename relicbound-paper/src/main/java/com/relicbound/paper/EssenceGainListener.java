@@ -82,7 +82,7 @@ public final class EssenceGainListener implements Listener {
         if (before == null || before.tier() == after.tier()) {
             return;
         }
-        player.sendMessage(org.bukkit.ChatColor.GOLD + "[Relicbound] " + org.bukkit.ChatColor.YELLOW + "Your relic automatically advanced to " + org.bukkit.ChatColor.WHITE + after.tier().name() + org.bukkit.ChatColor.YELLOW + "!");
+        player.sendMessage(org.bukkit.ChatColor.GOLD + "[Witch] " + org.bukkit.ChatColor.YELLOW + "Your relic automatically advanced to " + org.bukkit.ChatColor.WHITE + after.tier().name() + org.bukkit.ChatColor.YELLOW + "!");
         boolean hasLockedSpells = this.core.allSpells().stream().anyMatch(spell -> !after.unlockedAbilities().contains(spell.id()));
         if (hasLockedSpells) {
             Bukkit.getScheduler().runTask(this.plugin, () -> {

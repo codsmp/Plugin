@@ -35,12 +35,26 @@ public final class SpellMenu {
     public void open(Player player, SpellMenuMode mode) {
         PlayerRelicState state = this.core.getOrCreateStartingState(player.getUniqueId().toString(), player.getUniqueId().getMostSignificantBits());
         SpellMenuHolder holder = new SpellMenuHolder(player.getUniqueId().toString(), mode);
-        String title = mode == SpellMenuMode.REWARD ? ChatColor.DARK_GREEN + "Choose Your Spell" : ChatColor.DARK_BLUE + "Spellbound Arsenal";
+        String title;
+        if (mode == SpellMenuMode.REWARD) {
+            int remainingSelections = Math.max(1, state.pendingRewardSelections());
+            title = ChatColor.DARK_GREEN + (remainingSelections > 1 ? "Choose Your Spells (" + remainingSelections + " left)" : "Choose Your Spell");
+        } else {
+            title = ChatColor.DARK_BLUE + "Spellbound Arsenal";
+        }
         Inventory inventory = Bukkit.createInventory(holder, 54, title);
         holder.setInventory(inventory);
 
         List<SpellDefinition> spells = this.core.allSpells().stream()
-                .filter(spell -> mode != SpellMenuMode.REWARD || !state.unlockedAbilities().contains(spell.id()))
+                .filter(spell -> {
+                    // Reward mode: only show spells the player hasn't unlocked yet
+                    if (mode == SpellMenuMode.REWARD && state.unlockedAbilities().contains(spell.id())) return false;
+                    // Special-case: Bliss Severance (bliss_egg) requires Dragon Egg in inventory unless already unlocked
+                    if ("bliss_egg".equals(spell.id()) && !state.unlockedAbilities().contains(spell.id())) {
+                        if (!player.getInventory().contains(Material.DRAGON_EGG)) return false;
+                    }
+                    return true;
+                })
                 .sorted(Comparator.comparing(SpellDefinition::displayName))
                 .toList();
         int slot = 0;

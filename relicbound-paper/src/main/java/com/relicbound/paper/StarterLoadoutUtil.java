@@ -18,6 +18,7 @@ public final class StarterLoadoutUtil {
     public static List<SpellDefinition> randomStarterSpells(RelicboundCore core) {
         List<SpellDefinition> starterPool = core.allSpells().stream()
                 .filter(spell -> spell.requiredTier() == RelicTier.TIER_1)
+                .filter(spell -> !"bliss_egg".equals(spell.id())) // Bliss is special-case; only unlock via Dragon Egg
                 .toList();
         if (starterPool.isEmpty()) {
             return List.of();

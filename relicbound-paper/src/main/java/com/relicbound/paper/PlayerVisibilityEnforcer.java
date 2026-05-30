@@ -37,8 +37,8 @@ public final class PlayerVisibilityEnforcer implements Listener {
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other.getUniqueId().equals(left.getUniqueId())) continue;
             try {
-                other.hidePlayer(this.plugin, left);
-                left.hidePlayer(this.plugin, other);
+                other.unlistPlayer(left);
+                left.unlistPlayer(other);
             } catch (Throwable ignored) {}
         }
     }
@@ -72,21 +72,18 @@ public final class PlayerVisibilityEnforcer implements Listener {
         for (Player target : Bukkit.getOnlinePlayers()) {
             if (!target.isOnline()) continue;
             if (viewer.getUniqueId().equals(target.getUniqueId())) {
-                viewer.showPlayer(this.plugin, target);
                 continue;
             }
             try {
-                boolean allowed = false;
+                if (viewer.isOp()) {
+                    viewer.listPlayer(target);
+                    continue;
+                }
+
                 if (this.trustStore != null && this.trustStore.isTrustedEitherWay(viewer.getUniqueId().toString(), target.getUniqueId().toString())) {
-                    allowed = true;
-                }
-                if (!allowed && this.teamStore != null && this.teamStore.isAlliedOrSame(viewer.getUniqueId().toString(), target.getUniqueId().toString())) {
-                    allowed = true;
-                }
-                if (allowed) {
-                    viewer.showPlayer(this.plugin, target);
+                    viewer.listPlayer(target);
                 } else {
-                    viewer.hidePlayer(this.plugin, target);
+                    viewer.unlistPlayer(target);
                 }
             } catch (Throwable ignored) {}
         }

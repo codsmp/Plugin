@@ -8,53 +8,57 @@ commands:
   info:
     description: View your Witch status, progression, and controls.
     usage: /info
-    permission: relicbound.command.info
+    permission: witch.command.info
   spell:
     description: Open your spell loadout menu.
     usage: /spell
-    permission: relicbound.command.info
-  relicbound:
-    description: Legacy alias for /info.
-    usage: /relicbound
-    permission: relicbound.command.info
-  relicboundspells:
-    description: Legacy alias for /spell.
-    usage: /relicboundspells
-    permission: relicbound.command.info
-  relicboundupgrade:
+    permission: witch.command.info
+  witch:
+    description: View your Witch status, progression, and controls.
+    usage: /witch
+    permission: witch.command.info
+  witchspells:
+    description: Open your spell loadout menu.
+    usage: /witchspells
+    permission: witch.command.info
+  witchupgrade:
     description: Upgrade your Witch tier.
-    usage: /relicboundupgrade
-    permission: relicbound.command.info
-  relicboundgrant:
+    usage: /witchupgrade
+    permission: witch.command.info
+  witchgrant:
     description: Grant essence to a player (admin).
-    usage: /relicboundgrant <player> <essenceType> <amount>
-    permission: relicbound.admin.grant
+    usage: /witchgrant <player> <essenceType> <amount>
+    permission: witch.admin.grant
+  witchreset:
+    description: Reset all Witch player data.
+    usage: /witchreset
+    permission: witch.admin.reset
   relicreset:
-    description: Reset all Relicbound player data.
+    description: Reset all Witch player data.
     usage: /relicreset
-    permission: relicbound.admin.reset
-  rb:
-    description: Legacy alias for /info
-    usage: /rb
-    permission: relicbound.command.info
+    permission: witch.admin.reset
   trust:
     description: Trust a player so they cannot damage you.
     usage: /trust <player>
-    permission: relicbound.command.trust
+    permission: witch.command.trust
   graceperiod:
     description: Start or manage global no-damage grace period.
     usage: /graceperiod [status|stop]
-    permission: relicbound.admin.grace
+    permission: witch.admin.grace
+  ac:
+    description: Witch anticheat admin commands.
+    usage: /ac <debug|violations|reload>
+    permission: witch.admin.debug
 permissions:
-  relicbound.command.info:
+  witch.command.info:
     default: true
-  relicbound.command.trust:
+  witch.command.trust:
     default: true
-  relicbound.admin.grant:
+  witch.admin.grant:
     default: op
-  relicbound.admin.reset:
+  witch.admin.reset:
     default: op
-  relicbound.admin.debug:
+  witch.admin.debug:
     default: op
-  relicbound.admin.grace:
+  witch.admin.grace:
     default: op

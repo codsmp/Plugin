@@ -10,7 +10,8 @@ public record PlayerRelicState(
         int currentEssence,
         Map<String, Integer> essenceByType,
         List<String> unlockedAbilities,
-        boolean pendingRewardSelection
+    boolean pendingRewardSelection,
+    int pendingRewardSelections
 ) {
     public PlayerRelicState withPendingRewardSelection(boolean pendingRewardSelection) {
         return new PlayerRelicState(
@@ -20,7 +21,22 @@ public record PlayerRelicState(
                 this.currentEssence,
                 this.essenceByType,
                 this.unlockedAbilities,
-                pendingRewardSelection
+                pendingRewardSelection,
+                pendingRewardSelection ? Math.max(this.pendingRewardSelections, 1) : 0
+        );
+    }
+
+    public PlayerRelicState withPendingRewardSelections(int pendingRewardSelections) {
+        int normalized = Math.max(0, pendingRewardSelections);
+        return new PlayerRelicState(
+                this.playerId,
+                this.relicId,
+                this.tier,
+                this.currentEssence,
+                this.essenceByType,
+                this.unlockedAbilities,
+                normalized > 0,
+                normalized
         );
     }
 }

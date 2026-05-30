@@ -19,7 +19,7 @@ public final class GuideMenu {
 
     public void open(Player player) {
         GuideMenuHolder holder = new GuideMenuHolder(player.getUniqueId().toString());
-        Inventory inventory = Bukkit.createInventory(holder, 27, ChatColor.DARK_AQUA + "Relicbound Guide");
+                Inventory inventory = Bukkit.createInventory(holder, 27, ChatColor.DARK_AQUA + "Witch Guide");
         holder.setInventory(inventory);
 
         inventory.setItem(10, pageItem(Material.STICK, ChatColor.GOLD + "Fast Spellcaster Wand", List.of(
@@ -32,7 +32,7 @@ public final class GuideMenu {
                 ChatColor.GRAY + "Costs more mana and rewards deliberate play."
         )));
         inventory.setItem(14, pageItem(Material.ENCHANTED_BOOK, ChatColor.AQUA + "Spell Menu", List.of(
-                ChatColor.GRAY + "/relicboundspells opens your spellbook.",
+                ChatColor.GRAY + "/witchspells opens your spellbook.",
                 ChatColor.GRAY + "Left click to set primary, right click for secondary.",
                 ChatColor.GRAY + "Rewards always ignore spells you already own."
         )));

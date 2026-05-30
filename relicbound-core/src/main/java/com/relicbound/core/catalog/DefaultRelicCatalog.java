@@ -66,7 +66,8 @@ public final class DefaultRelicCatalog implements RelicCatalog {
                 0,
                 Map.of(),
             List.of(chosen.passiveIds().isEmpty() ? "starter_passive" : chosen.passiveIds().get(0)),
-            false
+            false,
+            0
         );
     }
 

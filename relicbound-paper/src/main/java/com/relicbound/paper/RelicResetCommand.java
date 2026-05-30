@@ -21,21 +21,21 @@ public final class RelicResetCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("relicbound.admin.reset")) {
+        if (!sender.hasPermission("witch.admin.reset")) {
             sender.sendMessage(ChatColor.RED + "You do not have permission to reset the server data.");
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "[Relicbound] Resetting all Relicbound data now...");
+        sender.sendMessage(ChatColor.RED + "[Witch] Resetting all Witch data now...");
         if (this.plugin instanceof RelicboundPaperPlugin relicboundPlugin) {
             relicboundPlugin.executeFullReset(sender.getName());
         } else {
             this.adapter.resetPersistentState();
             this.trustStore.clear();
             for (Player player : Bukkit.getOnlinePlayers()) {
-                player.kickPlayer(ChatColor.RED + "Relicbound data has been reset. Please reconnect.");
+                player.kickPlayer(ChatColor.RED + "Witch data has been reset. Please reconnect.");
             }
-            this.plugin.getLogger().warning("Relicbound data was reset by " + sender.getName());
+            this.plugin.getLogger().warning("Witch data was reset by " + sender.getName());
         }
         return true;
     }

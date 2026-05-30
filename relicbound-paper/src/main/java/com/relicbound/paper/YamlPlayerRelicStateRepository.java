@@ -80,7 +80,8 @@ public final class YamlPlayerRelicStateRepository implements PlayerRelicStateRep
             }
             List<String> unlockedAbilities = new ArrayList<>(configuration.getStringList(playerId + ".unlockedAbilities"));
             boolean pendingRewardSelection = configuration.getBoolean(playerId + ".pendingRewardSelection", false);
-            this.cache.put(playerId, new PlayerRelicState(playerId, relicId, tier, essence, essenceByType, unlockedAbilities, pendingRewardSelection));
+            int pendingRewardSelections = configuration.getInt(playerId + ".pendingRewardSelections", pendingRewardSelection ? 1 : 0);
+            this.cache.put(playerId, new PlayerRelicState(playerId, relicId, tier, essence, essenceByType, unlockedAbilities, pendingRewardSelection, pendingRewardSelections));
         }
     }
 
@@ -94,6 +95,7 @@ public final class YamlPlayerRelicStateRepository implements PlayerRelicStateRep
             configuration.set(path + ".essenceByType", state.essenceByType());
             configuration.set(path + ".unlockedAbilities", state.unlockedAbilities());
             configuration.set(path + ".pendingRewardSelection", state.pendingRewardSelection());
+            configuration.set(path + ".pendingRewardSelections", state.pendingRewardSelections());
         }
         try {
             configuration.save(this.storageFile);

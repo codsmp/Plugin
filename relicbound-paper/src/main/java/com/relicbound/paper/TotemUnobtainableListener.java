@@ -56,7 +56,7 @@ public final class TotemUnobtainableListener implements Listener {
         Inventory inventory = event.getInventory();
         boolean stripped = stripTotems(inventory);
         if (stripped && event.getPlayer() instanceof Player player) {
-            player.sendMessage(ChatColor.RED + "[Relicbound] Totems of Undying are disabled on this server.");
+            player.sendMessage(ChatColor.RED + "[Witch] Totems of Undying are disabled on this server.");
         }
     }
 
@@ -72,7 +72,7 @@ public final class TotemUnobtainableListener implements Listener {
             stripped = true;
         }
         if (stripped) {
-            player.sendMessage(ChatColor.RED + "[Relicbound] Totems of Undying are disabled on this server.");
+            player.sendMessage(ChatColor.RED + "[Witch] Totems of Undying are disabled on this server.");
         }
     }
 

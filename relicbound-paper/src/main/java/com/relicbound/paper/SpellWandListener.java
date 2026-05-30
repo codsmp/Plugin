@@ -131,6 +131,7 @@ public final class SpellWandListener implements Listener {
                 // slot empty, try to equip a starter
                 for (SpellDefinition candidate : this.core.allSpells()) {
                     if (candidate.requiredTier() != com.relicbound.core.model.RelicTier.TIER_1) continue;
+                    if ("bliss_egg".equals(candidate.id())) continue; // never auto-learn Bliss as a starter/repair
                     if (updated.equippedSpellIds().contains(candidate.id())) continue;
                     try {
                         // learn if necessary, then equip
@@ -152,6 +153,7 @@ public final class SpellWandListener implements Listener {
             // Unknown id: try to replace with a starter spell
             for (SpellDefinition candidate : this.core.allSpells()) {
                 if (candidate.requiredTier() != com.relicbound.core.model.RelicTier.TIER_1) continue;
+                if ("bliss_egg".equals(candidate.id())) continue; // never auto-learn Bliss as a starter/repair
                 if (updated.equippedSpellIds().contains(candidate.id())) continue;
                 try {
                     this.core.learnSpell(player.getUniqueId().toString(), candidate.id());
@@ -164,7 +166,7 @@ public final class SpellWandListener implements Listener {
         }
 
         if (changed) {
-            player.sendMessage(org.bukkit.ChatColor.AQUA + "[Relicbound] Repaired your equipped spells to a valid starter loadout.");
+            player.sendMessage(org.bukkit.ChatColor.AQUA + "[Witch] Repaired your equipped spells to a valid starter loadout.");
         }
         return updated;
     }

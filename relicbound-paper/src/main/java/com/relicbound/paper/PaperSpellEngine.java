@@ -1165,6 +1165,18 @@ public final class PaperSpellEngine {
         return true;
     }
 
+    public boolean isShadowVeiled(Player player) {
+        Long until = this.shadowVeilUntil.get(player.getUniqueId());
+        if (until == null) {
+            return false;
+        }
+        if (until <= System.currentTimeMillis()) {
+            this.shadowVeilUntil.remove(player.getUniqueId());
+            return false;
+        }
+        return true;
+    }
+
     private void shadowBurst(Player player, double damage, double range) {
         this.damageNearby(player, damage, range, false, true);
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, true, true, true));
@@ -1227,9 +1239,9 @@ public final class PaperSpellEngine {
             revealedPlayers++;
         }
         if (revealedPlayers > 0) {
-            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "You revealed " + ChatColor.YELLOW + revealedPlayers + ChatColor.WHITE + " untrusted player" + (revealedPlayers == 1 ? "" : "s") + ".");
+            player.sendMessage(ChatColor.AQUA + "[Witch] " + ChatColor.WHITE + "You revealed " + ChatColor.YELLOW + revealedPlayers + ChatColor.WHITE + " untrusted player" + (revealedPlayers == 1 ? "" : "s") + ".");
         } else {
-            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "No untrusted players were nearby to reveal.");
+            player.sendMessage(ChatColor.AQUA + "[Witch] " + ChatColor.WHITE + "No untrusted players were nearby to reveal.");
         }
         player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 20, range / 6.0D, 1.0, range / 6.0D, 0.15);
     }
@@ -1266,7 +1278,7 @@ public final class PaperSpellEngine {
                 continue;
             }
             player.getWorld().spawn(other.getLocation().add(0, 1.0D, 0), Allay.class, allay -> {
-                allay.setCustomName("Relic Echo");
+                allay.setCustomName("Witch Echo");
                 allay.setCustomNameVisible(true);
                 allay.setPersistent(false);
             });
@@ -1276,16 +1288,16 @@ public final class PaperSpellEngine {
         }
 
         if (revealedPlayers > 0) {
-            player.sendMessage(ChatColor.AQUA + "[Relicbound] " + ChatColor.WHITE + "Your echo points toward " + ChatColor.YELLOW + revealedPlayers + ChatColor.WHITE + " untrusted player" + (revealedPlayers == 1 ? "" : "s") + ".");
+            player.sendMessage(ChatColor.AQUA + "[Witch] " + ChatColor.WHITE + "Your echo points toward " + ChatColor.YELLOW + revealedPlayers + ChatColor.WHITE + " untrusted player" + (revealedPlayers == 1 ? "" : "s") + ".");
             return;
         }
 
         if (player.getWorld().spawn(player.getLocation().add(1, 0, 1), Allay.class, allay -> {
-            allay.setCustomName("Relic Echo");
+            allay.setCustomName("Witch Echo");
             allay.setCustomNameVisible(true);
             allay.setPersistent(false);
         }) != null) {
-            player.sendMessage(ChatColor.GRAY + "[Relicbound] No untrusted players were nearby.");
+            player.sendMessage(ChatColor.GRAY + "[Witch] No untrusted players were nearby.");
             player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation(), 18, 0.45, 0.65, 0.45, 0.05);
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ALLAY_AMBIENT_WITH_ITEM, 0.9F, 1.2F);
             return;
