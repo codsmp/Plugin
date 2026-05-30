@@ -9,6 +9,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class AnticheatService {
     private final JavaPlugin plugin;
@@ -20,6 +23,7 @@ public final class AnticheatService {
     private final com.relicbound.paper.anticheat.checks.CheckRegistry checkRegistry;
     private final com.relicbound.paper.anticheat.alerts.AlertService alertService;
     private final com.relicbound.paper.anticheat.announcements.AnnouncementService announcementService;
+    private final Map<UUID, Long> punishmentCooldownUntil = new ConcurrentHashMap<>();
     private volatile boolean enabled;
 
     public AnticheatService(JavaPlugin plugin) {
@@ -103,6 +107,10 @@ public final class AnticheatService {
             java.util.UUID pid = t.playerId();
             double totalVl = this.violationEngine.totalVl(pid);
             double conf = this.confidenceEngine.confidence(pid);
+            long cooldownUntil = this.punishmentCooldownUntil.getOrDefault(pid, 0L);
+            if (nowNanos < cooldownUntil) {
+                continue;
+            }
             if (this.config.punishments().enabled() && totalVl >= this.config.punishments().globalVlThreshold() && conf >= this.config.punishments().confidenceThreshold()) {
                 // perform punishment
                 String playerName = "(unknown)";
@@ -116,8 +124,10 @@ public final class AnticheatService {
                     this.alertService.alertStaff(playerName + " reached VL " + totalVl, "Confidence: " + conf);
                     this.announcementService.announcePunish(playerName, "VL:" + totalVl);
                 }
-                // reset VL for that player to avoid repeated actions
+                // reset VL and add a cooldown so the same offense cannot spam repeated kicks
                 this.violationEngine.state(pid).all().clear();
+                this.confidenceEngine.clear(pid);
+                this.punishmentCooldownUntil.put(pid, nowNanos + 60L * 1_000_000_000L);
             }
         }
     }

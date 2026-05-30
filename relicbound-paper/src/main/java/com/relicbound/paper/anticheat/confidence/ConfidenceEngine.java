@@ -19,6 +19,10 @@ public final class ConfidenceEngine {
         return this.state(playerId).confidence();
     }
 
+    public void clear(UUID playerId) {
+        this.states.remove(playerId);
+    }
+
     public void decayAll(long nowNanos, double ratePerSecond) {
         for (ConfidenceState state : this.states.values()) {
             state.decay(nowNanos, ratePerSecond);

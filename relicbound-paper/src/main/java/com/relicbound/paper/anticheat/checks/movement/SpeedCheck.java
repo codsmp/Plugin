@@ -25,11 +25,9 @@ public final class SpeedCheck extends AbstractCheck {
         MovementSnapshot latest = tracker.latestMovement();
         if (latest == null) return;
         double horiz = Math.hypot(latest.deltaX(), latest.deltaZ());
-        double allowed = player.isSprinting() ? 0.7D : 0.45D;
-        allowed += settings.buffer();
-        allowed *= 1.0D + (1.0D - service.config().general().tpsFloor());
+        double allowed = settings.threshold() + settings.buffer();
         if (horiz > allowed) {
-            double vl = Math.min(5.0D, (horiz - allowed) * 10.0D);
+            double vl = Math.min(5.0D, Math.max(0.5D, (horiz - allowed) * 2.0D));
             this.addViolation(service, playerId, vl, String.format("Speed exceeded: %.3f > %.3f", horiz, allowed), Map.of("horiz", String.valueOf(horiz), "allowed", String.valueOf(allowed)));
             service.confidence().addSignal(playerId, "speed", settings.confidenceWeight(), nowNanos);
         }

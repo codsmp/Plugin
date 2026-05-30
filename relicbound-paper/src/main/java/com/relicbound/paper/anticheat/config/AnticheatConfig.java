@@ -24,7 +24,7 @@ public record AnticheatConfig(
         checks.put("aimassist", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
         checks.put("autoclicker", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
         checks.put("velocity", new CheckSettings(true, 8.0D, 16.0D, 0.10D, 10.0D, 3, 0.35D, true));
-        checks.put("speed", new CheckSettings(true, 10.0D, 18.0D, 0.10D, 9.0D, 3, 0.35D, true));
+        checks.put("speed", new CheckSettings(true, 100.0D, 150.0D, 0.10D, 9.0D, 3, 0.0D, true));
         checks.put("fly", new CheckSettings(true, 12.0D, 24.0D, 0.12D, 14.0D, 2, 0.20D, true));
         checks.put("nofall", new CheckSettings(true, 8.0D, 16.0D, 0.08D, 8.0D, 3, 0.20D, false));
         checks.put("jesus", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
