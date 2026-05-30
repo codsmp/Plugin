@@ -476,7 +476,36 @@ public final class PaperSpellEngine {
             case STORM_CHARGES -> this.lightningCharges(player, spell, manaState);
             case CORRUPTION_LIFEDRAIN -> this.beginLifeDrain(player, spell, manaState);
             case DRAGON_EGG_BLISS -> this.dragonEggBliss(player, spell, scaledDurationTicks);
+            case MINERS_BLESSING -> this.minersBlessing(player, spell, manaState);
         }
+    }
+
+    private void minersBlessing(Player player, SpellDefinition spell, PlayerManaState manaState) {
+        boolean staff = manaState.archetype() == PlayerArchetype.STAFF;
+        int durationTicks;
+        int amplifier;
+        int cooldownSeconds;
+        if (staff) {
+            // Heavy wand / staff: Haste II for 15 seconds, cooldown 36s
+            durationTicks = 15 * 20;
+            amplifier = 1; // amplifier 1 -> Haste II
+            cooldownSeconds = 36;
+        } else {
+            // Fast wand: Haste I for 5 seconds, cooldown 9s
+            durationTicks = 5 * 20;
+            amplifier = 0; // amplifier 0 -> Haste I
+            cooldownSeconds = 9;
+        }
+
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, durationTicks, amplifier, true, true, true));
+        player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation().add(0, 1.0D, 0), 18, 0.35, 0.45, 0.35, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_HONEY_BOTTLE_DRINK, 0.9F, staff ? 0.85F : 1.1F);
+
+        // Override the cooldown set earlier by `cast` so archetypes get different windows
+        int cooldownTicks = Math.max(1, cooldownSeconds * 20);
+        long now = System.currentTimeMillis();
+        this.cooldowns.computeIfAbsent(player.getUniqueId(), ignored -> new HashMap<>())
+                .put(spell.id(), now + (cooldownTicks * 50L));
     }
 
     private void epicCastBurst(Player player, SpellDefinition spell, PlayerManaState manaState) {
