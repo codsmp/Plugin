@@ -19,23 +19,23 @@ public record AnticheatConfig(
 
     public static AnticheatConfig defaults() {
         Map<String, CheckSettings> checks = new LinkedHashMap<>();
-        checks.put("reach", new CheckSettings(true, 4.0D, 8.0D, 0.10D, 10.0D, 3, 0.0D, true));
-        checks.put("killaura", new CheckSettings(true, 4.0D, 9.0D, 0.08D, 12.0D, 3, 0.0D, true));
-        checks.put("aimassist", new CheckSettings(true, 3.5D, 8.0D, 0.06D, 8.0D, 3, 0.0D, false));
-        checks.put("autoclicker", new CheckSettings(true, 4.0D, 8.5D, 0.08D, 7.0D, 3, 0.0D, false));
-        checks.put("velocity", new CheckSettings(true, 4.0D, 8.0D, 0.10D, 10.0D, 3, 0.0D, true));
-        checks.put("speed", new CheckSettings(true, 4.0D, 8.0D, 0.10D, 9.0D, 3, 0.0D, true));
-        checks.put("fly", new CheckSettings(true, 4.5D, 10.0D, 0.12D, 14.0D, 2, 0.0D, true));
-        checks.put("nofall", new CheckSettings(true, 4.0D, 8.0D, 0.08D, 8.0D, 3, 0.0D, false));
-        checks.put("jesus", new CheckSettings(true, 3.5D, 7.0D, 0.08D, 8.0D, 3, 0.0D, false));
-        checks.put("step", new CheckSettings(true, 3.5D, 7.0D, 0.08D, 7.0D, 3, 0.0D, false));
-        checks.put("spider", new CheckSettings(true, 4.0D, 8.0D, 0.08D, 8.0D, 3, 0.0D, false));
-        checks.put("timer", new CheckSettings(true, 4.0D, 8.0D, 0.10D, 10.0D, 3, 0.0D, true));
-        checks.put("phase", new CheckSettings(true, 4.0D, 8.0D, 0.06D, 10.0D, 3, 0.0D, true));
-        checks.put("fastbreak", new CheckSettings(true, 4.0D, 8.5D, 0.08D, 8.0D, 3, 0.0D, false));
-        checks.put("nuker", new CheckSettings(true, 4.0D, 8.5D, 0.08D, 8.0D, 3, 0.0D, false));
-        checks.put("scaffold", new CheckSettings(true, 4.0D, 8.0D, 0.08D, 8.0D, 3, 0.0D, true));
-        checks.put("interaction", new CheckSettings(true, 3.5D, 7.0D, 0.08D, 6.0D, 3, 0.0D, false));
+        checks.put("reach", new CheckSettings(true, 8.5D, 16.0D, 0.10D, 10.0D, 3, 0.25D, true));
+        checks.put("killaura", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("aimassist", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("autoclicker", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("velocity", new CheckSettings(true, 8.0D, 16.0D, 0.10D, 10.0D, 3, 0.35D, true));
+        checks.put("speed", new CheckSettings(true, 10.0D, 18.0D, 0.10D, 9.0D, 3, 0.35D, true));
+        checks.put("fly", new CheckSettings(true, 12.0D, 24.0D, 0.12D, 14.0D, 2, 0.20D, true));
+        checks.put("nofall", new CheckSettings(true, 8.0D, 16.0D, 0.08D, 8.0D, 3, 0.20D, false));
+        checks.put("jesus", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("step", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("spider", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("timer", new CheckSettings(true, 8.0D, 16.0D, 0.10D, 10.0D, 3, 0.25D, true));
+        checks.put("phase", new CheckSettings(true, 10.0D, 20.0D, 0.06D, 10.0D, 3, 0.25D, true));
+        checks.put("fastbreak", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("nuker", new CheckSettings(true, 10.0D, 20.0D, 0.08D, 8.0D, 3, 0.25D, false));
+        checks.put("scaffold", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
+        checks.put("interaction", new CheckSettings(false, 0.0D, 0.0D, 0.0D, 0.0D, 0, 0.0D, false));
 
         return new AnticheatConfig(
                 true,
@@ -43,7 +43,7 @@ public record AnticheatConfig(
                 new AlertSettings(true, 3, true, "witchsmp.anticheat.alerts"),
                 new AnnouncementSettings(true, 85.0D, 30, true, "", "⚡ Witch SMP Anticheat ⚡"),
                 new LoggingSettings(true, true, true, true, true),
-                new PunishmentSettings(true, PunishmentAction.KICK, 90.0D, "minecraft:kick {player} Cheating detected by Witch SMP Anticheat.", "", "", 90),
+                new PunishmentSettings(true, PunishmentAction.KICK, 99.0D, "minecraft:kick {player} Cheating detected by Witch SMP Anticheat.", "", "", 160),
                 new TrackingSettings(64, 64, 64, 32, 48),
                 checks
         );
