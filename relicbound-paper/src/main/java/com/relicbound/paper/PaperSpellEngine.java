@@ -61,6 +61,8 @@ public final class PaperSpellEngine {
     private final Map<UUID, Long> noFallUntil = new HashMap<>();
     private final Map<UUID, Long> shadowVeilUntil = new HashMap<>();
     private final Map<UUID, Long> rootBindUntil = new HashMap<>();
+    private final Map<UUID, java.util.ArrayDeque<LocationSnapshot>> movementHistory = new HashMap<>();
+    private BukkitTask movementTrackerTask;
     private final Map<UUID, Location> blissReturnLocations = new HashMap<>();
     private final PlayerTrustStore trustStore;
     private final NamespacedKey spellStrengthBypassKey;
@@ -208,6 +210,17 @@ public final class PaperSpellEngine {
         this.core = core;
         this.trustStore = trustStore;
         this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
+        // Start sampling player movement for rewind spells (sample every 2 ticks, keep last 5 seconds)
+        this.movementTrackerTask = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+            long now = System.currentTimeMillis();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                java.util.ArrayDeque<LocationSnapshot> dq = this.movementHistory.computeIfAbsent(p.getUniqueId(), k -> new java.util.ArrayDeque<>());
+                dq.addLast(new LocationSnapshot(p.getLocation().clone(), now));
+                while (!dq.isEmpty() && now - dq.peekFirst().time > 5000L) {
+                    dq.removeFirst();
+                }
+            }
+        }, 1L, 2L);
     }
 
     // Bliss return helpers used by lifecycle listeners
@@ -1104,16 +1117,59 @@ public final class PaperSpellEngine {
     }
 
     private void rewind(Player player, double range, int durationTicks) {
-        Location start = player.getLocation().clone();
-        double health = player.getHealth();
-        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-            if (player.isOnline()) {
-                player.teleport(start);
-                double maxHealth = this.maxHealth(player);
-                player.setHealth(Math.min(maxHealth, health + 1.0D));
-                player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 40, 0.7, 0.9, 0.7, 0.2);
+        // Rewind up to the last 5 seconds of sampled movement, replaying it in reverse to return the caster along their path.
+        java.util.ArrayDeque<LocationSnapshot> dq = this.movementHistory.get(player.getUniqueId());
+        if (dq == null || dq.isEmpty()) {
+            player.sendActionBar(ChatColor.RED + "No recent movement to rewind.");
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        java.util.List<LocationSnapshot> snaps = new java.util.ArrayList<>();
+        for (LocationSnapshot s : dq) {
+            if (now - s.time <= 5000L) {
+                snaps.add(s);
             }
-        }, Math.max(20, durationTicks));
+        }
+
+        if (snaps.isEmpty()) {
+            player.sendActionBar(ChatColor.RED + "No recent movement to rewind.");
+            return;
+        }
+
+        // Reverse the list so we teleport back along the path
+        java.util.Collections.reverse(snaps);
+
+        int intervalTicks = 2; // match sampling interval
+        int idx = 0;
+        for (LocationSnapshot s : snaps) {
+            final Location dest = s.loc.clone();
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+                if (!player.isOnline()) return;
+                try {
+                    if (dest.getBlock().isPassable()) {
+                        player.teleport(dest);
+                    }
+                } catch (Throwable t) {
+                    // teleport may fail if chunk unloaded; ignore
+                }
+            }, idx * intervalTicks);
+            idx++;
+        }
+
+        // Play visual/sound effects
+        player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 40, 0.7, 0.9, 0.7, 0.2);
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.9F, 1.0F);
+    }
+
+    private static final class LocationSnapshot {
+        final Location loc;
+        final long time;
+
+        LocationSnapshot(Location loc, long time) {
+            this.loc = loc;
+            this.time = time;
+        }
     }
 
     private void timeSlow(Player player, double damage, double range, int durationTicks) {
