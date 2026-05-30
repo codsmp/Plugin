@@ -45,10 +45,6 @@ commands:
     description: Start or manage global no-damage grace period.
     usage: /graceperiod [status|stop]
     permission: witch.admin.grace
-  ac:
-    description: Witch anticheat admin commands.
-    usage: /ac <debug|violations|reload>
-    permission: witch.admin.debug
 permissions:
   witch.command.info:
     default: true

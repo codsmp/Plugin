@@ -55,7 +55,6 @@ import java.io.IOException;
 public final class PaperSpellEngine {
     private final JavaPlugin plugin;
     private final RelicboundCore core;
-    private final com.relicbound.paper.anticheat.AnticheatService anticheatService;
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
     private final Map<UUID, BukkitTask> channelTasks = new HashMap<>();
     private final Map<UUID, LifeDrainSession> lifeDrainSessions = new HashMap<>();
@@ -205,14 +204,9 @@ public final class PaperSpellEngine {
             }
 
     public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore) {
-        this(plugin, core, trustStore, null);
-    }
-
-    public PaperSpellEngine(JavaPlugin plugin, RelicboundCore core, PlayerTrustStore trustStore, com.relicbound.paper.anticheat.AnticheatService anticheatService) {
         this.plugin = plugin;
         this.core = core;
         this.trustStore = trustStore;
-        this.anticheatService = anticheatService;
         this.spellStrengthBypassKey = new NamespacedKey(plugin, "spell_strength_bypass");
     }
 
@@ -1186,11 +1180,6 @@ public final class PaperSpellEngine {
     }
 
     private void markAbilityGrace(Player player, long ticks) {
-        if (this.anticheatService == null || player == null) {
-            return;
-        }
-        long until = System.nanoTime() + Math.max(1L, ticks) * 50_000_000L;
-        this.anticheatService.registry().getOrCreate(player).markAbilityGrace(until);
     }
 
     private void shadowBurst(Player player, double damage, double range) {
